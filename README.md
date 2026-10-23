@@ -88,6 +88,31 @@ http://127.0.0.1:8000
 
 ---
 
+## 🎯 Fine-Tuning AXOM with Unsloth (Coding & Chatting)
+
+You can train your own customized weights for AXOM using **Unsloth (QLoRA 4-bit)** to excel at programming and conversational reasoning.
+
+### 📊 Dataset Recipe (Balanced Dual Engine)
+1. **Coding Knowledge (~47%)**: 2,000 curated programming tasks from `sahil2801/CodeAlpaca-20k` covering Python, JavaScript, algorithms, bug fixes, and software architecture.
+2. **Conversational Reasoning (~47%)**: 2,000 multi-turn dialogues and reasoning challenges from `mlabonne/FineTome-100k`.
+3. **AXOM Identity (~6%)**: Clean grounding that AXOM is created by Abiral and runs locally on your HP OMEN laptop, without drowning out coding accuracy.
+
+### 🚀 How to Train:
+1. Open Google Colab in your browser and load:
+   `G:\My Drive\Colab Notebooks\Axom.ipynb`
+2. Ensure hardware accelerator is set to **T4 GPU** (`Runtime -> Change runtime type -> T4 GPU`).
+3. Click **Runtime -> Run all**.
+4. The notebook installs Unsloth, downloads the datasets, fine-tunes with response loss masking in ~15 minutes, evaluates test prompts, and exports GGUF (`Q4_K_M`) to `G:\My Drive\AXOM_Model\`.
+
+### 📥 How to Import Your Trained Model to Desktop:
+Once training is done, double-click:
+```bat
+Import_Trained_Model.bat
+```
+This automatically links the newly exported GGUF file from your Google Drive into your local Ollama library under `axom-chat`. The next time you run `Start_AXOM.bat`, your website will immediately use your newly trained model!
+
+---
+
 ## 🔄 How to Change or Add Models Later
 
 AXOM's backend dynamically queries all models installed in your local Ollama library.
