@@ -21,9 +21,9 @@ Write-Host " -> HTTP Status: $($page.StatusCode)"
 Write-Host " -> Page Title:  $($titleMatch.Groups[1].Value)"
 
 # Test 4: Single-Turn Chat
-Write-Host "`n[Test 4] Testing Single-turn chat with axom-chat..."
+Write-Host "`n[Test 4] Testing Single-turn chat with axomv1:4b..."
 $payload1 = @{
-    model = "axom-chat"
+    model = "axomv1:4b"
     messages = @(
         @{ role = "user"; content = "Who are you and what makes you unique?" }
     )
@@ -36,7 +36,7 @@ Write-Host " -> Response:`n$($reply1.message.content)"
 # Test 5: Multi-Turn Conversation
 Write-Host "`n[Test 5] Testing Multi-turn chat (context memory)..."
 $payload2 = @{
-    model = "axom-chat"
+    model = "axomv1:4b"
     messages = @(
         @{ role = "user"; content = "Remember this secret code: OMEN-5060-TITAN" },
         @{ role = "assistant"; content = "I have recorded your secret code: OMEN-5060-TITAN." },

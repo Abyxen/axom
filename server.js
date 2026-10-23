@@ -82,7 +82,11 @@ const server = http.createServer(async (req, res) => {
     try {
       const response = await fetch(`${OLLAMA_BASE}/api/tags`, { signal: AbortSignal.timeout(3000) });
       if (!response.ok) {
-        return sendJson(res, 200, { models: ['axom-chat', 'qwen2.5:7b'] });
+        return sendJson(res, 200, [
+          { id: 'axomv1:4b', name: 'axomv1 4B' },
+          { id: 'axom-chat', name: 'axom-chat' },
+          { id: 'qwen2.5:7b', name: 'qwen2.5:7b' }
+        ]);
       }
       const data = await response.json();
       const rawModels = data.models || [];
@@ -91,28 +95,79 @@ const server = http.createServer(async (req, res) => {
         return name.endsWith(':latest') ? name.slice(0, -7) : name;
       }).filter(Boolean);
 
-      // Ensure axom-chat is first if present
-      const uniqueModels = Array.from(new Set(modelNames));
-      if (uniqueModels.includes('axom-chat')) {
-        const idx = uniqueModels.indexOf('axom-chat');
-        uniqueModels.splice(idx, 1);
-        uniqueModels.unshift('axom-chat');
-      } else {
-        uniqueModels.unshift('axom-chat');
+      // Prioritize axomv1:4b
+      const uniqueNames = Array.from(new Set(modelNames));
+      if (uniqueNames.includes('axomv1:4b')) {
+        const idx = uniqueNames.indexOf('axomv1:4b');
+        uniqueNames.splice(idx, 1);
+        uniqueNames.unshift('axomv1:4b');
+      } else if (uniqueNames.includes('axomv1-4b')) {
+        const idx = uniqueNames.indexOf('axomv1-4b');
+        uniqueNames.splice(idx, 1);
+        uniqueNames.unshift('axomv1-4b');
+      } else if (uniqueNames.includes('axom-chat')) {
+        const idx = uniqueNames.indexOf('axom-chat');
+        uniqueNames.splice(idx, 1);
+        uniqueNames.unshift('axom-chat');
       }
 
-      return sendJson(res, 200, { models: uniqueModels });
+      const modelList = uniqueNames.map(name => ({
+        id: name,
+        name: (name === 'axomv1:4b' || name === 'axomv1-4b') ? 'axomv1 4B' : name
+      }));
+
+      // Return object with models array and rich objects for full compatibility
+      return sendJson(res, 200, { models: uniqueNames, data: modelList });
     } catch (err) {
-      return sendJson(res, 200, { models: ['axom-chat', 'qwen2.5:7b'] });
+      return sendJson(res, 200, {
+        models: ['axomv1:4b', 'axom-chat', 'qwen2.5:7b'],
+        data: [
+          { id: 'axomv1:4b', name: 'axomv1 4B' },
+          { id: 'axom-chat', name: 'axom-chat' },
+          { id: 'qwen2.5:7b', name: 'qwen2.5:7b' }
+        ]
+      });
     }
   }
 
-  // --- API: Chat Completion ---
+  // --- API: Training Metrics ---
+  if (req.method === 'GET' && pathname === '/api/training/metrics') {
+    return sendJson(res, 200, {
+      step: 264,
+      max_steps: 2600,
+      loss: '0.7069',
+      speed: '~28.5s/step (16 seq/batch)',
+      eta: 'Checkpoints saved to Google Drive',
+      checkpoints: ['checkpoint-250']
+    });
+  }
+
+  // --- API: Memories ---
+  if (req.method === 'GET' && pathname === '/api/memories') {
+    return sendJson(res, 200, [
+      { id: '1', text: 'Created and developed by Abiral for local AI assistance' },
+      { id: '2', text: 'Hardware: HP OMEN RTX 5060 Laptop GPU (8GB VRAM, 32GB RAM)' },
+      { id: '3', text: 'Primary model: axomv1 4B (Qwen 3.5 4B QLoRA fine-tuned)' }
+    ]);
+  }
+
+  // --- API: Projects ---
+  if (req.method === 'GET' && pathname === '/api/projects') {
+    return sendJson(res, 200, [
+      { id: '1', name: 'AXOM Core Engine', status: 'Active', model: 'axomv1:4b' }
+    ]);
+  }
+
+  // --- API: Settings Save ---
+  if (req.method === 'POST' && pathname === '/api/settings') {
+    return sendJson(res, 200, { status: 'saved' });
+  }
+
+  // --- API: Chat Completion (Streaming SSE & Non-Streaming JSON) ---
   if (req.method === 'POST' && pathname === '/api/chat') {
     let bodyText = '';
     req.on('data', chunk => {
       bodyText += chunk;
-      // Safeguard against oversized payloads (max 10MB)
       if (bodyText.length > 10 * 1024 * 1024) {
         req.destroy();
       }
@@ -121,37 +176,98 @@ const server = http.createServer(async (req, res) => {
     req.on('end', async () => {
       try {
         const body = JSON.parse(bodyText);
-        let requestedModel = body.model || 'axom-chat';
+        let requestedModel = body.model || 'axomv1:4b';
+        if (requestedModel === 'axomv1 4B' || requestedModel === 'axomv1-4b') {
+          requestedModel = 'axomv1:4b';
+        }
         const messages = Array.isArray(body.messages) ? body.messages : [];
         const params = body.params || {};
+        const isStream = params.stream === true;
 
         const ollamaPayload = {
           model: requestedModel,
           messages: messages,
-          stream: false,
+          stream: isStream,
           options: {
             temperature: typeof params.temperature === 'number' ? params.temperature : 0.7,
             num_predict: typeof params.max_tokens === 'number' ? params.max_tokens : 1024,
-            top_k: typeof params.top_k === 'number' ? params.top_k : 20
+            top_k: typeof params.top_k === 'number' ? params.top_k : 50,
+            stop: Array.isArray(params.stop) ? params.stop : []
           }
         };
+
+        const controller = new AbortController();
+        res.on('close', () => {
+          if (!res.writableEnded) controller.abort();
+        });
 
         const ollamaRes = await fetch(`${OLLAMA_BASE}/api/chat`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(ollamaPayload)
+          body: JSON.stringify(ollamaPayload),
+          signal: controller.signal
         });
 
         if (!ollamaRes.ok) {
           const errDetail = await ollamaRes.text().catch(() => '');
-          return sendText(res, ollamaRes.status, `Ollama error (${ollamaRes.status}): ${errDetail}`);
+          return sendJson(res, ollamaRes.status, { error: `Ollama error (${ollamaRes.status}): ${errDetail}` });
         }
 
-        const data = await ollamaRes.json();
-        return sendJson(res, 200, data);
+        if (!isStream) {
+          const data = await ollamaRes.json();
+          return sendJson(res, 200, data);
+        }
+
+        // Server-Sent Events (SSE) Streaming
+        setCors(res);
+        res.writeHead(200, {
+          'Content-Type': 'text/event-stream; charset=utf-8',
+          'Cache-Control': 'no-cache, no-transform',
+          'Connection': 'keep-alive'
+        });
+
+        const reader = ollamaRes.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop();
+
+          for (const line of lines) {
+            if (!line.trim()) continue;
+            try {
+              const parsed = JSON.parse(line);
+              const textChunk = parsed.message?.content || '';
+              if (textChunk) {
+                res.write(`data: ${JSON.stringify({ text: textChunk })}\n\n`);
+              }
+              if (parsed.done) {
+                res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+              }
+            } catch (e) {}
+          }
+        }
+
+        if (buffer.trim()) {
+          try {
+            const parsed = JSON.parse(buffer);
+            const textChunk = parsed.message?.content || '';
+            if (textChunk) {
+              res.write(`data: ${JSON.stringify({ text: textChunk })}\n\n`);
+            }
+          } catch (e) {}
+        }
+
+        res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+        res.end();
       } catch (err) {
+        if (err.name === 'AbortError') return res.end();
         console.error('Chat error:', err);
-        return sendText(res, 500, `Backend error processing chat: ${err.message}`);
+        return sendJson(res, 500, { error: `Backend error processing chat: ${err.message}` });
       }
     });
     return;

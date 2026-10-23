@@ -44,11 +44,14 @@ if not exist "%DRIVE_MODEL_DIR%" (
     exit /b 1
 )
 
-:: Search for exported GGUF file
+:: Search for exported GGUF file (excluding multimodal projectors)
 set "GGUF_FILE="
 for /r "%DRIVE_MODEL_DIR%" %%f in (*.gguf) do (
-    set "GGUF_FILE=%%f"
-    goto :found_gguf
+    echo %%f | findstr /i "mmproj" >nul
+    if errorlevel 1 (
+        set "GGUF_FILE=%%f"
+        goto :found_gguf
+    )
 )
 
 :found_gguf

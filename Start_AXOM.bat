@@ -84,6 +84,8 @@ echo    Ollama Service: Connected (http://127.0.0.1:11434)
 echo [*] Checking model availability...
 set "MODEL_FOUND=0"
 for /f "tokens=1" %%m in ('"%OLLAMA_CMD%" list 2^>nul') do (
+    if "%%m"=="axomv1:4b" set "MODEL_FOUND=1"
+    if "%%m"=="axomv1-4b:latest" set "MODEL_FOUND=1"
     if "%%m"=="axom-chat:latest" set "MODEL_FOUND=1"
     if "%%m"=="axom-chat" set "MODEL_FOUND=1"
 )
@@ -98,7 +100,7 @@ if !MODEL_FOUND! equ 0 (
         "%OLLAMA_CMD%" create axom-chat -f Modelfile
     )
 )
-echo    AXOM Model: Ready (axom-chat / Qwen 2.5 7B)
+echo    AXOM Model: Ready (axomv1 4B / Fine-Tuned Qwen 3.5 4B)
 
 :: 5. Start the AXOM Backend
 echo [*] Starting AXOM Backend server...
@@ -142,7 +144,7 @@ echo  ==============================================================
 echo     AXOM IS ONLINE AND READY
 echo  ==============================================================
 echo    Web App:   http://127.0.0.1:8000
-echo    Model:     axom-chat (Qwen 2.5 7B - Local GPU)
+echo    Model:     axomv1 4B (Fine-Tuned Qwen 3.5 4B - Local GPU)
 echo    Hardware:  NVIDIA RTX 5060 Laptop GPU (CUDA Acceleration)
 echo.
 echo    Keep this window open while using AXOM.
