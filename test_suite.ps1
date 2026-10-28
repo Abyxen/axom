@@ -103,7 +103,8 @@ $cleanupPayload = @{
     actions = @(
         @{ action = "DELETE"; key = "current_project" },
         @{ action = "DELETE"; key = "favorite_language" },
-        @{ action = "DELETE"; key = "active_project" }
+        @{ action = "DELETE"; key = "active_project" },
+        @{ action = "DELETE"; key = "current_os_project" }
     )
 } | ConvertTo-Json -Depth 5
 Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/memory/actions" -Method Post -Body $cleanupPayload -ContentType "application/json" > $null
