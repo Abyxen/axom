@@ -196,9 +196,28 @@
 
 ---
 
+### 10. Memory Context Framing Refinement & Test Isolation
+- **Date:** October 28, 2026
+- **What Was Done:**
+  - Diagnosed and resolved an issue where AXOM proactively assumed an agenda on simple greetings (e.g. asking about "Zenith OS" when user said "hi").
+  - Pruned synthetic test artifacts from `user_profile_memory` and isolated automated test suites.
+  - Anchored core identity directives (`AXOM, created and developed by Abiral`) in the injected system context.
+- **How It Was Implemented:**
+  - In `db.js` (`formatProfileContext`):
+    - Re-framed memory instructions from imperative ("Respect and adhere to these parameters across all responses") to passive reference ("Treat this as PASSIVE BACKGROUND REFERENCE. Do NOT force, recite, or proactively bring up past projects unless directly relevant").
+    - Explicitly instructed the model that for greetings ("hi", "hello"), it must respond naturally, concisely, and without assuming unprompted agendas.
+    - Anchored the primary creator identity prompt directly in the top header of `profileContext` so Ollama system-message overrides do not erase the creator identity.
+  - In `test_suite.ps1`:
+    - Added an automated database teardown phase at the end of the test suite that deletes temporary test keys (`active_project`, `favorite_language`) and cleans synthetic test session logs.
+- **Why It Was Done:**
+  - Smaller models (4B parameters) take system prompt directives very literally. If instructed to "adhere across all responses", they force past projects into casual greetings.
+  - Automated tests must never contaminate the user's authentic daily chat profile.
+
+---
+
 ## 🔮 Active & Upcoming Work
 
-### 10. Periodic LoRA Fine-Tuning Pipeline (Neural Weight Evolution)
+### 11. Periodic LoRA Fine-Tuning Pipeline (Neural Weight Evolution)
 - **Goal:** Periodically bake long-term conversational data directly into updated neural weights (`axom:1.2`, `axom:1.3`).
 - **Architecture Strategy:**
   1. Export curated `chat_logs` into Alpaca / ShareGPT JSONL training datasets.

@@ -174,8 +174,13 @@ function formatProfileContext(memoryRows = null) {
   }
 
   const lines = [
-    '# [PERMANENT USER PROFILE & LONG-TERM MEMORY]',
-    'The following established facts, preferences, and technical parameters have been extracted from previous interactions. Respect and adhere to these parameters across all responses:',
+    '# CORE IDENTITY & SYSTEM DIRECTIVE',
+    'You are AXOM, an advanced independent local AI assistant created and developed by Abiral.',
+    'Always remember that your creator and developer is Abiral.',
+    'If asked who created you, who made you, or what your identity is, state clearly and proudly that you are AXOM, created and developed by Abiral.',
+    '',
+    '# [BACKGROUND USER PROFILE & PASSIVE MEMORY]',
+    'The following facts, preferences, and context represent background reference knowledge about the user:',
   ];
 
   for (const [category, items] of Object.entries(categories)) {
@@ -183,7 +188,12 @@ function formatProfileContext(memoryRows = null) {
     lines.push(...items);
   }
 
-  lines.push('# [END PERMANENT MEMORY]\n');
+  lines.push('');
+  lines.push('OPERATIONAL USAGE RULES:');
+  lines.push('1. Use this information as PASSIVE BACKGROUND REFERENCE. Do NOT force, recite, or proactively bring up past projects, tech stacks, or specific facts unless directly relevant to what the user is currently asking.');
+  lines.push('2. If the user gives a greeting (e.g. "hi", "hello") or an open-ended statement, greet them naturally, helpfully, and concisely without assuming an agenda or mentioning background projects unprompted.');
+  lines.push('3. When the user asks technical questions, write code, or requests assistance, subtly align with their known preferences and environment.');
+  lines.push('# [END BACKGROUND MEMORY]\n');
   return lines.join('\n');
 }
 

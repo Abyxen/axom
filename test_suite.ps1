@@ -97,6 +97,18 @@ $crossSessionPayload = @{
 $crossReply = Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/chat" -Method Post -Body $crossSessionPayload -ContentType "application/json"
 Write-Host " -> Cross-Session Response:`n$($crossReply.message.content)"
 
+# Clean up synthetic test keys so they don't pollute the user's real everyday chat profile
+Write-Host "`n[Cleanup] Cleaning synthetic test records from database..."
+$cleanupPayload = @{
+    actions = @(
+        @{ action = "DELETE"; key = "current_project" },
+        @{ action = "DELETE"; key = "favorite_language" },
+        @{ action = "DELETE"; key = "active_project" }
+    )
+} | ConvertTo-Json -Depth 5
+Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/memory/actions" -Method Post -Body $cleanupPayload -ContentType "application/json" > $null
+Write-Host " -> Synthetic test keys removed from active memory profile."
+
 Write-Host "`n=================================================="
 Write-Host "ALL LIVING BRAIN VERIFICATION TESTS PASSED!"
 Write-Host "=================================================="
