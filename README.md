@@ -168,7 +168,8 @@ Verify that your NVIDIA RTX 5060 Laptop GPU is processing inference:
 C:\Users\abira\Documents\axom\
 ├── index.html        # AXOM responsive web interface (HTML, CSS, JS)
 ├── server.js         # Zero-dependency local backend & API adapter (Node.js)
-├── Modelfile         # Ollama model definition & persona for axom-chat
+├── Modelfile         # Ollama model definition & persona for axom:1.1
+├── PROJECT_LOG.md    # Master architectural & engineering log (What, How, Why)
 ├── Start_AXOM.bat    # One-click Windows startup script
 ├── Stop_AXOM.bat     # Clean shutdown script
 ├── test_suite.ps1    # Automated verification test suite
