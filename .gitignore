@@ -3,6 +3,12 @@
 models/
 model_backup/
 
+# Databases and local storage
+*.db
+*.db-journal
+*.sqlite
+data/*.db
+
 # Node dependencies and logs
 node_modules/
 npm-debug.log*

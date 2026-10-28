@@ -1,11 +1,16 @@
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
+const db = require('./db');
+const reviewer = require('./memory_reviewer');
 
 const PORT = 8000;
 const HOST = '127.0.0.1';
 const OLLAMA_BASE = 'http://127.0.0.1:11434';
 const PUBLIC_DIR = __dirname;
+
+// Initialize Component A database
+db.initDatabase();
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -57,7 +62,8 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 200, {
           status: 'ok',
           service: 'AXOM Backend',
-          ollama: 'connected'
+          ollama: 'connected',
+          database: 'connected (SQLite)'
         });
       } else {
         return sendJson(res, 503, {
@@ -85,6 +91,79 @@ const server = http.createServer(async (req, res) => {
     });
   }
 
+  // --- API: Memories & Permanent Profile State ---
+  if (req.method === 'GET' && (pathname === '/api/memories' || pathname === '/api/memory/profile')) {
+    const rows = db.getAllProfileMemory();
+    if (pathname === '/api/memory/profile') {
+      return sendJson(res, 200, {
+        count: rows.length,
+        profile: rows,
+        snapshot: db.getProfileSnapshot(),
+        context_block: db.formatProfileContext(rows)
+      });
+    }
+
+    // Friendly array format for UI
+    return sendJson(res, 200, rows.map((r, i) => ({
+      id: String(i + 1),
+      key: r.key,
+      value: r.value,
+      category: r.category,
+      confidence: r.confidence_score,
+      reasoning: r.reasoning,
+      text: `[${r.category}] ${r.key}: ${r.value}`
+    })));
+  }
+
+  // --- API: Manual Memory Mutation ---
+  if (req.method === 'POST' && pathname === '/api/memory/actions') {
+    let bodyText = '';
+    req.on('data', chunk => { bodyText += chunk; });
+    req.on('end', () => {
+      try {
+        const body = JSON.parse(bodyText);
+        const actions = Array.isArray(body.actions) ? body.actions : [body];
+        const stats = db.applyMemoryActions(actions, body.session_id, body.summary);
+        return sendJson(res, 200, { success: true, stats, current_memory: db.getAllProfileMemory() });
+      } catch (err) {
+        return sendJson(res, 400, { error: err.message });
+      }
+    });
+    return;
+  }
+
+  // --- API: Trigger Session Review (Component C) ---
+  if (req.method === 'POST' && pathname === '/api/sessions/review') {
+    let bodyText = '';
+    req.on('data', chunk => { bodyText += chunk; });
+    req.on('end', async () => {
+      try {
+        const body = bodyText ? JSON.parse(bodyText) : {};
+        const sessionId = body.session_id || 'default_session';
+        const model = body.model || 'axom:1.1';
+        const result = await reviewer.triggerSessionReviewNow(sessionId, model, OLLAMA_BASE);
+        return sendJson(res, 200, result);
+      } catch (err) {
+        return sendJson(res, 500, { error: err.message });
+      }
+    });
+    return;
+  }
+
+  // --- API: List All Sessions ---
+  if (req.method === 'GET' && pathname === '/api/sessions') {
+    const sessions = db.getAllSessions();
+    return sendJson(res, 200, { count: sessions.length, sessions });
+  }
+
+  // --- API: Get Session Transcript ---
+  if (req.method === 'GET' && pathname.startsWith('/api/sessions/') && pathname.endsWith('/transcript')) {
+    const parts = pathname.split('/');
+    const sessId = decodeURIComponent(parts[3]);
+    const transcript = db.getSessionTranscript(sessId);
+    return sendJson(res, 200, { session_id: sessId, count: transcript.length, transcript });
+  }
+
   // --- API: Training Metrics ---
   if (req.method === 'GET' && pathname === '/api/training/metrics') {
     return sendJson(res, 200, {
@@ -99,16 +178,6 @@ const server = http.createServer(async (req, res) => {
       eta: 'Checkpoints saved to Google Drive & Local Storage',
       checkpoints: ['checkpoint-250']
     });
-  }
-
-  // --- API: Memories ---
-  if (req.method === 'GET' && pathname === '/api/memories') {
-    return sendJson(res, 200, [
-      { id: '1', text: 'Created and developed by Abiral for local AI assistance' },
-      { id: '2', text: 'Hardware: HP OMEN RTX 5060 Laptop GPU (8GB VRAM, 32GB RAM)' },
-      { id: '3', text: 'Primary model: Axom 1.1 (Qwen 3.5 4B Uncensored)' },
-      { id: '4', text: 'Training dataset: 4,364 examples (500,490 words, 27 domains)' }
-    ]);
   }
 
   // --- API: Projects ---
@@ -136,14 +205,45 @@ const server = http.createServer(async (req, res) => {
     req.on('end', async () => {
       try {
         const body = JSON.parse(bodyText);
-        let requestedModel = 'axom:1.1';
+        const requestedModel = 'axom:1.1';
+        const sessionId = body.session_id || 'default_session';
         const messages = Array.isArray(body.messages) ? body.messages : [];
         const params = body.params || {};
         const isStream = params.stream === true;
 
+        // COMPONENT A: Log incoming user message to raw chat logs
+        const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
+        if (lastUserMsg && lastUserMsg.content) {
+          db.logChatMessage(sessionId, 'user', lastUserMsg.content);
+        }
+
+        // COMPONENT B: SESSION DATA INJECTION
+        // Query user_profile_memory for active keys and format into context block
+        const profileContext = db.formatProfileContext();
+
+        const formattedMessages = [];
+        let systemInjected = false;
+
+        for (const msg of messages) {
+          if (msg.role === 'system') {
+            formattedMessages.push({
+              role: 'system',
+              content: `${profileContext}\n\n${msg.content}`
+            });
+            systemInjected = true;
+          } else {
+            formattedMessages.push({ role: msg.role, content: msg.content });
+          }
+        }
+
+        if (!systemInjected && profileContext) {
+          formattedMessages.unshift({
+            role: 'system',
+            content: profileContext
+          });
+        }
+
         // Fast response optimization: bypass slow reasoning monologue
-        // by appending an assistant turn prefix with closed thinking tag
-        const formattedMessages = [...messages];
         if (formattedMessages.length > 0 && formattedMessages[formattedMessages.length - 1].role === 'user') {
           formattedMessages.push({ role: 'assistant', content: '</think>' });
         }
@@ -179,12 +279,21 @@ const server = http.createServer(async (req, res) => {
 
         if (!isStream) {
           const data = await ollamaRes.json();
-          if (data.message?.content) {
-            data.message.content = data.message.content.replace(/^<\/think>\s*/i, '');
+          let finalReply = data.message?.content || '';
+          finalReply = finalReply.replace(/^<\/think>\s*/i, '');
+          if (!finalReply && data.message?.thinking) {
+            finalReply = data.message.thinking;
           }
-          if (data.message && !data.message.content && data.message.thinking) {
-            data.message.content = data.message.thinking;
+          if (data.message) {
+            data.message.content = finalReply;
           }
+
+          // COMPONENT A & C: Log assistant message and schedule reviewer
+          if (finalReply) {
+            db.logChatMessage(sessionId, 'assistant', finalReply);
+            reviewer.scheduleSessionReview(sessionId, 15000, requestedModel, OLLAMA_BASE);
+          }
+
           return sendJson(res, 200, data);
         }
 
@@ -202,6 +311,7 @@ const server = http.createServer(async (req, res) => {
         let hasContent = false;
         let gatheredThinking = '';
         let isFirstChunk = true;
+        let fullAssistantReply = '';
 
         while (true) {
           const { done, value } = await reader.read();
@@ -225,10 +335,12 @@ const server = http.createServer(async (req, res) => {
               }
               if (textChunk) {
                 hasContent = true;
+                fullAssistantReply += textChunk;
                 res.write(`data: ${JSON.stringify({ text: textChunk })}\n\n`);
               }
               if (parsed.done) {
                 if (!hasContent && gatheredThinking) {
+                  fullAssistantReply = gatheredThinking;
                   res.write(`data: ${JSON.stringify({ text: gatheredThinking })}\n\n`);
                 }
                 res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
@@ -251,19 +363,28 @@ const server = http.createServer(async (req, res) => {
             }
             if (textChunk) {
               hasContent = true;
+              fullAssistantReply += textChunk;
               res.write(`data: ${JSON.stringify({ text: textChunk })}\n\n`);
             }
             if (parsed.done && !hasContent && gatheredThinking) {
+              fullAssistantReply = gatheredThinking;
               res.write(`data: ${JSON.stringify({ text: gatheredThinking })}\n\n`);
             }
           } catch (e) {}
         }
 
         if (!hasContent && gatheredThinking) {
+          fullAssistantReply = gatheredThinking;
           res.write(`data: ${JSON.stringify({ text: gatheredThinking })}\n\n`);
         }
         res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
         res.end();
+
+        // COMPONENT A & C: Log assistant message and schedule reviewer
+        if (fullAssistantReply) {
+          db.logChatMessage(sessionId, 'assistant', fullAssistantReply);
+          reviewer.scheduleSessionReview(sessionId, 15000, requestedModel, OLLAMA_BASE);
+        }
       } catch (err) {
         if (err.name === 'AbortError') return res.end();
         console.error('Chat error:', err);
@@ -316,6 +437,7 @@ server.listen(PORT, HOST, () => {
   console.log(`⚡ AXOM Local Backend running at:`);
   console.log(`   http://${HOST}:${PORT}`);
   console.log(`   Connected to Ollama at: ${OLLAMA_BASE}`);
+  console.log(`   Living Brain Architecture: ACTIVE`);
   console.log(`=========================================`);
 
   // Pre-load Axom 1.1 into GPU VRAM

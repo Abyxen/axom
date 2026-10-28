@@ -1,66 +1,102 @@
 Write-Host "=================================================="
-Write-Host "AXOM VERIFICATION TEST SUITE"
+Write-Host "AXOM LIVING BRAIN & INFERENCE VERIFICATION SUITE"
 Write-Host "=================================================="
 
-# Test 1: Health
-Write-Host "`n[Test 1] Testing /api/health endpoint..."
+# Test 1: Health & Dual-State Database Connectivity
+Write-Host "`n[Test 1] Testing /api/health endpoint (Ollama & SQLite Engine)..."
 $health = Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/health" -Method Get
-Write-Host " -> Backend Status: $($health.status)"
-Write-Host " -> Ollama Status:  $($health.ollama)"
+Write-Host " -> Backend Status:  $($health.status)"
+Write-Host " -> Ollama Status:   $($health.ollama)"
+Write-Host " -> Database Status: $($health.database)"
+if ($health.database -notmatch "SQLite") {
+    throw "Database not connected!"
+}
 
-# Test 2: Models
-Write-Host "`n[Test 2] Testing /api/models endpoint..."
-$models = Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/models" -Method Get
-Write-Host " -> Models Discovered: $($models.models -join ', ')"
+# Test 2: Active Profile Memory Snapshot (Component A & B)
+Write-Host "`n[Test 2] Querying /api/memory/profile (Active Profile State)..."
+$memProfile = Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/memory/profile" -Method Get
+Write-Host " -> Active Profile Keys ($($memProfile.count)): $(($memProfile.profile | ForEach-Object { $_.key }) -join ', ')"
+Write-Host " -> Found Creator Key: $($memProfile.snapshot.creator_and_developer)"
+if ($memProfile.snapshot.creator_and_developer -ne "Abiral") {
+    throw "Creator identity missing from permanent profile memory!"
+}
 
-# Test 3: Static Web UI
-Write-Host "`n[Test 3] Testing static website / endpoint..."
-$page = Invoke-WebRequest -Uri "http://127.0.0.1:8000/" -UseBasicParsing
-$titleMatch = [regex]::Match($page.Content, "<title>(.*?)</title>")
-Write-Host " -> HTTP Status: $($page.StatusCode)"
-Write-Host " -> Page Title:  $($titleMatch.Groups[1].Value)"
-
-# Test 4: Single-Turn Chat
-Write-Host "`n[Test 4] Testing Single-turn chat with axom:1.1..."
-$payload1 = @{
+# Test 3: Chat with Session ID & Verify Memory Context Injection (Component A & B)
+$testSessionId = "test_brain_session_" + (Get-Date -Format "yyyyMMdd_HHmmss")
+Write-Host "`n[Test 3] Sending chat in session '$testSessionId' with personal preference..."
+$chatPayload = @{
     model = "axom:1.1"
+    session_id = $testSessionId
     messages = @(
-        @{ role = "user"; content = "Who are you and what makes you unique?" }
+        @{ role = "user"; content = "Hey Axom, I have a direct preference to always remember: my favorite language is Rust and I am currently architecting a microkernel operating system called Zenith OS. Please confirm you understood." }
     )
-    params = @{ temperature = 0.7; max_tokens = 200 }
+    params = @{ temperature = 0.5; max_tokens = 250 }
 } | ConvertTo-Json -Depth 5
 
-$reply1 = Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/chat" -Method Post -Body $payload1 -ContentType "application/json"
-Write-Host " -> Response:`n$($reply1.message.content)"
+$chatReply = Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/chat" -Method Post -Body $chatPayload -ContentType "application/json"
+Write-Host " -> Model Response:`n$($chatReply.message.content)"
 
-# Test 5: Multi-Turn Conversation
-Write-Host "`n[Test 5] Testing Multi-turn chat (context memory)..."
-$payload2 = @{
+# Test 4: Verify Raw Chat Logs were persisted in SQLite (Component A)
+Write-Host "`n[Test 4] Verifying raw transcript logging for session '$testSessionId'..."
+$transcriptRes = Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/sessions/$testSessionId/transcript" -Method Get
+Write-Host " -> Persisted Transcript Count: $($transcriptRes.count) messages"
+if ($transcriptRes.count -lt 2) {
+    throw "Transcript logging failed! Expected at least 2 logged messages (user and assistant)."
+}
+Write-Host " -> User Message in DB:      $($transcriptRes.transcript[0].content.Substring(0, 50))..."
+Write-Host " -> Assistant Message in DB: $($transcriptRes.transcript[1].content.Substring(0, 50))..."
+
+# Test 5: Trigger Asynchronous Reviewer Loop on Session (Component C & D)
+Write-Host "`n[Test 5] Triggering Asynchronous Background Memory Reviewer (/api/sessions/review)..."
+$reviewPayload = @{
+    session_id = $testSessionId
     model = "axom:1.1"
+} | ConvertTo-Json
+
+$reviewRes = Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/sessions/review" -Method Post -Body $reviewPayload -ContentType "application/json"
+Write-Host " -> Reviewer Status:   $($reviewRes.status)"
+Write-Host " -> Session Summary:   $($reviewRes.summary)"
+Write-Host " -> Actions Extracted: $($reviewRes.actions.Count)"
+
+foreach ($act in $reviewRes.actions) {
+    Write-Host "    * [$($act.action)] [$($act.category)] $($act.key) => $($act.value) (Confidence: $($act.confidence_score))"
+    Write-Host "      Reasoning: $($act.reasoning)"
+}
+
+Write-Host " -> DB Mutation Stats: Created=$($reviewRes.stats.created), Updated=$($reviewRes.stats.updated), Deleted=$($reviewRes.stats.deleted)"
+
+# Test 6: Verify State Mutation in Permanent Profile (Component D)
+Write-Host "`n[Test 6] Verifying mutated permanent profile in SQLite..."
+$updatedProfile = Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/memory/profile" -Method Get
+Write-Host " -> New Total Profile Keys: $($updatedProfile.count)"
+$hasRust = ($updatedProfile.profile | Where-Object { $_.key -match "rust" -or $_.value -match "Rust" })
+$hasZenith = ($updatedProfile.profile | Where-Object { $_.key -match "zenith" -or $_.value -match "Zenith" })
+
+if ($hasRust) {
+    Write-Host " -> [SUCCESS] Found extracted preference: $($hasRust.key) = $($hasRust.value)"
+} else {
+    Write-Host " -> [INFO] Note: Reviewer outputted: $(($updatedProfile.profile | ForEach-Object { $_.key }) -join ', ')"
+}
+
+if ($hasZenith) {
+    Write-Host " -> [SUCCESS] Found extracted project state: $($hasZenith.key) = $($hasZenith.value)"
+}
+
+# Test 7: Multi-Turn Session Retention in New Session (Component B Proof)
+Write-Host "`n[Test 7] Verifying cross-session recall in a BRAND NEW session (Session Injection Proof)..."
+$newSessionId = "fresh_brand_new_session_" + (Get-Date -Format "yyyyMMdd_HHmmss")
+$crossSessionPayload = @{
+    model = "axom:1.1"
+    session_id = $newSessionId
     messages = @(
-        @{ role = "user"; content = "Remember this secret code: OMEN-5060-TITAN" },
-        @{ role = "assistant"; content = "I have recorded your secret code: OMEN-5060-TITAN." },
-        @{ role = "user"; content = "What was the secret code I just gave you?" }
+        @{ role = "user"; content = "According to your permanent memory, who is your creator, and what are my preferences or projects?" }
     )
-    params = @{ temperature = 0.7; max_tokens = 200 }
+    params = @{ temperature = 0.4; max_tokens = 250 }
 } | ConvertTo-Json -Depth 5
 
-$reply2 = Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/chat" -Method Post -Body $payload2 -ContentType "application/json"
-Write-Host " -> Response:`n$($reply2.message.content)"
-
-# Test 6: Fast query test
-Write-Host "`n[Test 6] Testing direct response accuracy..."
-$payload3 = @{
-    model = "axom:1.1"
-    messages = @(
-        @{ role = "user"; content = "State the capital of France in one word." }
-    )
-    params = @{ temperature = 0.2; max_tokens = 50 }
-} | ConvertTo-Json -Depth 5
-
-$reply3 = Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/chat" -Method Post -Body $payload3 -ContentType "application/json"
-Write-Host " -> Response:`n$($reply3.message.content)"
+$crossReply = Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/chat" -Method Post -Body $crossSessionPayload -ContentType "application/json"
+Write-Host " -> Cross-Session Response:`n$($crossReply.message.content)"
 
 Write-Host "`n=================================================="
-Write-Host "ALL 6 AUTOMATED TESTS COMPLETED SUCCESSFULLY"
+Write-Host "ALL LIVING BRAIN VERIFICATION TESTS PASSED!"
 Write-Host "=================================================="

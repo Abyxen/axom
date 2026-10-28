@@ -250,6 +250,7 @@ const Axom={
         signal,
         body:JSON.stringify({
           model:S.model,
+          session_id:S.cur||'default_session',
           messages:messages.map(m=>({role:m.role,content:m.ctx?m.ctx+'\n\n'+m.text:m.text})),
           params:{...S.gen, ...effortParams, stop:String(S.gen.stop||'').split(',').map(x=>x.trim()).filter(Boolean), stream: true}
         })
@@ -564,7 +565,7 @@ async function fetchSettingsData(){
 async function settings(tab='account'){
   await fetchSettingsData();
   $('.set-ov')?.remove();const o=document.createElement('div');o.className='ov set-ov';
-  const tabs=['account','appearance','generation','training','about'].map(t=>`<button class="${t===tab?'on':''}" data-tab="${t}">${t}</button>`).join('');
+  const tabs=['account','brain','appearance','generation','training','about'].map(t=>`<button class="${t===tab?'on':''}" data-tab="${t}">${t}</button>`).join('');
   const pane={
    account:`<div class="set">
      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
@@ -578,6 +579,26 @@ async function settings(tab='account'){
        <strong>Role:</strong> Model Creator & System Architect<br>
        <strong>Environment:</strong> Local Hardware Acceleration (RTX 5060 GPU)<br>
        <strong>Neural Engine:</strong> Axom Unified Neural Core Active (Axom v1.1)
+     </div>
+   </div>`,
+   brain:`<div class="set">
+     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+       <div>
+         <strong style="color:var(--tx);font-size:13px">Persistent Long-Term Memory</strong>
+         <small style="color:var(--acid);font-family:'JetBrains Mono',monospace;display:block">DUAL-STATE SQLITE BRAIN</small>
+       </div>
+       <button id="btn-review-memory" class="btn pri" style="padding:5px 9px;font-size:9px">Review Session Now</button>
+     </div>
+     <div style="max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:6px">
+       ${activeMemories && activeMemories.length ? activeMemories.map(m => `
+         <div style="background:var(--surf);border:1px solid var(--bd);padding:8px 10px;font-size:11px">
+           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+             <span style="font-family:'JetBrains Mono',monospace;color:var(--ac);font-weight:600">${esc(m.key || 'fact')}</span>
+             <span style="font-size:9px;color:var(--tx3);background:var(--elev);padding:1px 5px">${esc(m.category || 'general')}</span>
+           </div>
+           <div style="color:var(--tx);line-height:1.4">${esc(m.value || m.text)}</div>
+         </div>
+       `).join('') : '<div style="color:var(--tx3);font-size:11px">No persistent memories recorded yet.</div>'}
      </div>
    </div>`,
    appearance:`<div class="set"><label for="th">Color Theme<small>Choose dark, light, or follow your OS preference.</small></label><div class="ctl"><select id="th"><option value="dark">Dark</option><option value="light">Light</option><option value="system">System</option></select></div></div><div class="set"><label><span>Enter sends message<small>When off, press Ctrl+Enter to send.</small></span><input type="checkbox" id="ent" ${S.enterSends?'checked':''}></label></div>`,
@@ -610,6 +631,20 @@ async function settings(tab='account'){
     const t=e.target;
     if(t===o||t.closest('[data-close]'))return o.remove();
     if(t.dataset.tab)settings(t.dataset.tab);
+    if(t.id==='btn-review-memory'){
+      t.disabled=true;t.textContent='Reviewing...';
+      try{
+        await fetch('/api/sessions/review',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({session_id:S.cur||'default_session'})
+        });
+        await fetchSettingsData();
+        settings('brain');
+      }catch(err){
+        t.disabled=false;t.textContent='Review Failed';
+      }
+    }
   };
   o.oninput=e=>{const t=e.target,g=t.dataset.g;
     if(g){const v=t.type==='number'||t.type==='range'?+t.value:t.value;S.gen[g]=v;$$(`[data-g="${g}"]`,o).forEach(x=>{if(x!==t)x.value=v})}

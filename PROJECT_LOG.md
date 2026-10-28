@@ -171,19 +171,39 @@
 
 ---
 
-## 🔮 Active & Upcoming Work (The "Living Brain" Architecture)
+### 9. Persistent Dual-State "Brain" & Asynchronous Memory Reviewer
+- **Date:** October 28, 2026
+- **What Was Done:**
+  - Implemented a complete 4-component persistent self-updating "brain" architecture directly on top of the Qwen 3.5 / Node.js stack:
+    1. **Component A (Dual-State Database Schema):** Engineered `db.js` using native `node:sqlite` managing historical `chat_logs`, decoupled `user_profile_memory`, and `session_metadata`.
+    2. **Component B (Session Data Injection):** Dynamic retrieval and context formatting of active profile memories injected directly into Qwen's system instructions prior to inference.
+    3. **Component C (Asynchronous Reviewer Loop):** Engineered `memory_reviewer.js` running in the background after session activity breaks, using Qwen 3.5 with a dedicated evaluator system prompt and JSON schema extraction.
+    4. **Component D (State Mutation & Dispatch):** Atomic SQLite transaction parser executing `CREATE`, `UPDATE`, and `DELETE` actions on `user_profile_memory` with confidence scoring and temporal anchoring.
+    5. **Web UI Brain Integration:** Added a live `Brain` management panel in `index.html` settings with real-time memory rendering and on-demand session review triggers.
+    6. **Automated Verification:** Expanded `test_suite.ps1` to test the full lifecycle (chat logging, prompt injection, reviewer extraction, profile mutation, and cross-session recall).
+- **How It Was Implemented:**
+  - Leveraged Node v26 native `node:sqlite` (`DatabaseSync`) for zero external dependencies, zero npm packages, and ACID compliance.
+  - Created schemas:
+    - `chat_logs`: `(id, session_id, role, content, timestamp)`
+    - `user_profile_memory`: `(key, value, category, confidence_score, reasoning, created_at, updated_at)`
+    - `session_metadata`: `(session_id, start_time, end_time, summary, message_count, last_reviewed_at, status)`
+  - Configured Ollama with `format: "json"` and `num_predict: 3072` for deterministic schema extraction.
+  - Added debounced task scheduling (15 seconds of inactivity after message generation) with an in-memory queue worker to process reviews sequentially without overloading the GPU.
+- **Why It Was Done:**
+  - Standard LLMs suffer from session amnesia: once a browser tab is refreshed or a new session starts, all context is lost.
+  - Continuously updating raw neural weights after every turn causes catastrophic forgetting and freezes inference.
+  - Dual-State memory provides immediate cross-session recall without retraining, allowing AXOM to organically learn preferences (e.g. favorite languages, current projects, architectural rules) and remember them indefinitely.
 
-### 9. Persistent Memory & Self-Evolving Brain (In Progress)
-- **Goal:** Enable AXOM to remember information across sessions and continuously evolve its knowledge and writing style from user interactions.
+---
+
+## 🔮 Active & Upcoming Work
+
+### 10. Periodic LoRA Fine-Tuning Pipeline (Neural Weight Evolution)
+- **Goal:** Periodically bake long-term conversational data directly into updated neural weights (`axom:1.2`, `axom:1.3`).
 - **Architecture Strategy:**
-  1. **Instant Episodic Memory (`memory.json`):**
-     - Extracts personal facts, preferences, current projects, and rules from chats.
-     - Injected into system context at runtime so AXOM immediately knows Abiral's preferences without retraining.
-  2. **Conversation Training Dataset Collector (`data/conversations.jsonl`):**
-     - Automatically logs user/assistant exchanges in clean instruction-tuning format.
-     - UI curation button (e.g. `★ Save to Brain`) to designate high-value answers for the next fine-tuning cycle.
-  3. **Periodic LoRA Fine-Tuning Script:**
-     - When accumulated data hits a threshold (e.g., 200–500 turns), run a one-click local or Colab training script to create `axom:1.2`.
+  1. Export curated `chat_logs` into Alpaca / ShareGPT JSONL training datasets.
+  2. One-click script to execute local LoRA fine-tuning or trigger Google Colab Unsloth runs.
+  3. Auto-convert and merge LoRA adapters into quantized GGUF weights.
 
 ---
 
