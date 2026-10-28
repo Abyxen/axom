@@ -233,9 +233,21 @@
 
 ---
 
+### 12. Greeting Brevity & Crisp Phrasing Calibration
+- **Date:** October 28, 2026
+- **What Was Done:**
+  - Calibrated initial conversational greeting phrasing to deliver the exact crisp, friendly tone requested by the user: *"Hi! What would you like to work on?"*.
+- **How It Was Implemented:**
+  - In `db.js` (`formatProfileContext`) and `Modelfile`:
+    - Updated behavior directive 1 to: *"When the user greets you with a simple greeting (e.g. 'hi', 'hello', 'hey'), reply with a brief, friendly greeting such as: 'Hi! What would you like to work on?' or 'Hello! How can I help you today?' Keep initial greetings short, clean, and inviting—never ramble or give paragraphs of introductory filler."*
+- **Why It Was Done:**
+  - While verbose greetings are friendly, modern conversational assistants (like ChatGPT) shine when initial greetings are concise, punchy, and invite immediate collaboration rather than reciting a paragraph of introductory filler.
+
+---
+
 ## 🔮 Active & Upcoming Work
 
-### 12. Periodic LoRA Fine-Tuning Pipeline (Neural Weight Evolution)
+### 13. Periodic LoRA Fine-Tuning Pipeline (Neural Weight Evolution)
 - **Goal:** Periodically bake long-term conversational data directly into updated neural weights (`axom:1.2`, `axom:1.3`).
 - **Architecture Strategy:**
   1. Export curated `chat_logs` into Alpaca / ShareGPT JSONL training datasets.
