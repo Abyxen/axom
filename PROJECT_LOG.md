@@ -215,9 +215,27 @@
 
 ---
 
+### 11. Conversational Tone Alignment: Modern AI Persona (ChatGPT / Claude Style)
+- **Date:** October 28, 2026
+- **What Was Done:**
+  - Upgraded AXOM's conversational demeanor from a blunt command-line terminal to an articulate, warm, thoughtful, and highly capable conversational AI companion modeled after ChatGPT and Claude.
+- **How It Was Implemented:**
+  - In `Modelfile` and `db.js` (`formatProfileContext`):
+    - Replaced the previous minimalist "zero-fluff" directive with a full **Conversational Intelligence Directive**:
+      1. *Conversational, Warm & Approachable:* Welcoming on greetings ("Hello! How can I help you today?"), polite, engaging, and pleasant to speak with.
+      2. *Direct Yet In-Depth:* Dives straight into comprehensive explanations with rich Markdown formatting (bullet points, bold text, clear section headers, typed code blocks).
+      3. *Proactive & Helpful:* Offers thoughtful suggestions, follow-up ideas, and guidance without being robotic.
+  - In SQLite `user_profile_memory`:
+    - Updated `preferred_communication_style` to: *"Conversational, articulate, warm, thoughtful, and highly capable (ChatGPT/Claude style) with clean markdown formatting"*.
+- **Why It Was Done:**
+  - The previous "zero-fluff" directive caused the model to produce cold, terse, single-line terminal replies ("Ready when you are.") that felt unnatural.
+  - Users expect an AI assistant to behave like modern LLM companions (ChatGPT, Claude, Gemini)—warm, intelligent, engaging, and insightful.
+
+---
+
 ## 🔮 Active & Upcoming Work
 
-### 11. Periodic LoRA Fine-Tuning Pipeline (Neural Weight Evolution)
+### 12. Periodic LoRA Fine-Tuning Pipeline (Neural Weight Evolution)
 - **Goal:** Periodically bake long-term conversational data directly into updated neural weights (`axom:1.2`, `axom:1.3`).
 - **Architecture Strategy:**
   1. Export curated `chat_logs` into Alpaca / ShareGPT JSONL training datasets.
