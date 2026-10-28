@@ -79,65 +79,24 @@ const server = http.createServer(async (req, res) => {
 
   // --- API: Model Listing ---
   if (req.method === 'GET' && pathname === '/api/models') {
-    try {
-      const response = await fetch(`${OLLAMA_BASE}/api/tags`, { signal: AbortSignal.timeout(3000) });
-      if (!response.ok) {
-        return sendJson(res, 200, [
-          { id: 'axomv1:4b', name: 'axomv1 4B' },
-          { id: 'axom-chat', name: 'axom-chat' },
-          { id: 'qwen2.5:7b', name: 'qwen2.5:7b' }
-        ]);
-      }
-      const data = await response.json();
-      const rawModels = data.models || [];
-      const modelNames = rawModels.map(m => {
-        let name = m.name || m.model || '';
-        return name.endsWith(':latest') ? name.slice(0, -7) : name;
-      }).filter(Boolean);
-
-      // Prioritize axomv1:4b
-      const uniqueNames = Array.from(new Set(modelNames));
-      if (uniqueNames.includes('axomv1:4b')) {
-        const idx = uniqueNames.indexOf('axomv1:4b');
-        uniqueNames.splice(idx, 1);
-        uniqueNames.unshift('axomv1:4b');
-      } else if (uniqueNames.includes('axomv1-4b')) {
-        const idx = uniqueNames.indexOf('axomv1-4b');
-        uniqueNames.splice(idx, 1);
-        uniqueNames.unshift('axomv1-4b');
-      } else if (uniqueNames.includes('axom-chat')) {
-        const idx = uniqueNames.indexOf('axom-chat');
-        uniqueNames.splice(idx, 1);
-        uniqueNames.unshift('axom-chat');
-      }
-
-      const modelList = uniqueNames.map(name => ({
-        id: name,
-        name: (name === 'axomv1:4b' || name === 'axomv1-4b') ? 'axomv1 4B' : name
-      }));
-
-      // Return object with models array and rich objects for full compatibility
-      return sendJson(res, 200, { models: uniqueNames, data: modelList });
-    } catch (err) {
-      return sendJson(res, 200, {
-        models: ['axomv1:4b', 'axom-chat', 'qwen2.5:7b'],
-        data: [
-          { id: 'axomv1:4b', name: 'axomv1 4B' },
-          { id: 'axom-chat', name: 'axom-chat' },
-          { id: 'qwen2.5:7b', name: 'qwen2.5:7b' }
-        ]
-      });
-    }
+    return sendJson(res, 200, {
+      models: ['axom:1.1'],
+      data: [{ id: 'axom:1.1', name: 'Axom v1.1' }]
+    });
   }
 
   // --- API: Training Metrics ---
   if (req.method === 'GET' && pathname === '/api/training/metrics') {
     return sendJson(res, 200, {
+      model: 'Axom 1.1 (Qwen 3.5 4B Uncensored Fine-Tuned)',
+      dataset_examples: 4364,
+      dataset_words: 500490,
+      dataset_status: 'Complete (500,490 words generated)',
       step: 264,
       max_steps: 2600,
       loss: '0.7069',
       speed: '~28.5s/step (16 seq/batch)',
-      eta: 'Checkpoints saved to Google Drive',
+      eta: 'Checkpoints saved to Google Drive & Local Storage',
       checkpoints: ['checkpoint-250']
     });
   }
@@ -147,14 +106,15 @@ const server = http.createServer(async (req, res) => {
     return sendJson(res, 200, [
       { id: '1', text: 'Created and developed by Abiral for local AI assistance' },
       { id: '2', text: 'Hardware: HP OMEN RTX 5060 Laptop GPU (8GB VRAM, 32GB RAM)' },
-      { id: '3', text: 'Primary model: axomv1 4B (Qwen 3.5 4B QLoRA fine-tuned)' }
+      { id: '3', text: 'Primary model: Axom 1.1 (Qwen 3.5 4B Uncensored)' },
+      { id: '4', text: 'Training dataset: 4,364 examples (500,490 words, 27 domains)' }
     ]);
   }
 
   // --- API: Projects ---
   if (req.method === 'GET' && pathname === '/api/projects') {
     return sendJson(res, 200, [
-      { id: '1', name: 'AXOM Core Engine', status: 'Active', model: 'axomv1:4b' }
+      { id: '1', name: 'AXOM Core Engine', status: 'Active', model: 'axom:1.1' }
     ]);
   }
 
@@ -176,21 +136,25 @@ const server = http.createServer(async (req, res) => {
     req.on('end', async () => {
       try {
         const body = JSON.parse(bodyText);
-        let requestedModel = body.model || 'axomv1:4b';
-        if (requestedModel === 'axomv1 4B' || requestedModel === 'axomv1-4b') {
-          requestedModel = 'axomv1:4b';
-        }
+        let requestedModel = 'axom:1.1';
         const messages = Array.isArray(body.messages) ? body.messages : [];
         const params = body.params || {};
         const isStream = params.stream === true;
 
+        // Fast response optimization: bypass slow reasoning monologue
+        // by appending an assistant turn prefix with closed thinking tag
+        const formattedMessages = [...messages];
+        if (formattedMessages.length > 0 && formattedMessages[formattedMessages.length - 1].role === 'user') {
+          formattedMessages.push({ role: 'assistant', content: '</think>' });
+        }
+
         const ollamaPayload = {
           model: requestedModel,
-          messages: messages,
+          messages: formattedMessages,
           stream: isStream,
           options: {
             temperature: typeof params.temperature === 'number' ? params.temperature : 0.7,
-            num_predict: typeof params.max_tokens === 'number' ? params.max_tokens : 1024,
+            num_predict: Math.max(typeof params.max_tokens === 'number' ? params.max_tokens : 1024, 2048),
             top_k: typeof params.top_k === 'number' ? params.top_k : 50,
             stop: Array.isArray(params.stop) ? params.stop : []
           }
@@ -215,6 +179,12 @@ const server = http.createServer(async (req, res) => {
 
         if (!isStream) {
           const data = await ollamaRes.json();
+          if (data.message?.content) {
+            data.message.content = data.message.content.replace(/^<\/think>\s*/i, '');
+          }
+          if (data.message && !data.message.content && data.message.thinking) {
+            data.message.content = data.message.thinking;
+          }
           return sendJson(res, 200, data);
         }
 
@@ -229,6 +199,9 @@ const server = http.createServer(async (req, res) => {
         const reader = ollamaRes.body.getReader();
         const decoder = new TextDecoder();
         let buffer = '';
+        let hasContent = false;
+        let gatheredThinking = '';
+        let isFirstChunk = true;
 
         while (true) {
           const { done, value } = await reader.read();
@@ -241,11 +214,23 @@ const server = http.createServer(async (req, res) => {
             if (!line.trim()) continue;
             try {
               const parsed = JSON.parse(line);
-              const textChunk = parsed.message?.content || '';
+              if (parsed.message?.thinking) {
+                gatheredThinking += parsed.message.thinking;
+                res.write(`data: ${JSON.stringify({ type: 'think', text: parsed.message.thinking })}\n\n`);
+              }
+              let textChunk = parsed.message?.content || '';
+              if (isFirstChunk && textChunk) {
+                textChunk = textChunk.replace(/^<\/think>\s*/i, '');
+                if (textChunk) isFirstChunk = false;
+              }
               if (textChunk) {
+                hasContent = true;
                 res.write(`data: ${JSON.stringify({ text: textChunk })}\n\n`);
               }
               if (parsed.done) {
+                if (!hasContent && gatheredThinking) {
+                  res.write(`data: ${JSON.stringify({ text: gatheredThinking })}\n\n`);
+                }
                 res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
               }
             } catch (e) {}
@@ -255,13 +240,28 @@ const server = http.createServer(async (req, res) => {
         if (buffer.trim()) {
           try {
             const parsed = JSON.parse(buffer);
-            const textChunk = parsed.message?.content || '';
+            if (parsed.message?.thinking) {
+              gatheredThinking += parsed.message.thinking;
+              res.write(`data: ${JSON.stringify({ type: 'think', text: parsed.message.thinking })}\n\n`);
+            }
+            let textChunk = parsed.message?.content || '';
+            if (isFirstChunk && textChunk) {
+              textChunk = textChunk.replace(/^<\/think>\s*/i, '');
+              if (textChunk) isFirstChunk = false;
+            }
             if (textChunk) {
+              hasContent = true;
               res.write(`data: ${JSON.stringify({ text: textChunk })}\n\n`);
+            }
+            if (parsed.done && !hasContent && gatheredThinking) {
+              res.write(`data: ${JSON.stringify({ text: gatheredThinking })}\n\n`);
             }
           } catch (e) {}
         }
 
+        if (!hasContent && gatheredThinking) {
+          res.write(`data: ${JSON.stringify({ text: gatheredThinking })}\n\n`);
+        }
         res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
         res.end();
       } catch (err) {
@@ -317,4 +317,11 @@ server.listen(PORT, HOST, () => {
   console.log(`   http://${HOST}:${PORT}`);
   console.log(`   Connected to Ollama at: ${OLLAMA_BASE}`);
   console.log(`=========================================`);
+
+  // Pre-load Axom 1.1 into GPU VRAM
+  fetch(`${OLLAMA_BASE}/api/generate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: 'axom:1.1', keep_alive: -1 })
+  }).catch(() => {});
 });

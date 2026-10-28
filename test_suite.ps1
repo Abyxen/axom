@@ -21,9 +21,9 @@ Write-Host " -> HTTP Status: $($page.StatusCode)"
 Write-Host " -> Page Title:  $($titleMatch.Groups[1].Value)"
 
 # Test 4: Single-Turn Chat
-Write-Host "`n[Test 4] Testing Single-turn chat with axomv1:4b..."
+Write-Host "`n[Test 4] Testing Single-turn chat with axom:1.1..."
 $payload1 = @{
-    model = "axomv1:4b"
+    model = "axom:1.1"
     messages = @(
         @{ role = "user"; content = "Who are you and what makes you unique?" }
     )
@@ -36,7 +36,7 @@ Write-Host " -> Response:`n$($reply1.message.content)"
 # Test 5: Multi-Turn Conversation
 Write-Host "`n[Test 5] Testing Multi-turn chat (context memory)..."
 $payload2 = @{
-    model = "axomv1:4b"
+    model = "axom:1.1"
     messages = @(
         @{ role = "user"; content = "Remember this secret code: OMEN-5060-TITAN" },
         @{ role = "assistant"; content = "I have recorded your secret code: OMEN-5060-TITAN." },
@@ -48,10 +48,10 @@ $payload2 = @{
 $reply2 = Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/chat" -Method Post -Body $payload2 -ContentType "application/json"
 Write-Host " -> Response:`n$($reply2.message.content)"
 
-# Test 6: Switching model
-Write-Host "`n[Test 6] Testing model switching to qwen2.5:7b..."
+# Test 6: Fast query test
+Write-Host "`n[Test 6] Testing direct response accuracy..."
 $payload3 = @{
-    model = "qwen2.5:7b"
+    model = "axom:1.1"
     messages = @(
         @{ role = "user"; content = "State the capital of France in one word." }
     )

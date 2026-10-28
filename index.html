@@ -229,7 +229,7 @@ const Axom={
       Axom.connected=true;
       const data=await r.json();
       const list = Array.isArray(data) ? data : (data.models || []);
-      return list.map(m=>typeof m === 'string' ? { id: m, name: (m==='axomv1:4b'||m==='axomv1-4b') ? 'axomv1 4B' : m } : m);
+      return list.map(m=>typeof m === 'string' ? { id: m, name: (m==='axom:1.1'||m==='axom:latest') ? 'Axom v1.1' : m } : m);
     }catch(e){
       Axom.connected=false;
       return [];
@@ -270,7 +270,7 @@ const Axom={
 
 /* ---- state ---- */
 const D=864e5,MAXF=24000;
-let S={convs:[],cur:null,api:'',model:'axomv1:4b',theme:'dark',col:false,enterSends:true,effort:'fast',gen:{temperature:.7,top_k:50,max_tokens:512,seed:-1,stop:'',stream:true}};
+let S={convs:[],cur:null,api:'',model:'axom:1.1',theme:'dark',col:false,enterSends:true,effort:'fast',gen:{temperature:.7,top_k:50,max_tokens:512,seed:-1,stop:'',stream:true}};
 try{const j=JSON.parse(localStorage.getItem('axom-v2'));if(j)S={...S,...j,gen:{...S.gen,...j.gen}}}catch(e){}
 if(!S.effort) S.effort = 'fast';
 const save=()=>{try{localStorage.setItem('axom-v2',JSON.stringify(S))}catch(e){}};
@@ -304,7 +304,7 @@ function sideHTML(){
   return h||`<div style="padding:20px 10px;color:var(--tx3);font-family:'JetBrains Mono',monospace;font-size:11px">${q?'No matches.':'No conversations yet.'}</div>`}
 
 function shell(){
-  const modelOptions = (models.length ? models : [{id:'axomv1:4b',name:'axomv1 4B'},{id:'axom-chat',name:'axom-chat'}]).map(m=>`<option value="${esc(m.id)}" ${m.id===S.model?'selected':''}>${esc(m.name||m.id)}</option>`).join('');
+  const modelOptions = (models.length ? models : [{id:'axom:1.1',name:'Axom v1.1'}]).map(m=>`<option value="${esc(m.id)}" ${m.id===S.model?'selected':''}>${esc(m.name||m.id)}</option>`).join('');
 
   $('#app').innerHTML=`<aside class="side ${S.col?'col':''}" id="side" aria-label="Conversations">
   <button class="logo-btn" data-act="gohome" title="Go to Home / New Chat">
@@ -577,7 +577,7 @@ async function settings(tab='account'){
      <div style="padding:10px 12px;background:var(--surf);border:1px solid var(--bd);font-size:12px;color:var(--tx2);line-height:1.6">
        <strong>Role:</strong> Model Creator & System Architect<br>
        <strong>Environment:</strong> Local Hardware Acceleration (RTX 5060 GPU)<br>
-       <strong>Neural Engine:</strong> Axom Unified Neural Core Active (axomv1 4B)
+       <strong>Neural Engine:</strong> Axom Unified Neural Core Active (Axom v1.1)
      </div>
    </div>`,
    appearance:`<div class="set"><label for="th">Color Theme<small>Choose dark, light, or follow your OS preference.</small></label><div class="ctl"><select id="th"><option value="dark">Dark</option><option value="light">Light</option><option value="system">System</option></select></div></div><div class="set"><label><span>Enter sends message<small>When off, press Ctrl+Enter to send.</small></span><input type="checkbox" id="ent" ${S.enterSends?'checked':''}></label></div>`,
@@ -599,7 +599,7 @@ async function settings(tab='account'){
    about:`<div class="set" style="line-height:1.7;font-size:13px">
      <b style="font-size:16px;color:var(--tx)">AXOM AI</b><br>
      Founder & Creator: <b>Abiral</b><br>
-     Active Model: <b>axomv1 4B</b> (Fine-tuned Qwen 3.5 4B QLoRA)<br>
+     Active Model: <b>Axom v1.1</b> (Qwen 3.5 4B Uncensored Fine-Tuned)<br>
      Hardware: <b>NVIDIA GeForce RTX 5060 Laptop GPU (CUDA)</b> · 32GB RAM · HP OMEN<br>
      Dataset: Blended coding (CodeAlpaca), reasoning (FineTome), and custom creator grounding.
    </div>`}[tab];

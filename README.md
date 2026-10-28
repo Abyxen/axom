@@ -21,13 +21,13 @@
 
 | Attribute | Specification |
 |---|---|
-| **Primary Model Alias** | `axom-chat` |
-| **Foundation Base Model** | `qwen2.5:7b` (Qwen 2.5 7B Instruct) |
-| **Model Size on Disk** | 4.7 GB (Q4_K_M quantization) |
-| **VRAM Footprint** | ~5.2 GB (fits comfortably within the 8 GB RTX 5060 VRAM) |
-| **Context Window** | 4,096 tokens (up to 32k supported) |
-| **Inference Speed** | ~70 – 85 tokens/sec on RTX 5060 GPU |
-| **Strengths** | Instruction-following, code generation, debugging, structured reasoning |
+| **Primary Model Alias** | `axomv1:4b` / `axom-chat` |
+| **Foundation Base Model** | `Qwen 3.5 4B Uncensored` (Abliterated Q4_K_M) |
+| **Model Size on Disk** | 2.7 GB (Q4_K_M quantization) |
+| **VRAM Footprint** | ~3.0 GB (fits comfortably within the 8 GB RTX 5060 VRAM with 5 GB free) |
+| **Context Window** | 32,768 tokens (up to 256k supported) |
+| **Inference Speed** | ~85 – 100+ tokens/sec on RTX 5060 GPU |
+| **Strengths** | Direct uncensored reasoning, code generation, debugging, algorithms |
 
 ---
 
