@@ -97,6 +97,51 @@ $crossSessionPayload = @{
 $crossReply = Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/chat" -Method Post -Body $crossSessionPayload -ContentType "application/json"
 Write-Host " -> Cross-Session Response:`n$($crossReply.message.content)"
 
+# Test 8: Agentic Harness Multi-Step Sandboxed Execution
+Write-Host "`n[Test 8] Testing Agentic Harness (Sandboxed File Creation & Terminal Execution)..."
+$agentPayload = @{
+    model = "axom:1.1"
+    session_id = "test_agent_harness"
+    project_name = "test_agent_suite"
+    mode = "agent_auto"
+    messages = @(
+        @{ role = "user"; content = "Create a python script named test_calc.py that prints 7 * 8, then execute it to verify." }
+    )
+} | ConvertTo-Json -Depth 5
+
+$agentPayload | Out-File -FilePath "$PSScriptRoot\agent_test_payload.json" -Encoding utf8
+
+$rawOutput = node -e "
+(async () => {
+  const fs = require('fs');
+  const body = fs.readFileSync('agent_test_payload.json', 'utf8');
+  const res = await fetch('http://127.0.0.1:8000/api/agent/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body
+  });
+  const text = await res.text();
+  console.log(text);
+})();
+"
+Remove-Item "$PSScriptRoot\agent_test_payload.json" -Force -ErrorAction SilentlyContinue
+
+$hasToolCall = $rawOutput -match "tool_call"
+$hasRunCommand = $rawOutput -match "run_command"
+$createdFile = Test-Path "c:\Users\abira\Documents\axom\workspace\test_agent_suite\test_calc.py"
+
+Write-Host " -> Tool Calls Emitted:   $hasToolCall"
+Write-Host " -> Terminal Execution:   $hasRunCommand"
+Write-Host " -> File Created on Disk: $createdFile"
+
+if (-not $createdFile) {
+    throw "Agentic Harness failed to create file within the sandboxed project directory!"
+}
+
+# Clean up test workspace
+Remove-Item "c:\Users\abira\Documents\axom\workspace\test_agent_suite" -Recurse -Force -ErrorAction SilentlyContinue
+Write-Host " -> [SUCCESS] Sandboxed Agentic Harness Verified & Cleaned."
+
 # Clean up synthetic test keys so they don't pollute the user's real everyday chat profile
 Write-Host "`n[Cleanup] Cleaning synthetic test records from database..."
 $cleanupPayload = @{

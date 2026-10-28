@@ -9,6 +9,10 @@ model_backup/
 *.sqlite
 data/*.db
 
+# Agent workspaces (preserve directory structure only)
+workspace/*
+!workspace/.gitkeep
+
 # Node dependencies and logs
 node_modules/
 npm-debug.log*

@@ -3,6 +3,9 @@ const fs = require('node:fs');
 const path = require('node:path');
 const db = require('./db');
 const reviewer = require('./memory_reviewer');
+const guard = require('./workspace_guard');
+const skills = require('./skills_registry');
+const harness = require('./agent_harness');
 
 const PORT = 8000;
 const HOST = '127.0.0.1';
@@ -164,6 +167,121 @@ const server = http.createServer(async (req, res) => {
     return sendJson(res, 200, { session_id: sessId, count: transcript.length, transcript });
   }
 
+  // --- API: List Workspaces ---
+  if (req.method === 'GET' && pathname === '/api/workspaces') {
+    const list = guard.listWorkspaces();
+    return sendJson(res, 200, { workspaces: list, base_directory: guard.BASE_WORKSPACE_DIR });
+  }
+
+  // --- API: Create / Switch Workspace ---
+  if (req.method === 'POST' && pathname === '/api/workspaces') {
+    let bodyText = '';
+    req.on('data', chunk => { bodyText += chunk; });
+    req.on('end', () => {
+      try {
+        const body = JSON.parse(bodyText);
+        const name = body.name || 'default';
+        const projectDir = guard.getOrCreateWorkspace(name);
+        return sendJson(res, 200, { success: true, name, path: projectDir });
+      } catch (err) {
+        return sendJson(res, 400, { error: err.message });
+      }
+    });
+    return;
+  }
+
+  // --- API: List Workspace Files ---
+  if (req.method === 'GET' && pathname.startsWith('/api/workspaces/') && pathname.endsWith('/files')) {
+    const parts = pathname.split('/');
+    const wsName = decodeURIComponent(parts[3]);
+    try {
+      const wsPath = guard.getOrCreateWorkspace(wsName);
+      const files = await guard.safeListDirectory('', wsPath);
+      return sendJson(res, 200, { workspace: wsName, path: wsPath, files });
+    } catch (err) {
+      return sendJson(res, 500, { error: err.message });
+    }
+  }
+
+  // --- API: Skills & Plugins Listing ---
+  if (req.method === 'GET' && pathname === '/api/skills') {
+    return sendJson(res, 200, { skills: skills.listSkills() });
+  }
+
+  // --- API: Toggle Skill ---
+  if (req.method === 'POST' && pathname === '/api/skills/toggle') {
+    let bodyText = '';
+    req.on('data', chunk => { bodyText += chunk; });
+    req.on('end', () => {
+      try {
+        const body = JSON.parse(bodyText);
+        const ok = skills.setSkillEnabled(body.id, body.enabled);
+        return sendJson(res, 200, { success: ok, skills: skills.listSkills() });
+      } catch (err) {
+        return sendJson(res, 400, { error: err.message });
+      }
+    });
+    return;
+  }
+
+  // --- API: Agent Execution Stream (/api/agent/chat) ---
+  if (req.method === 'POST' && pathname === '/api/agent/chat') {
+    let bodyText = '';
+    req.on('data', chunk => {
+      bodyText += chunk;
+      if (bodyText.length > 10 * 1024 * 1024) req.destroy();
+    });
+
+    req.on('end', async () => {
+      try {
+        const body = JSON.parse(bodyText);
+        const controller = new AbortController();
+        res.on('close', () => { if (!res.writableEnded) controller.abort(); });
+
+        setCors(res);
+        res.writeHead(200, {
+          'Content-Type': 'text/event-stream; charset=utf-8',
+          'Cache-Control': 'no-cache, no-transform',
+          'Connection': 'keep-alive'
+        });
+
+        const agentEvents = harness.runAgentHarness({
+          model: body.model || 'axom:1.1',
+          messages: body.messages || [],
+          session_id: body.session_id || 'default_session',
+          project_name: body.project_name || 'default',
+          mode: body.mode || 'agent_auto',
+          enabled_skills: body.enabled_skills || null,
+          signal: controller.signal
+        });
+
+        let fullAnswer = '';
+        for await (const ev of agentEvents) {
+          if (ev.type === 'text') fullAnswer += ev.text;
+          res.write(`data: ${JSON.stringify(ev)}\n\n`);
+        }
+
+        // Persist interaction to database
+        const lastUser = [...(body.messages || [])].reverse().find(m => m.role === 'user');
+        if (lastUser && lastUser.content) {
+          db.logChatMessage(body.session_id || 'default_session', 'user', lastUser.content);
+        }
+        if (fullAnswer) {
+          db.logChatMessage(body.session_id || 'default_session', 'assistant', fullAnswer);
+          reviewer.scheduleSessionReview(body.session_id || 'default_session', 15000, body.model || 'axom:1.1', OLLAMA_BASE);
+        }
+
+        res.write(`data: ${JSON.stringify({ type: 'done', done: true })}\n\n`);
+        res.end();
+      } catch (err) {
+        if (err.name === 'AbortError') return res.end();
+        console.error('Agent chat error:', err);
+        return sendJson(res, 500, { error: err.message });
+      }
+    });
+    return;
+  }
+
   // --- API: Training Metrics ---
   if (req.method === 'GET' && pathname === '/api/training/metrics') {
     return sendJson(res, 200, {
@@ -210,11 +328,51 @@ const server = http.createServer(async (req, res) => {
         const messages = Array.isArray(body.messages) ? body.messages : [];
         const params = body.params || {};
         const isStream = params.stream === true;
+        const mode = body.mode || 'chat';
+        const projectName = body.project_name || 'default';
 
         // COMPONENT A: Log incoming user message to raw chat logs
         const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
         if (lastUserMsg && lastUserMsg.content) {
           db.logChatMessage(sessionId, 'user', lastUserMsg.content);
+        }
+
+        // AGENTIC HARNESS ROUTING: If an agent mode is requested, route directly to the agent harness
+        if (mode.startsWith('agent_')) {
+          setCors(res);
+          res.writeHead(200, {
+            'Content-Type': 'text/event-stream; charset=utf-8',
+            'Cache-Control': 'no-cache, no-transform',
+            'Connection': 'keep-alive'
+          });
+
+          const controller = new AbortController();
+          res.on('close', () => { if (!res.writableEnded) controller.abort(); });
+
+          const agentEvents = harness.runAgentHarness({
+            model: requestedModel,
+            messages,
+            session_id: sessionId,
+            project_name: projectName,
+            mode,
+            enabled_skills: body.enabled_skills || null,
+            signal: controller.signal
+          });
+
+          let fullAnswer = '';
+          for await (const ev of agentEvents) {
+            if (ev.type === 'text') fullAnswer += ev.text;
+            res.write(`data: ${JSON.stringify(ev)}\n\n`);
+          }
+
+          if (fullAnswer) {
+            db.logChatMessage(sessionId, 'assistant', fullAnswer);
+            reviewer.scheduleSessionReview(sessionId, 15000, requestedModel, OLLAMA_BASE);
+          }
+
+          res.write(`data: ${JSON.stringify({ type: 'done', done: true })}\n\n`);
+          res.end();
+          return;
         }
 
         // COMPONENT B: SESSION DATA INJECTION

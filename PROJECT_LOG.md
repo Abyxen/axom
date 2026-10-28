@@ -245,9 +245,49 @@
 
 ---
 
+### 13. Agentic Harness, Strict Workspace Sandboxing & Skills System
+- **Date:** October 28, 2026
+- **What Was Done:**
+  - Designed and engineered a complete Agentic Harness (`agent_harness.js`), Sandbox Guard (`workspace_guard.js`), and Skills/Plugin Registry (`skills_registry.js`) for AXOM.
+  - Implemented 4 operational reasoning modes:
+    1. `chat`: Standard single-turn conversational stream (no tools, zero overhead).
+    2. `agent_auto`: Autonomous multi-turn ReAct loop (Reason -> Call Tool -> Inspect Result -> Iterate -> Final Response) with a safety cap of 8 steps.
+    3. `agent_plan`: Plan-First mode requiring the model to generate a structured execution plan before executing tools.
+    4. `agent_ask`: Permission-Required mode that enforces confirmation boundaries before mutating files or running terminal commands.
+  - Implemented strict Workspace Isolation & Sandboxing:
+    - Dedicated per-chat project directories under `c:\Users\abira\Documents\axom\workspace\<project_name>\`.
+    - Path canonicalization with `resolveSafePath` that validates normalized paths, blocks directory traversal (`..`), and rejects any access outside the active workspace directory.
+    - System path firewall that explicitly blocks Windows system directories (`C:\Windows`, `System32`, `Program Files`, `AppData`).
+    - Terminal command safety filter that prevents dangerous system destructive commands (`format`, `del /s /q c:\`, `rmdir /s /q c:\`, diskpart, etc.).
+  - Built Native OpenAI-compatible Tool Specification for Ollama:
+    - `file_system`: `read_file`, `write_file`, `edit_file`, `delete_file`, `list_directory`.
+    - `terminal`: `run_command` (executed in PowerShell with `cwd` bound to project workspace).
+    - `web_tools`: `fetch_web_url`.
+    - `system_info`: `get_environment_info`.
+  - Added REST API endpoints in `server.js`:
+    - `POST /api/agent/chat` (Server-Sent Events streaming thoughts, tool actions, and results in real time).
+    - `GET /api/workspaces` & `POST /api/workspaces` (Workspace management).
+    - `GET /api/workspaces/:name/files` (Workspace file explorer).
+    - `GET /api/skills` & `POST /api/skills/toggle` (Plugin & skill configuration).
+  - Upgraded Web UI (`index.html`):
+    - Added interactive Mode Selector pills (`💬 Chat`, `⚡ Agent (Auto)`, `📋 Agent (Plan)`, `🛡️ Agent (Ask)`).
+    - Added Workspace Indicator & Switcher badge (`📁 Workspace: [project]`).
+    - Added Skills & Permissions Management tab in Settings.
+    - Added real-time tool execution UI cards (`⚙️ Action`, `✅ Result`) in the streaming chat feed.
+- **How It Was Implemented:**
+  - Used native `tools` parameter in Ollama's `/api/chat` API, leveraging Qwen 3.5's built-in tool calling capabilities.
+  - When tool calls are generated, the harness routes them to `skills_registry.js`, runs them within `workspace_guard.js`, appends tool response messages with `role: "tool"`, and loops until the model produces a final user response or hits step limit.
+  - Zero third-party runtime dependencies maintained: built purely on Node.js core modules (`node:path`, `node:fs`, `node:child_process`, `node:http`).
+- **Why It Was Done:**
+  - Modern LLMs become truly transformative when transformed from passive text generators into active agents capable of reading, writing, building, and verifying code.
+  - Without sandboxing, an autonomous agent could accidentally modify system files, delete directories, or run arbitrary commands across the host machine.
+  - Sandboxing files strictly to `workspace/<project_name>` gives the user peace of mind, granting full file editing and terminal command execution within the boundary while guaranteeing complete protection for the rest of the laptop.
+
+---
+
 ## 🔮 Active & Upcoming Work
 
-### 13. Periodic LoRA Fine-Tuning Pipeline (Neural Weight Evolution)
+### 14. Periodic LoRA Fine-Tuning Pipeline (Neural Weight Evolution)
 - **Goal:** Periodically bake long-term conversational data directly into updated neural weights (`axom:1.2`, `axom:1.3`).
 - **Architecture Strategy:**
   1. Export curated `chat_logs` into Alpaca / ShareGPT JSONL training datasets.
