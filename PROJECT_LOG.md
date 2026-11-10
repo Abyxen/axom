@@ -485,9 +485,35 @@
 
 ---
 
+### 23. Real In-App Web Browser with Chrome/DuckDuckGo Live Proxy Navigation (2026-11-10)
+- **What Was Done:**
+  - Upgraded the in-app browser panel into a real Chrome-like web browser that browses the live internet (DuckDuckGo, Wikipedia, Google, AccuWeather, GitHub, docs, and any search query) right inside AXOM, side-by-side with chat.
+  - Implemented high-performance local proxy endpoint `/api/browser/proxy?url=...` in `server.js` using native Node.js `fetch`.
+    - Automatically strips `x-frame-options`, `content-security-policy`, and `frame-ancestors` blocking headers.
+    - Injects `<base href="...">` for relative assets and navigation script intercepting link clicks and GET search form submissions to keep navigation seamlessly inside the in-app browser.
+    - Sends `browserNavigated` and `browserLoaded` messages to the parent window to keep address bar and tab title synchronized in real time.
+  - Integrated full browser chrome UI:
+    - Back (`←`), Forward (`→`), Reload (`⟲`), and Home (`🌐`) navigation controls.
+    - Omnibox address bar accepting direct URLs, domains, and queries (automatically routed to DuckDuckGo search) with an immediate Go (`↑`) button and Enter key execution.
+    - One-click source chip browsing: clicking any source link from search results instantly opens that webpage in the in-app browser.
+    - Maximized / Split-Screen toggle for full desktop browsing or side-by-side split view.
+  - Full bilingual localization in English and Portuguese.
+- **How It Was Implemented:**
+  - In `server.js`:
+    - Added `/api/browser/proxy` endpoint with streaming text/html rewriting, `<base href>`, click interception, and form submit interception.
+  - In `index.html`:
+    - Updated `InsideBrowser` controller object with `navigate()`, `back()`, `forward()`, `reload()`, `home()`, and `postMessage` listener.
+    - Updated `shell()` markup with address bar controls and iframe sandbox.
+    - Added click interception for `.trace-source-chip` to open sources directly in the in-app browser.
+    - Added Enter key listener on `#ibUrlInput`.
+- **Why It Was Done:**
+  - User requested: *"noo i mean like browser inside app that runs google chrome not like that i meant like chatgpt"*.
+
+---
+
 ## 🔮 Active & Upcoming Work
 
-### 23. Periodic LoRA Fine-Tuning Pipeline (Neural Weight Evolution)
+### 24. Periodic LoRA Fine-Tuning Pipeline (Neural Weight Evolution)
 - **Goal:** Periodically bake long-term conversational data directly into updated neural weights (`axom:1.2`, `axom:1.3`).
 - **Architecture Strategy:**
   1. Export curated `chat_logs` into Alpaca / ShareGPT JSONL training datasets.

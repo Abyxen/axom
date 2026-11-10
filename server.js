@@ -266,6 +266,118 @@ const server = http.createServer(async (req, res) => {
     ]);
   }
 
+  // --- API: Live Web Browser Proxy (Embed and browse real internet websites) ---
+  if (req.method === 'GET' && pathname === '/api/browser/proxy') {
+    let targetUrl = parsedUrl.searchParams.get('url');
+    if (!targetUrl) {
+      return sendText(res, 400, 'Missing url query parameter');
+    }
+    targetUrl = targetUrl.trim();
+    if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+      targetUrl = 'https://' + targetUrl;
+    }
+
+    try {
+      const fetchRes = await fetch(targetUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+          'Accept-Language': 'pt-PT,pt;q=0.9,en-US;q=0.8,en;q=0.7'
+        },
+        redirect: 'follow',
+        signal: AbortSignal.timeout(15000)
+      });
+
+      const contentType = fetchRes.headers.get('content-type') || 'text/html';
+      const finalUrl = fetchRes.url || targetUrl;
+
+      if (contentType.includes('text/html')) {
+        let html = await fetchRes.text();
+
+        const interceptScript = `
+<base href="${finalUrl}">
+<script>
+(function(){
+  document.addEventListener('click', function(e){
+    var a = e.target.closest('a');
+    if(a && a.href && !a.href.startsWith('javascript:') && !a.href.startsWith('#')){
+      e.preventDefault();
+      try {
+        var dest = new URL(a.getAttribute('href'), "${finalUrl}").href;
+        window.parent.postMessage({ act: 'browserNavigated', url: dest }, '*');
+        window.location.href = '/api/browser/proxy?url=' + encodeURIComponent(dest);
+      } catch(err) {
+        window.location.href = a.href;
+      }
+    }
+  }, true);
+  document.addEventListener('submit', function(e){
+    var form = e.target;
+    if(form && (form.method || 'GET').toUpperCase() === 'GET'){
+      e.preventDefault();
+      try {
+        var actionUrl = form.action ? new URL(form.action, "${finalUrl}") : new URL("${finalUrl}");
+        var formData = new FormData(form);
+        for(var pair of formData.entries()){
+          actionUrl.searchParams.set(pair[0], pair[1]);
+        }
+        var dest = actionUrl.href;
+        window.parent.postMessage({ act: 'browserNavigated', url: dest }, '*');
+        window.location.href = '/api/browser/proxy?url=' + encodeURIComponent(dest);
+      } catch(err){
+        form.submit();
+      }
+    }
+  }, true);
+  window.addEventListener('load', function(){
+    window.parent.postMessage({ act: 'browserLoaded', url: "${finalUrl}", title: document.title }, '*');
+  });
+})();
+<\/script>
+`;
+
+        if (html.includes('<head>')) {
+          html = html.replace('<head>', '<head>' + interceptScript);
+        } else if (html.includes('<html>')) {
+          html = html.replace('<html>', '<html><head>' + interceptScript + '</head>');
+        } else {
+          html = interceptScript + html;
+        }
+
+        setCors(res);
+        res.writeHead(200, {
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'no-cache'
+        });
+        return res.end(html);
+      } else {
+        const buffer = await fetchRes.arrayBuffer();
+        setCors(res);
+        res.writeHead(fetchRes.status, {
+          'Content-Type': contentType,
+          'Cache-Control': 'public, max-age=3600'
+        });
+        return res.end(Buffer.from(buffer));
+      }
+    } catch (err) {
+      setCors(res);
+      res.writeHead(502, { 'Content-Type': 'text/html; charset=utf-8' });
+      return res.end(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Erro de Navega\u00e7\u00e3o</title><style>
+body{font-family:-apple-system,sans-serif;padding:32px 24px;color:#f4f4f5;background:#09090b;min-height:100vh;margin:0;box-sizing:border-box}
+h2{color:#ff512f;margin-top:0}
+p{color:#a1a1aa}
+pre{background:#18181b;padding:12px;border-radius:6px;color:#ef4444;border:1px solid #27272a;overflow-x:auto}
+button{padding:8px 14px;background:#27272a;color:#fff;border:0;border-radius:5px;cursor:pointer;margin-top:12px}
+button:hover{background:#3f3f46}
+</style></head><body>
+  <h2>N\u00e3o foi poss\u00edvel carregar a p\u00e1gina</h2>
+  <p>O endere\u00e7o <code>${targetUrl}</code> n\u00e3o respondeu ou bloqueou o acesso.</p>
+  <pre>${err.message}</pre>
+  <button onclick="history.back()">Voltar</button>
+</body></html>`);
+    }
+  }
+
   // --- API: Settings Save ---
   if (req.method === 'POST' && pathname === '/api/settings') {
     return sendJson(res, 200, { status: 'saved' });
