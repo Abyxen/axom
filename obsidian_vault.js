@@ -12,6 +12,7 @@ const VAULT_PATH = path.join(USER_DOCUMENTS, VAULT_NAME);
  */
 function findObsidianExecutable() {
   const candidates = [
+    path.join(process.env.LOCALAPPDATA || '', 'Programs', 'Obsidian', 'Obsidian.exe'),
     path.join(process.env.LOCALAPPDATA || '', 'Obsidian', 'Obsidian.exe'),
     path.join(process.env.PROGRAMFILES || '', 'Obsidian', 'Obsidian.exe'),
     path.join(process.env['PROGRAMFILES(X86)'] || '', 'Obsidian', 'Obsidian.exe')
@@ -425,11 +426,9 @@ function launchObsidian() {
 
   if (exePath && fs.existsSync(exePath)) {
     try {
-      spawn(exePath, [VAULT_PATH], { detached: true, stdio: 'ignore' }).unref();
+      exec(`powershell -Command "Start-Process -FilePath '${exePath}'"`);
       return { success: true, method: 'executable', path: exePath, vault: VAULT_PATH };
-    } catch (e) {
-      // Fallback to start URI
-    }
+    } catch (e) {}
   }
 
   // Windows protocol launcher: obsidian://open?path=...
