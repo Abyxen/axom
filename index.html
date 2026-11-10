@@ -195,10 +195,13 @@ mark{background:var(--acid);color:#000;border-radius:0}
 .hint kbd{font:inherit;color:var(--tx2)}
 
 /* web toggle & tool cards */
-.web-btn{display:inline-flex;align-items:center;gap:6px;padding:0 9px;height:32px;border:1px solid transparent;border-radius:6px;color:var(--tx3);font:500 11px 'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.4px;transition:all .18s var(--ease);cursor:pointer}
-.web-btn svg{width:14px;height:14px}
-.web-btn:hover{background:var(--elev);color:var(--tx)}
-.web-btn.on{color:var(--ac);background:rgba(255,81,47,.1);border-color:var(--ac)}
+.web-btn{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border:1px solid var(--bd);border-radius:15px;color:var(--tx2);background:var(--surf);font:500 12px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif;letter-spacing:-.01em;transition:all .18s var(--ease);cursor:pointer;user-select:none;white-space:nowrap}
+.web-btn svg{width:14px;height:14px;color:var(--tx3);transition:color .18s,transform .18s;flex-shrink:0}
+.web-btn:hover{background:var(--elev);color:var(--tx);border-color:#3f3f46}
+.web-btn:hover svg{color:var(--tx)}
+.web-btn.on{background:rgba(255,81,47,.12);color:var(--ac);border-color:var(--ac);box-shadow:0 0 10px rgba(255,81,47,.15)}
+.web-btn.on svg{color:var(--ac)}
+.web-btn:active{transform:scale(.96)}
 .tool-card{margin:12px 0 16px;background:#141416;border:1px solid #27272a;border-radius:8px;padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:11px;animation:rise .25s var(--ease)}
 .tool-hdr{display:flex;align-items:center;gap:8px;font-weight:500;color:#e4e4e7;flex-wrap:wrap}
 .tool-badge{display:inline-flex;align-items:center;gap:6px;background:#27272a;color:#f4f4f5;padding:3px 8px;border-radius:4px;font-size:10.5px;letter-spacing:.3px;text-transform:uppercase}
@@ -637,7 +640,7 @@ function shell(){
   <div class="scrim" data-act="drawer"></div>
   <section class="main"><header class="hdr"><button class="ib" data-act="drawer" aria-label="${t('toggleSidebar')}" title="${t('toggleSidebar')}">${ic('panel')}</button><div class="ttl">${t('workspacePrefix')} <b>/ ${esc(cur()?.title||t('newConvHeader'))}</b></div><span class="sp"></span><div class="lang-switch" role="group" aria-label="Language / Idioma"><button class="lang-btn ${S.lang==='en'?'on':''}" data-act="setlang" data-l="en" title="English">EN</button><button class="lang-btn ${S.lang==='pt'?'on':''}" data-act="setlang" data-l="pt" title="Português">PT</button></div></header>
   <main class="chat" id="chat" aria-label="Chat"><div class="col-in" id="msgs" aria-live="polite"></div></main>
-  <div class="comp"><div class="cbox" id="cbox"><div class="chips" id="atts"></div><textarea id="inp" rows="1" placeholder="${t('inputPlaceholder')}" aria-label="Message" maxlength="32000"></textarea><div class="tools"><button class="ib" data-act="attach" aria-label="${t('attachTitle')}" title="${t('attachTitle')}">${ic('clip')}</button><button class="ib mic-btn" id="micBtn" data-act="voice" aria-label="${t('voiceTitle')}" title="${t('voiceTitle')}">${ic('mic')}</button><button class="ib web-btn ${S.web?'on':''}" id="webBtn" data-act="toggleweb" aria-label="${t('webTitle')}" title="${t('webTitle')}">${ic('globe')}<span>${t('webBadge')}</span></button><span class="sp"></span><button class="send" id="send" data-act="send" aria-label="${t('send')}" title="${t('send')}">${ic('up')}</button></div></div><div class="hint"><span>${t('disclaimer')}</span><span>${t('hintKeys')}</span></div></div><input type="file" id="file" multiple hidden></section>`;
+  <div class="comp"><div class="cbox" id="cbox"><div class="chips" id="atts"></div><textarea id="inp" rows="1" placeholder="${t('inputPlaceholder')}" aria-label="Message" maxlength="32000"></textarea><div class="tools"><button class="ib" data-act="attach" aria-label="${t('attachTitle')}" title="${t('attachTitle')}">${ic('clip')}</button><button class="ib mic-btn" id="micBtn" data-act="voice" aria-label="${t('voiceTitle')}" title="${t('voiceTitle')}">${ic('mic')}</button><button class="web-btn ${S.web?'on':''}" id="webBtn" data-act="toggleweb" aria-label="${t('webTitle')}" title="${t('webTitle')}">${ic('globe')}<span>${t('webBadge')}</span></button><span class="sp"></span><button class="send" id="send" data-act="send" aria-label="${t('send')}" title="${t('send')}">${ic('up')}</button></div></div><div class="hint"><span>${t('disclaimer')}</span><span>${t('hintKeys')}</span></div></div><input type="file" id="file" multiple hidden></section>`;
   drawMsgs();drawAtts();bindInput();updSend();updateThemeLabel();}
 
 function welcome(){

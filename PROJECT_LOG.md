@@ -412,9 +412,25 @@
 
 ---
 
+### 20. Web Search Toggle Pill Capsule UI Redesign & Overflow Fix
+- **Date:** November 10, 2026
+- **What Was Done:**
+  - Fixed an awkward UI layout glitch where enabling web search rendered a rigid 30x30px square around the globe icon while the `WEB` label protruded outside the right border of the button.
+  - Redesigned the Web search toggle into a sleek, modern pill capsule matching industry-standard AI interfaces (ChatGPT / Claude / Perplexity).
+- **How It Was Implemented:**
+  - In `index.html`:
+    - Removed the rigid `.ib` class from `#webBtn` which had previously enforced `width: 30px; height: 30px; border-radius: 0;` and broken flex layout.
+    - Updated `.web-btn` CSS with `display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border-radius: 15px; border: 1px solid var(--bd);`.
+    - Integrated typography with `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif; font-size: 12px; font-weight: 500;`.
+    - Enhanced active state (`.web-btn.on`) with soft orange background tint (`rgba(255,81,47,.12)`), active border (`var(--ac)`), subtle ambient glow (`box-shadow: 0 0 10px rgba(255,81,47,.15)`), and smooth tactile micro-interaction (`active { transform: scale(0.96); }`).
+- **Why It Was Done:**
+  - The user provided a screenshot (`media_1794346777623_3f220fe4.png`) showing the awkward 30x30px border clipping and requested to make the web search toggle clean and well-proportioned.
+
+---
+
 ## 🔮 Active & Upcoming Work
 
-### 20. Periodic LoRA Fine-Tuning Pipeline (Neural Weight Evolution)
+### 21. Periodic LoRA Fine-Tuning Pipeline (Neural Weight Evolution)
 - **Goal:** Periodically bake long-term conversational data directly into updated neural weights (`axom:1.2`, `axom:1.3`).
 - **Architecture Strategy:**
   1. Export curated `chat_logs` into Alpaca / ShareGPT JSONL training datasets.
