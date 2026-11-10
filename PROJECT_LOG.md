@@ -428,9 +428,32 @@
 
 ---
 
+### 21. Collapsible Thinking & Agentic Search Accordion UI Overhaul
+- **Date:** November 10, 2026
+- **What Was Done:**
+  - Replaced the bulky, static `.tool-card` containers and exposed link blocks with a sleek, minimalist collapsible accordion (`<details class="tool-trace think-trace">`) modeled directly after modern AI "Thinking" dropdowns (ChatGPT/Claude/Perplexity style).
+  - Consolidated all autonomous tool steps (queries searched, pages browsed, sources discovered) into a single compact, one-line status indicator (e.g. `🌐 Pesquisou 4 fontes ▾` / `🌐 Searched 4 sources ▾`) collapsed by default.
+  - Eliminated raw link dumps in message flow: clicking the summary expands the dropdown to reveal the exact searches performed and interactive external source links.
+  - Unified the visual styling of both internal model reasoning (`<details class="think">`) and agentic tool traces (`<details class="tool-trace">`).
+- **How It Was Implemented:**
+  - In `index.html`:
+    - Replaced `toolHTML()` with `toolsTraceHTML(tools, isOpen=false)` which aggregates multi-turn searches, deduplicates source URLs into unique reference chips, and renders a native semantic `<details>` element.
+    - Added clean animated SVG icons (`chevron` `M6 9l6 6 6-6` and `ext` `M18 13v6a2 2 0 0 1-2 2...`) with CSS transform rotation on open.
+    - Implemented `.think-trace` CSS:
+      - Closed state: `width: fit-content; max-width: 100%; border-radius: 8px; border: 1px solid var(--bd); background: var(--surf);` (clean pill-like single line).
+      - Open state: Expands to full container width (`width: 100%`) displaying structured sub-sections: `PESQUISAS` (queries & page reads) and `FONTES` (clickable link chips with external link icons).
+      - Hover & Micro-interactions: Custom summary marker removal, smooth chevron flip (`transform: rotate(180deg)`), and active pulse animation (`.running`) during live searches.
+    - Updated `msgHTML()` and `generate()` / `paint()` to preserve open/close states dynamically during streaming and across re-renders.
+    - Added bilingual support in `I18N.en` and `I18N.pt` (`searchedWeb`, `searchedSources`, `searchedSourceSingle`, `traceSearches`, `traceSources`, `searchQueryLabel`, `readPageLabel`, `openedBrowserLabel`).
+- **Why It Was Done:**
+  - User requested (`media_1794349354079_e09f965f.png`): *"instead of all this make it so there is like just one thing like thinking and if you click on it it shows the link not just show it directly and also searches"*.
+  - Keeps chat messages pristine, clean, and distraction-free while keeping complete inspectability of agent searches and citations one click away.
+
+---
+
 ## 🔮 Active & Upcoming Work
 
-### 21. Periodic LoRA Fine-Tuning Pipeline (Neural Weight Evolution)
+### 22. Periodic LoRA Fine-Tuning Pipeline (Neural Weight Evolution)
 - **Goal:** Periodically bake long-term conversational data directly into updated neural weights (`axom:1.2`, `axom:1.3`).
 - **Architecture Strategy:**
   1. Export curated `chat_logs` into Alpaca / ShareGPT JSONL training datasets.
