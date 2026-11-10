@@ -72,13 +72,20 @@ function initDatabase(dbFilePath = DEFAULT_DB_PATH) {
       ['primary_hardware', 'HP OMEN Gaming Laptop with NVIDIA GeForce RTX 5060 Laptop GPU (8GB VRAM) and 32GB RAM', 'technical_stack', 1.0, 'Hardware configuration profile', now, now],
       ['primary_ai_model', 'Axom v1.1 based on Qwen 3.5 4B Uncensored (Q4_K_M quantization)', 'technical_stack', 1.0, 'Active model specifications', now, now],
       ['operating_system', 'Windows 11', 'technical_stack', 1.0, 'Host operating system profile', now, now],
-      ['preferred_communication_style', 'Conversational, articulate, warm, thoughtful, and highly capable (ChatGPT/Claude style) with clean markdown formatting', 'user_preference', 1.0, 'Developer system directive', now, now]
+      ['preferred_communication_style', 'Clean, mature, professional technical style (Cursor/Claude design) with clean Markdown tables, crisp code blocks, and zero decorative emojis.', 'user_preference', 1.0, 'Developer system directive', now, now]
     ];
 
     for (const [k, v, cat, conf, r, ca, ua] of seeds) {
       insertSeed.run(k, v, cat, conf, r, ca, ua);
     }
   }
+
+  // Ensure preferred_communication_style enforces zero-emoji clean professional style
+  db.prepare(`
+    UPDATE user_profile_memory
+    SET value = 'Clean, mature, professional technical style (Cursor/Claude design) with clean Markdown tables, crisp code blocks, and zero decorative emojis.'
+    WHERE key = 'preferred_communication_style'
+  `).run();
 
   return db;
 }
@@ -184,6 +191,7 @@ function formatProfileContext(memoryRows = null) {
     '3. Formatting: Use clean Markdown (bullet points, bold text, structured sections, code blocks with syntax highlighting) to make information readable, structured, and easy to follow.',
     '4. Adaptable & Versatile: Excel at coding, debugging, creative brainstorming, writing, math, system architecture, and casual conversation. Match the user\'s tone and depth.',
     '5. Creator Lineage: You are AXOM, created and developed by Abiral. If asked who made you, who created you, or what your identity is, state clearly and warmly that you are AXOM, created and developed by Abiral.',
+    '6. Strict Zero-Emoji Policy: Do NOT use emojis in your responses. Never use decorative emojis in headings, bullet points, titles, or paragraphs. Maintain a clean, mature, and professional tone matching high-end technical tools (like Cursor, Claude, or developer documentation). Format responses using clean Markdown, bold headers, and structured tables instead.',
     '',
     '# [BACKGROUND USER PROFILE & PASSIVE MEMORY]',
     'The following facts, preferences, and context represent background reference knowledge about the user:',

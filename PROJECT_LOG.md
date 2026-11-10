@@ -392,9 +392,29 @@
 
 ---
 
+### 19. Clean Minimalist UI Overhaul, Modern Typography & Zero-Emoji Directives
+- **Date:** November 10, 2026
+- **What Was Done:**
+  - Removed rough grain/noise SVG overlays (`body::after` fractal noise filter) that previously degraded text clarity, rendering fonts sharp, crisp, and high-resolution.
+  - Redesigned message styling to match modern high-end AI interfaces (Cursor/Claude/ChatGPT style):
+    - Replaced brutalist yellow/green blockquote borders on user messages with clean, rounded `#27272a` chat bubbles.
+    - Updated typography to `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif` with antialiasing and subpixel smoothing.
+    - Redesigned code blocks (`.cb`): dark graphite rounded container (`#18181b`), `</> lang` icon header tag, and interactive copy button with checkmark feedback.
+    - Added full native Markdown table parser and styling (`<table>`, `<th>`, `<td>`) with borderless minimalist divider lines.
+  - Implemented strict Zero-Emoji system directives in `db.js` (`formatProfileContext()`, `user_profile_memory`) and `server.js` (`webDirective`), eliminating decorative emojis in headings and lists.
+- **How It Was Implemented:**
+  - Removed `body::after` noise filter from `index.html`.
+  - Added table parsing in `md(src)` matching `| Feature | Status |` syntax.
+  - Added `code` and `check` SVG paths to `P`.
+  - Updated `preferred_communication_style` in SQLite to enforce zero decorative emojis and technical clarity.
+- **Why It Was Done:**
+  - The user reported that the UI and fonts looked rough and the AI was using too many emojis, requesting a clean, refined interface with modern fonts, clean code blocks, and structured tables matching their provided screenshot.
+
+---
+
 ## 🔮 Active & Upcoming Work
 
-### 19. Periodic LoRA Fine-Tuning Pipeline (Neural Weight Evolution)
+### 20. Periodic LoRA Fine-Tuning Pipeline (Neural Weight Evolution)
 - **Goal:** Periodically bake long-term conversational data directly into updated neural weights (`axom:1.2`, `axom:1.3`).
 - **Architecture Strategy:**
   1. Export curated `chat_logs` into Alpaca / ShareGPT JSONL training datasets.

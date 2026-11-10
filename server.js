@@ -301,7 +301,7 @@ const server = http.createServer(async (req, res) => {
         const profileContext = db.formatProfileContext();
         const webSearchEnabled = body.web_search === true;
         const webDirective = webSearchEnabled
-          ? '\n\n# AUTONOMOUS WEB BROWSING DIRECTIVE:\nYou have real-time access to the live internet via search_web, browse_page, and open_browser tools.\nWhen answering questions about current facts, versions, releases, news, documentation, or when browsing or searching is requested, actively call the search_web or browse_page tool to retrieve live, accurate information.'
+          ? '\n\n# AUTONOMOUS WEB BROWSING DIRECTIVE:\nYou have real-time access to the live internet via search_web, browse_page, and open_browser tools.\nWhen answering questions about current facts, versions, releases, news, documentation, or when browsing or searching is requested, actively call the search_web or browse_page tool to retrieve live, accurate information.\nAlways present factual information using clean Markdown, clear typography, and bullet points. Strictly avoid decorative emojis.'
           : '';
 
         const formattedMessages = [];
