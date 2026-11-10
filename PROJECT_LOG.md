@@ -285,9 +285,27 @@
 
 ---
 
+### 14. Reversion of Agentic Harness to Pure Conversational Companion
+- **Date:** November 10, 2026
+- **What Was Done:**
+  - Removed the Agentic Harness, Skills/Plugins Registry, and Workspace Sandbox components (`agent_harness.js`, `skills_registry.js`, `workspace_guard.js`) per user directive.
+  - Streamlined `server.js` back to its pure, high-performance conversational backend with the Dual-State persistent memory engine intact.
+  - Cleaned up `index.html` by removing the mode selectors, workspace switcher, and skills manager, restoring the focused, clean conversational interface.
+  - Updated `test_suite.ps1` to test the 7 core living brain & inference verification tests without agent harness dependencies.
+  - Preserved existing user project files in `workspace/` while adding `workspace/` to `.gitignore`.
+- **How It Was Implemented:**
+  - Removed `agent_harness.js`, `skills_registry.js`, and `workspace_guard.js` from the active codebase.
+  - Reverted `server.js` routes (`/api/workspaces`, `/api/skills`, `/api/agent/chat`) and removed tool-calling redirects from `/api/chat`.
+  - Reverted `index.html` to standard single-stream chat with voice dictation, file attachments, and memory inspection.
+  - Retained all "Living Brain" infrastructure: Dual-State SQLite schema (`chat_logs`, `user_profile_memory`, `session_metadata`), session context injection, asynchronous background review, and ChatGPT/Claude conversational style.
+- **Why It Was Done:**
+  - The user requested to remove the harness to simplify operation and focus exclusively on natural conversational intelligence, high-speed text generation, and persistent memory recall across sessions without tool-execution overhead.
+
+---
+
 ## 🔮 Active & Upcoming Work
 
-### 14. Periodic LoRA Fine-Tuning Pipeline (Neural Weight Evolution)
+### 15. Periodic LoRA Fine-Tuning Pipeline (Neural Weight Evolution)
 - **Goal:** Periodically bake long-term conversational data directly into updated neural weights (`axom:1.2`, `axom:1.3`).
 - **Architecture Strategy:**
   1. Export curated `chat_logs` into Alpaca / ShareGPT JSONL training datasets.

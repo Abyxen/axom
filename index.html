@@ -251,8 +251,6 @@ const Axom={
         body:JSON.stringify({
           model:S.model,
           session_id:S.cur||'default_session',
-          project_name:S.workspace||'default',
-          mode:S.mode||'agent_auto',
           messages:messages.map(m=>({role:m.role,content:m.ctx?m.ctx+'\n\n'+m.text:m.text})),
           params:{...S.gen, ...effortParams, stop:String(S.gen.stop||'').split(',').map(x=>x.trim()).filter(Boolean), stream: true}
         })
@@ -273,9 +271,7 @@ const Axom={
 
 /* ---- state ---- */
 const D=864e5,MAXF=24000;
-let S={convs:[],cur:null,api:'',model:'axom:1.1',mode:'agent_auto',workspace:'default',theme:'dark',col:false,enterSends:true,effort:'fast',gen:{temperature:.7,top_k:50,max_tokens:1024,seed:-1,stop:'',stream:true}};
-if(!S.mode) S.mode = 'agent_auto';
-if(!S.workspace) S.workspace = 'default';
+let S={convs:[],cur:null,api:'',model:'axom:1.1',theme:'dark',col:false,enterSends:true,effort:'fast',gen:{temperature:.7,top_k:50,max_tokens:512,seed:-1,stop:'',stream:true}};
 try{const j=JSON.parse(localStorage.getItem('axom-v2'));if(j)S={...S,...j,gen:{...S.gen,...j.gen}}}catch(e){}
 if(!S.effort) S.effort = 'fast';
 const save=()=>{try{localStorage.setItem('axom-v2',JSON.stringify(S))}catch(e){}};
@@ -321,7 +317,7 @@ function shell(){
   <button class="row" data-act="settings" title="Settings & Preferences">${ic('gear')}<span class="lbl">Settings</span></button>
   </aside>
   <div class="scrim" data-act="drawer"></div>
-  <section class="main"><header class="hdr"><button class="ib" data-act="drawer" aria-label="Toggle sidebar" title="Toggle sidebar">${ic('panel')}</button><div class="ttl">WORKSPACE <b>/ ${esc(cur()?.title||'NEW CONVERSATION')}</b></div><span class="sp"></span><select class="model-select" id="modeSelect" title="Harness Reasoning & Execution Mode" style="font-size:10px;padding:4px 8px;margin-right:6px"><option value="chat" ${S.mode==='chat'?'selected':''}>💬 Chat</option><option value="agent_auto" ${S.mode==='agent_auto'||!S.mode?'selected':''}>⚡ Agent (Auto)</option><option value="agent_plan" ${S.mode==='agent_plan'?'selected':''}>📋 Agent (Plan)</option><option value="agent_ask" ${S.mode==='agent_ask'?'selected':''}>🛡️ Agent (Ask)</option></select><button class="btn" id="wsBtn" title="Switch Sandboxed Workspace Project" style="font-size:9px;padding:5px 8px;gap:5px;margin-right:6px">📁 <span id="wsLabel">${esc(S.workspace||'default')}</span></button><select class="model-select" id="modelSelect" title="Select Model">${modelOptions}</select><div class="conn" id="conn" role="status"><i></i><span id="connTxt">CONNECTED</span></div><span class="top-version">AXOM NEURAL ENGINE</span><button class="ib" data-act="new" aria-label="New conversation" title="New conversation">${ic('plus')}</button></header>
+  <section class="main"><header class="hdr"><button class="ib" data-act="drawer" aria-label="Toggle sidebar" title="Toggle sidebar">${ic('panel')}</button><div class="ttl">WORKSPACE <b>/ ${esc(cur()?.title||'NEW CONVERSATION')}</b></div><span class="sp"></span><select class="model-select" id="modelSelect" title="Select Model">${modelOptions}</select><div class="conn" id="conn" role="status"><i></i><span id="connTxt">CONNECTED</span></div><span class="top-version">AXOM NEURAL ENGINE</span><button class="ib" data-act="new" aria-label="New conversation" title="New conversation">${ic('plus')}</button></header>
   <main class="chat" id="chat" aria-label="Chat"><div class="col-in" id="msgs" aria-live="polite"></div></main>
   <div class="comp"><div class="cbox" id="cbox"><div class="chips" id="atts"></div><textarea id="inp" rows="1" placeholder="What’s on your mind? Drop files, folders, or code..." aria-label="Message" maxlength="32000"></textarea><div class="tools"><button class="ib" data-act="attach" aria-label="Attach files" title="Attach text, code or folder files">${ic('clip')}</button><button class="ib mic-btn" id="micBtn" data-act="voice" aria-label="Voice input" title="Voice input (dictate with mic)">${ic('mic')}</button><span class="sp"></span><button class="send" id="send" data-act="send" aria-label="Send">${ic('up')}</button></div></div><div class="hint"><span>AI can make mistakes. Check critical outputs.</span><span><kbd>Enter</kbd> to send &nbsp; <kbd>Shift + Enter</kbd> new line</span></div></div><input type="file" id="file" multiple hidden></section>`;
   drawMsgs();drawAtts();bindInput();updSend();updConn();updateThemeLabel();}
@@ -452,13 +448,7 @@ async function generate(c){
   try{
     for await(const ev of Axom.stream({messages:c.msgs.slice(0,-1),signal:run.signal})){
       const chunk = ev.text || ev.token || '';
-      if(ev.type==='think'||ev.type==='agent_thought'){m.think=(m.think||'')+(ev.thought||chunk)+'\n';m.thinkMs=Date.now()-t0}
-      else if(ev.type==='tool_call'){m.text+=`\n\n> ⚙️ **Action:** \`${ev.name}\`\n> \`\`\`json\n> ${JSON.stringify(ev.args,null,2)}\n> \`\`\`\n`}
-      else if(ev.type==='tool_result'){
-        let prev='';try{const p=JSON.parse(ev.output);prev=p.stdout?p.stdout.trim():p.entries?`Files (${p.entries.length}): `+p.entries.map(x=>x.name).join(', '):p.status?p.status:JSON.stringify(p)}catch(x){prev=ev.output}
-        m.text+=`> ${ev.success?'✅':'❌'} **Result:** \`${prev.substring(0,160)}\`\n\n`;
-      }
-      else if(chunk)m.text+=chunk;
+      if(ev.type==='think'){m.think+=chunk;m.thinkMs=Date.now()-t0}else if(chunk)m.text+=chunk;
       if(!raf)raf=requestAnimationFrame(paint);
     }
   }catch(e){
@@ -575,7 +565,7 @@ async function fetchSettingsData(){
 async function settings(tab='account'){
   await fetchSettingsData();
   $('.set-ov')?.remove();const o=document.createElement('div');o.className='ov set-ov';
-  const tabs=['account','brain','skills','appearance','generation','training','about'].map(t=>`<button class="${t===tab?'on':''}" data-tab="${t}">${t}</button>`).join('');
+  const tabs=['account','brain','appearance','generation','training','about'].map(t=>`<button class="${t===tab?'on':''}" data-tab="${t}">${t}</button>`).join('');
   const pane={
    account:`<div class="set">
      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
@@ -609,41 +599,6 @@ async function settings(tab='account'){
            <div style="color:var(--tx);line-height:1.4">${esc(m.value || m.text)}</div>
          </div>
        `).join('') : '<div style="color:var(--tx3);font-size:11px">No persistent memories recorded yet.</div>'}
-     </div>
-   </div>`,
-   skills:`<div class="set">
-     <div style="margin-bottom:12px">
-       <strong style="color:var(--tx);font-size:13px">Agent Skills & Permissions Sandbox</strong>
-       <small style="color:var(--acid);font-family:'JetBrains Mono',monospace;display:block">ACTIVE PROJECT WORKSPACE: ${esc(S.workspace||'default')}</small>
-     </div>
-     <div style="display:flex;flex-direction:column;gap:8px">
-       <div style="background:var(--surf);border:1px solid var(--bd);padding:10px">
-         <div style="display:flex;justify-content:space-between;align-items:center">
-           <div><strong style="color:var(--tx)">📁 File System Manager</strong><br><small style="color:var(--tx3)">read_file, write_file, edit_file, delete_file, list_dir</small></div>
-           <span style="color:var(--acid);font-size:10px;font-family:'JetBrains Mono',monospace">ACTIVE</span>
-         </div>
-       </div>
-       <div style="background:var(--surf);border:1px solid var(--bd);padding:10px">
-         <div style="display:flex;justify-content:space-between;align-items:center">
-           <div><strong style="color:var(--tx)">💻 Workspace Terminal Runner</strong><br><small style="color:var(--tx3)">PowerShell & Python runner strictly inside project folder</small></div>
-           <span style="color:var(--acid);font-size:10px;font-family:'JetBrains Mono',monospace">ACTIVE</span>
-         </div>
-       </div>
-       <div style="background:var(--surf);border:1px solid var(--bd);padding:10px">
-         <div style="display:flex;justify-content:space-between;align-items:center">
-           <div><strong style="color:var(--tx)">🌐 Web Fetcher & API Tool</strong><br><small style="color:var(--tx3)">HTTP GET public documentation and APIs</small></div>
-           <span style="color:var(--acid);font-size:10px;font-family:'JetBrains Mono',monospace">ACTIVE</span>
-         </div>
-       </div>
-       <div style="background:var(--surf);border:1px solid var(--bd);padding:10px">
-         <div style="display:flex;justify-content:space-between;align-items:center">
-           <div><strong style="color:var(--tx)">🖥️ Host Environment Inspector</strong><br><small style="color:var(--tx3)">OS, CPU, RAM, and GPU telemetry</small></div>
-           <span style="color:var(--acid);font-size:10px;font-family:'JetBrains Mono',monospace">ACTIVE</span>
-         </div>
-       </div>
-     </div>
-     <div style="margin-top:10px;padding:8px 10px;background:var(--input);border:1px solid var(--bd);font-size:11px;color:var(--tx2)">
-       <strong>🔒 Sandbox Guarantee:</strong> Agent file operations and commands are strictly constrained to <code>C:\\Users\\abira\\Documents\\axom\\workspace\\${esc(S.workspace||'default')}</code>. Path traversal and access to system directories outside this folder are automatically blocked.
      </div>
    </div>`,
    appearance:`<div class="set"><label for="th">Color Theme<small>Choose dark, light, or follow your OS preference.</small></label><div class="ctl"><select id="th"><option value="dark">Dark</option><option value="light">Light</option><option value="system">System</option></select></div></div><div class="set"><label><span>Enter sends message<small>When off, press Ctrl+Enter to send.</small></span><input type="checkbox" id="ent" ${S.enterSends?'checked':''}></label></div>`,
@@ -702,11 +657,6 @@ function applyTheme(){document.documentElement.dataset.theme=S.theme==='system'?
 function updateThemeLabel(){const light=document.documentElement.dataset.theme==='light';if($('#theme-label'))$('#theme-label').textContent=(light?'Light':'Dark')+' appearance'}
 
 document.addEventListener('change',e=>{
-  if(e.target.id==='modeSelect'){
-    S.mode=e.target.value;
-    save();
-    toast('Mode: '+e.target.options[e.target.selectedIndex].text);
-  }
   if(e.target.id==='modelSelect'){
     S.model=e.target.value;
     save();
@@ -716,18 +666,6 @@ document.addEventListener('change',e=>{
 
 /* ---- actions ---- */
 document.addEventListener('click',async e=>{
-  const wsBtn=e.target.closest('#wsBtn');
-  if(wsBtn){
-    const next=prompt('Enter project workspace folder name (e.g. "my_app", "web_project"):', S.workspace||'default');
-    if(next && next.trim()){
-      S.workspace=next.trim().replace(/[^a-zA-Z0-9_\-\.]/g,'_');
-      save();
-      const lbl=$('#wsLabel');if(lbl)lbl.textContent=S.workspace;
-      fetch('/api/workspaces',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:S.workspace})});
-      toast('Active Workspace: '+S.workspace);
-    }
-    return;
-  }
   const b=e.target.closest('[data-act]');if(!e.target.closest('.pop'))closePop();if(!b)return;
   const a=b.dataset.act,id=b.dataset.id,c=cur();
   if(run&&['new','open','rename','del','pinc','retry','fb','sug'].includes(a)){toast('Stop generation first.');return}
