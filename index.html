@@ -102,22 +102,12 @@ mark{background:var(--acid);color:#000;border-radius:0}
 .hdr .ttl{flex:0 1 auto;text-align:left;font:10px 'JetBrains Mono',monospace;letter-spacing:1px;color:var(--tx3);text-transform:uppercase}
 .hdr .ttl b{color:var(--tx);font-weight:400}
 .hdr .sp{flex:1}
-.top-version{font:9px 'JetBrains Mono',monospace;color:var(--tx3)}
-.conn{display:flex;align-items:center;gap:8px;font:9px 'JetBrains Mono',monospace;letter-spacing:1px;color:var(--tx2);white-space:nowrap;padding:4px 8px;transition:all .2s}
-.conn i{width:6px;height:6px;background:var(--acid);display:inline-block;transition:all .2s;box-shadow:0 0 6px var(--acid)}
-.conn.on i{background:var(--acid);animation:pulseGlow 2s infinite}
 
-/* model selector in header */
-.model-select{
-  max-width:140px;padding:6px 10px;
-  background:var(--surf);color:var(--tx);
-  border:1px solid var(--bd);border-radius:0;
-  font:10px 'JetBrains Mono',monospace;letter-spacing:1px;
-  text-transform:uppercase;cursor:pointer;
-  transition:all .2s var(--ease);
-}
-.model-select:hover{border-color:var(--tx2);background:var(--elev)}
-.model-select:focus{border-color:var(--ac);outline:0}
+/* language switch in header */
+.lang-switch{display:inline-flex;align-items:center;border:1px solid var(--bd);background:var(--surf);padding:2px;gap:2px}
+.lang-btn{padding:5px 10px;font:10px 'JetBrains Mono',monospace;letter-spacing:.08em;color:var(--tx2);transition:all .18s var(--ease);border:0;background:none;cursor:pointer}
+.lang-btn:hover{color:var(--tx);background:var(--elev)}
+.lang-btn.on{background:var(--ac);color:#fff;font-weight:600;box-shadow:0 1px 4px rgba(255,81,47,.25)}
 
 /* chat container */
 .chat{flex:1;overflow:auto;scrollbar-gutter:stable;scroll-behavior:smooth}
@@ -271,12 +261,232 @@ const Axom={
 
 /* ---- state ---- */
 const D=864e5,MAXF=24000;
-let S={convs:[],cur:null,api:'',model:'axom:1.1',theme:'dark',col:false,enterSends:true,effort:'fast',gen:{temperature:.7,top_k:50,max_tokens:512,seed:-1,stop:'',stream:true}};
+let S={convs:[],cur:null,api:'',model:'axom:1.1',lang:'pt',theme:'dark',col:false,enterSends:true,effort:'fast',gen:{temperature:.7,top_k:50,max_tokens:512,seed:-1,stop:'',stream:true}};
 try{const j=JSON.parse(localStorage.getItem('axom-v2'));if(j)S={...S,...j,gen:{...S.gen,...j.gen}}}catch(e){}
+if(!S.lang) S.lang = 'pt';
 if(!S.effort) S.effort = 'fast';
 const save=()=>{try{localStorage.setItem('axom-v2',JSON.stringify(S))}catch(e){}};
 let models=[],query='',atts=[],run=null,pop=null,fresh=-1;
 const cur=()=>S.convs.find(c=>c.id===S.cur);
+
+/* ---- i18n dictionary ---- */
+const I18N = {
+  en: {
+    appTitle: "AXOM — Independent Intelligence",
+    edition: "INDEPENDENT<br>INTELLIGENCE",
+    newChat: "New conversation",
+    newChatTitle: "New conversation (Ctrl+N)",
+    searchPlaceholder: "Find a conversation",
+    searchAria: "Search conversations",
+    settings: "Settings",
+    pinned: "Pinned",
+    today: "Today",
+    yesterday: "Yesterday",
+    older: "Older",
+    noMatches: "No matches.",
+    noConvs: "No conversations yet.",
+    workspacePrefix: "WORKSPACE",
+    newConvHeader: "NEW CONVERSATION",
+    toggleSidebar: "Toggle sidebar",
+    sessionPrefix: "SESSION / ",
+    you: "You",
+    axom: "Axom",
+    thinking: "Thinking",
+    retry: "Retry",
+    copy: "Copy",
+    regenerate: "Regenerate",
+    goodResp: "Good response",
+    badResp: "Bad response",
+    copied: "Copied",
+    copyFailed: "Copy failed",
+    copyCode: "Copy",
+    copiedCode: "Copied",
+    inputPlaceholder: "What’s on your mind? Drop files, folders, or code...",
+    attachTitle: "Attach text, code or folder files",
+    voiceTitle: "Voice input (dictate with mic)",
+    voiceListening: "Listening... Speak now",
+    voiceStopped: "Voice input stopped",
+    voiceNotSupported: "Voice recognition not supported in this browser. Please use Chrome or Edge.",
+    micError: "Mic error: ",
+    micAccessError: "Could not access microphone",
+    send: "Send",
+    stop: "Stop generating",
+    disclaimer: "AI can make mistakes. Check critical outputs.",
+    hintKeys: "<kbd>Enter</kbd> to send &nbsp; <kbd>Shift + Enter</kbd> new line",
+    heroTitle: "THINK <span class=\"outline\">OFF-SCRIPT.</span>",
+    rename: "Rename",
+    unpin: "Unpin",
+    pin: "Pin",
+    exportMd: "Export as Markdown",
+    del: "Delete",
+    renameTitle: "Rename conversation",
+    delTitle: "Delete conversation?",
+    delConfirm: "will be permanently deleted.",
+    cancel: "Cancel",
+    ok: "OK",
+    stopGenFirst: "Stop generation first.",
+    maxFiles: "Maximum 10 files/code files",
+    fileExceeds: "exceeds 4MB",
+    textFilesOnly: ": text/code files only",
+    fileTrimmed: "trimmed to fit context",
+    genStopped: "*Generation stopped.*",
+    genStoppedUnexpected: "Generation stopped unexpectedly.",
+    settingsTitle: "Settings",
+    tabAccount: "Account",
+    tabBrain: "Brain",
+    tabAppearance: "Appearance",
+    tabGeneration: "Generation",
+    tabTraining: "Training",
+    tabAbout: "About",
+    founderRole: "FOUNDER & CREATOR",
+    roleLabel: "Role",
+    accountRole: "Model Creator & System Architect",
+    envLabel: "Environment",
+    accountEnv: "Local Hardware Acceleration (RTX 5060 GPU)",
+    engineLabel: "Neural Engine",
+    accountEngine: "Axom Unified Neural Core Active (Axom v1.1)",
+    brainTitle: "Persistent Long-Term Memory",
+    brainBadge: "DUAL-STATE SQLITE BRAIN",
+    btnReview: "Review Session Now",
+    btnReviewing: "Reviewing...",
+    btnReviewFailed: "Review Failed",
+    noMemories: "No persistent memories recorded yet.",
+    themeLabel: "Color Theme",
+    themeSub: "Choose dark, light, or follow your OS preference.",
+    themeDark: "Dark",
+    themeLight: "Light",
+    themeSystem: "System",
+    enterSendsLabel: "Enter sends message",
+    enterSendsSub: "When off, press Ctrl+Enter to send.",
+    modelLabel: "Inference Model",
+    modelSub: "Select the primary neural weights model.",
+    tempLabel: "Temperature",
+    topKLabel: "Top K (0 = unrestricted)",
+    maxTokensLabel: "Maximum reply tokens",
+    seedLabel: "Seed",
+    seedSub: "-1 for random.",
+    stopSeqLabel: "Stop sequences",
+    stopSeqPlaceholder: "comma separated",
+    trainingDash: "Live AXOM Training Dashboard",
+    trainingSub: "Real-time metrics from background training checkpoints.",
+    metricsUpdating: "Metrics updating...",
+    stepLabel: "Step",
+    lossLabel: "Loss",
+    speedLabel: "Speed",
+    checkpointsLabel: "Checkpoints",
+    aboutText: "<b>AXOM AI</b><br>Founder & Creator: <b>Abiral</b><br>Active Model: <b>Axom v1.1</b> (Qwen 3.5 4B Uncensored Fine-Tuned)<br>Hardware: <b>NVIDIA GeForce RTX 5060 Laptop GPU (CUDA)</b> · 32GB RAM · HP OMEN<br>Dataset: Blended coding (CodeAlpaca), reasoning (FineTome), and custom creator grounding."
+  },
+  pt: {
+    appTitle: "AXOM — Inteligência Independente",
+    edition: "INTELIGÊNCIA<br>INDEPENDENTE",
+    newChat: "Nova conversa",
+    newChatTitle: "Nova conversa (Ctrl+N)",
+    searchPlaceholder: "Pesquisar conversas",
+    searchAria: "Pesquisar conversas",
+    settings: "Configurações",
+    pinned: "Fixadas",
+    today: "Hoje",
+    yesterday: "Ontem",
+    older: "Anteriores",
+    noMatches: "Sem correspondências.",
+    noConvs: "Ainda sem conversas.",
+    workspacePrefix: "ESPAÇO DE TRABALHO",
+    newConvHeader: "NOVA CONVERSA",
+    toggleSidebar: "Alternar barra lateral",
+    sessionPrefix: "SESSÃO / ",
+    you: "Você",
+    axom: "Axom",
+    thinking: "A pensar",
+    retry: "Repetir",
+    copy: "Copiar",
+    regenerate: "Regenerar",
+    goodResp: "Boa resposta",
+    badResp: "Resposta inadequada",
+    copied: "Copiado",
+    copyFailed: "Falha ao copiar",
+    copyCode: "Copiar",
+    copiedCode: "Copiado",
+    inputPlaceholder: "O que tem em mente? Arraste ficheiros, pastas ou código...",
+    attachTitle: "Anexar texto, código ou pastas",
+    voiceTitle: "Entrada por voz (ditar com microfone)",
+    voiceListening: "A escutar... Fale agora",
+    voiceStopped: "Entrada por voz terminada",
+    voiceNotSupported: "Reconhecimento de voz não suportado neste navegador. Use o Chrome ou Edge.",
+    micError: "Erro do microfone: ",
+    micAccessError: "Não foi possível aceder ao microfone",
+    send: "Enviar",
+    stop: "Parar geração",
+    disclaimer: "A IA pode cometer erros. Verifique informações críticas.",
+    hintKeys: "<kbd>Enter</kbd> para enviar &nbsp; <kbd>Shift + Enter</kbd> nova linha",
+    heroTitle: "PENSE <span class=\"outline\">FORA DO PADRÃO.</span>",
+    rename: "Renomear",
+    unpin: "Desafixar",
+    pin: "Fixar",
+    exportMd: "Exportar como Markdown",
+    del: "Eliminar",
+    renameTitle: "Renomear conversa",
+    delTitle: "Eliminar conversa?",
+    delConfirm: "será eliminada permanentemente.",
+    cancel: "Cancelar",
+    ok: "Confirmar",
+    stopGenFirst: "Pare a geração primeiro.",
+    maxFiles: "Máximo de 10 ficheiros de texto/código",
+    fileExceeds: "excede 4MB",
+    textFilesOnly: ": apenas ficheiros de texto/código",
+    fileTrimmed: "reduzido para caber no contexto",
+    genStopped: "*Geração interrompida.*",
+    genStoppedUnexpected: "A geração parou inesperadamente.",
+    settingsTitle: "Configurações",
+    tabAccount: "Conta",
+    tabBrain: "Cérebro",
+    tabAppearance: "Aparência",
+    tabGeneration: "Geração",
+    tabTraining: "Treino",
+    tabAbout: "Sobre",
+    founderRole: "FUNDADOR & CRIADOR",
+    roleLabel: "Cargo",
+    accountRole: "Criador do Modelo & Arquiteto de Sistemas",
+    envLabel: "Ambiente",
+    accountEnv: "Aceleração Local de Hardware (GPU RTX 5060)",
+    engineLabel: "Motor Neural",
+    accountEngine: "Núcleo Neural Axom Unificado Ativo (Axom v1.1)",
+    brainTitle: "Memória Persistente de Longo Prazo",
+    brainBadge: "CÉREBRO SQLITE DUAL-STATE",
+    btnReview: "Rever Sessão Agora",
+    btnReviewing: "A rever...",
+    btnReviewFailed: "Falha na Revisão",
+    noMemories: "Ainda sem memórias persistentes gravadas.",
+    themeLabel: "Tema de Cor",
+    themeSub: "Escolha escuro, claro ou siga as preferências do sistema.",
+    themeDark: "Escuro",
+    themeLight: "Claro",
+    themeSystem: "Sistema",
+    enterSendsLabel: "Enter envia mensagem",
+    enterSendsSub: "Quando desativado, prima Ctrl+Enter para enviar.",
+    modelLabel: "Modelo de Inferência",
+    modelSub: "Selecione o modelo principal de pesos neurais.",
+    tempLabel: "Temperatura",
+    topKLabel: "Top K (0 = sem restrição)",
+    maxTokensLabel: "Máximo de tokens por resposta",
+    seedLabel: "Seed",
+    seedSub: "-1 para aleatório.",
+    stopSeqLabel: "Sequências de paragem",
+    stopSeqPlaceholder: "separadas por vírgula",
+    trainingDash: "Painel de Treino AXOM em Tempo Real",
+    trainingSub: "Métricas em tempo real dos checkpoints de treino.",
+    metricsUpdating: "A atualizar métricas...",
+    stepLabel: "Passo",
+    lossLabel: "Perda (Loss)",
+    speedLabel: "Velocidade",
+    checkpointsLabel: "Pontos de Controlo",
+    aboutText: "<b>AXOM AI</b><br>Fundador & Criador: <b>Abiral</b><br>Modelo Ativo: <b>Axom v1.1</b> (Qwen 3.5 4B Uncensored Ajustado)<br>Hardware: <b>NVIDIA GeForce RTX 5060 Laptop GPU (CUDA)</b> · 32GB RAM · HP OMEN<br>Dataset: Mistura de programação (CodeAlpaca), raciocínio (FineTome) e identidade do criador."
+  }
+};
+
+function t(k){
+  const lang = S.lang === 'en' ? 'en' : 'pt';
+  return I18N[lang]?.[k] ?? I18N['en']?.[k] ?? k;
+}
 
 /* ---- markdown ---- */
 function inline(t){t=esc(t);return t.replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<em>$2</em>').replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')}
@@ -297,37 +507,33 @@ function md(src){
 /* ---- render ---- */
 const hl=(t,q)=>{t=esc(t);if(!q)return t;return t.replace(new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','ig'),'<mark>$1</mark>')};
 function sideHTML(){
-  const q=query.trim().toLowerCase(),g={Pinned:[],Today:[],Yesterday:[],Older:[]},start=new Date().setHours(0,0,0,0);let n=0;
+  const q=query.trim().toLowerCase();
+  const kPinned=t('pinned'), kToday=t('today'), kYesterday=t('yesterday'), kOlder=t('older');
+  const g={[kPinned]:[],[kToday]:[],[kYesterday]:[],[kOlder]:[]},start=new Date().setHours(0,0,0,0);let n=0;
   S.convs.slice().sort((a,b)=>b.ts-a.ts).forEach(c=>{
     let snip='';if(q){const m=c.msgs.find(m=>m.text.toLowerCase().includes(q));if(!c.title.toLowerCase().includes(q)&&!m)return;if(m){const i=m.text.toLowerCase().indexOf(q);snip=m.text.slice(Math.max(0,i-20),i+50)}}
-    g[c.pinned?'Pinned':c.ts>=start?'Today':c.ts>=start-D?'Yesterday':'Older'].push([c,snip])});
-  const h=Object.entries(g).filter(([,a])=>a.length).map(([k,a])=>`<div class="grp">${k}</div>`+a.map(([c,s])=>`<div class="item" style="--n:${Math.min(n++,12)}"><button class="row ${c.id===S.cur?'on':''}" data-act="open" data-id="${c.id}" ${c.id===S.cur?'aria-current="true"':''}><span class="lbl" style="min-width:0"><span class="t" style="display:block;overflow:hidden;text-overflow:ellipsis">${hl(c.title,q)}</span>${s?`<span class="snip">${hl(s,q)}</span>`:''}</span></button><button class="ib more" data-act="menu" data-id="${c.id}" aria-label="Conversation options">${ic('more')}</button></div>`).join('')).join('');
-  return h||`<div style="padding:20px 10px;color:var(--tx3);font-family:'JetBrains Mono',monospace;font-size:11px">${q?'No matches.':'No conversations yet.'}</div>`}
+    g[c.pinned?kPinned:c.ts>=start?kToday:c.ts>=start-D?kYesterday:kOlder].push([c,snip])});
+  const h=Object.entries(g).filter(([,a])=>a.length).map(([k,a])=>`<div class="grp">${k}</div>`+a.map(([c,s])=>`<div class="item" style="--n:${Math.min(n++,12)}"><button class="row ${c.id===S.cur?'on':''}" data-act="open" data-id="${c.id}" ${c.id===S.cur?'aria-current="true"':''}><span class="lbl" style="min-width:0"><span class="t" style="display:block;overflow:hidden;text-overflow:ellipsis">${hl(c.title,q)}</span>${s?`<span class="snip">${hl(s,q)}</span>`:''}</span></button><button class="ib more" data-act="menu" data-id="${c.id}" aria-label="${t('rename')}">${ic('more')}</button></div>`).join('')).join('');
+  return h||`<div style="padding:20px 10px;color:var(--tx3);font-family:'JetBrains Mono',monospace;font-size:11px">${q?t('noMatches'):t('noConvs')}</div>`}
 
 function shell(){
-  const modelOptions = (models.length ? models : [{id:'axom:1.1',name:'Axom v1.1'}]).map(m=>`<option value="${esc(m.id)}" ${m.id===S.model?'selected':''}>${esc(m.name||m.id)}</option>`).join('');
+  document.title = t('appTitle');
+  document.documentElement.lang = S.lang || 'pt';
 
   $('#app').innerHTML=`<aside class="side ${S.col?'col':''}" id="side" aria-label="Conversations">
-  <button class="logo-btn" data-act="gohome" title="Go to Home / New Chat">
-    <span>AXOM</span><sup>®</sup><div class="edition">INDEPENDENT<br>INTELLIGENCE</div>
+  <button class="logo-btn" data-act="gohome" title="AXOM Home">
+    <span>AXOM</span><sup>®</sup><div class="edition">${t('edition')}</div>
   </button>
-  <button class="row new-chat" data-act="new" title="New conversation (Ctrl+N)">${ic('plus')}<span class="lbl">New conversation</span><kbd>Ctrl+N</kbd></button>
-  <div class="search">${ic('search')}<input id="q" placeholder="Find a conversation" aria-label="Search conversations" value="${esc(query)}"><kbd>Ctrl+K</kbd></div>
+  <button class="row new-chat" data-act="new" title="${t('newChatTitle')}">${ic('plus')}<span class="lbl">${t('newChat')}</span><kbd>Ctrl+N</kbd></button>
+  <div class="search">${ic('search')}<input id="q" placeholder="${t('searchPlaceholder')}" aria-label="${t('searchAria')}" value="${esc(query)}"><kbd>Ctrl+K</kbd></div>
   <nav class="list" id="list">${sideHTML()}</nav>
-  <button class="row" data-act="settings" title="Settings & Preferences">${ic('gear')}<span class="lbl">Settings</span></button>
+  <button class="row" data-act="settings" title="${t('settings')}">${ic('gear')}<span class="lbl">${t('settings')}</span></button>
   </aside>
   <div class="scrim" data-act="drawer"></div>
-  <section class="main"><header class="hdr"><button class="ib" data-act="drawer" aria-label="Toggle sidebar" title="Toggle sidebar">${ic('panel')}</button><div class="ttl">WORKSPACE <b>/ ${esc(cur()?.title||'NEW CONVERSATION')}</b></div><span class="sp"></span><select class="model-select" id="modelSelect" title="Select Model">${modelOptions}</select><div class="conn" id="conn" role="status"><i></i><span id="connTxt">CONNECTED</span></div><span class="top-version">AXOM NEURAL ENGINE</span><button class="ib" data-act="new" aria-label="New conversation" title="New conversation">${ic('plus')}</button></header>
+  <section class="main"><header class="hdr"><button class="ib" data-act="drawer" aria-label="${t('toggleSidebar')}" title="${t('toggleSidebar')}">${ic('panel')}</button><div class="ttl">${t('workspacePrefix')} <b>/ ${esc(cur()?.title||t('newConvHeader'))}</b></div><span class="sp"></span><div class="lang-switch" role="group" aria-label="Language / Idioma"><button class="lang-btn ${S.lang==='en'?'on':''}" data-act="setlang" data-l="en" title="English">EN</button><button class="lang-btn ${S.lang==='pt'?'on':''}" data-act="setlang" data-l="pt" title="Português">PT</button></div></header>
   <main class="chat" id="chat" aria-label="Chat"><div class="col-in" id="msgs" aria-live="polite"></div></main>
-  <div class="comp"><div class="cbox" id="cbox"><div class="chips" id="atts"></div><textarea id="inp" rows="1" placeholder="What’s on your mind? Drop files, folders, or code..." aria-label="Message" maxlength="32000"></textarea><div class="tools"><button class="ib" data-act="attach" aria-label="Attach files" title="Attach text, code or folder files">${ic('clip')}</button><button class="ib mic-btn" id="micBtn" data-act="voice" aria-label="Voice input" title="Voice input (dictate with mic)">${ic('mic')}</button><span class="sp"></span><button class="send" id="send" data-act="send" aria-label="Send">${ic('up')}</button></div></div><div class="hint"><span>AI can make mistakes. Check critical outputs.</span><span><kbd>Enter</kbd> to send &nbsp; <kbd>Shift + Enter</kbd> new line</span></div></div><input type="file" id="file" multiple hidden></section>`;
-  drawMsgs();drawAtts();bindInput();updSend();updConn();updateThemeLabel();}
-
-function updConn(){
-  const c=$('#conn');if(!c)return;
-  const ok=Axom.connected;
-  c.classList.toggle('on',!!ok);
-  $('#connTxt').textContent=ok?'CONNECTED':'LOCAL ACTIVE';
-}
+  <div class="comp"><div class="cbox" id="cbox"><div class="chips" id="atts"></div><textarea id="inp" rows="1" placeholder="${t('inputPlaceholder')}" aria-label="Message" maxlength="32000"></textarea><div class="tools"><button class="ib" data-act="attach" aria-label="${t('attachTitle')}" title="${t('attachTitle')}">${ic('clip')}</button><button class="ib mic-btn" id="micBtn" data-act="voice" aria-label="${t('voiceTitle')}" title="${t('voiceTitle')}">${ic('mic')}</button><span class="sp"></span><button class="send" id="send" data-act="send" aria-label="${t('send')}" title="${t('send')}">${ic('up')}</button></div></div><div class="hint"><span>${t('disclaimer')}</span><span>${t('hintKeys')}</span></div></div><input type="file" id="file" multiple hidden></section>`;
+  drawMsgs();drawAtts();bindInput();updSend();updateThemeLabel();}
 
 function welcome(){
   return `<div class="empty">
@@ -335,30 +541,30 @@ function welcome(){
       <div class="home-brand">
         <span class="brand-logo">AXOM</span><sup>®</sup>
       </div>
-      <h1>THINK <span class="outline">OFF-SCRIPT.</span></h1>
+      <h1>${t('heroTitle')}</h1>
     </div>
   </div>`;
 }
 
 function msgHTML(m,i,last){
   const cls=i===fresh?' in':'';
-  if(m.role==='user')return`<div class="msg user${cls}"><div class="who">You</div>${m.files?.length?`<div class="chips">${m.files.map(f=>`<span class="chip">${ic('file')}${esc(f)}</span>`).join('')}</div>`:''}<div class="bd">${esc(m.text)}</div></div>`;
-  return`<div class="msg${cls}" data-i="${i}"><div class="who">Axom</div>${m.think?`<details class="think"><summary>Thinking · ${(m.thinkMs/1e3).toFixed(1)}s</summary><div>${esc(m.think)}</div></details>`:''}<div class="bd">${md(m.text)}</div>
-  ${m.err?`<div class="err" role="alert"><span>${esc(m.err)}</span><button class="btn" data-act="retry">Retry</button></div>`:''}
-  ${run&&last?'':`<div class="acts"><button class="ib" data-act="copymsg" aria-label="Copy" title="Copy">${ic('copy')}</button>${last?`<button class="ib" data-act="retry" aria-label="Regenerate" title="Regenerate">${ic('redo')}</button>`:''}<button class="ib ${m.fb==='up'?'on':''}" data-act="fb" data-v="up" aria-label="Good response">${ic('up2')}</button><button class="ib ${m.fb==='dn'?'on':''}" data-act="fb" data-v="dn" aria-label="Bad response">${ic('dn')}</button></div>`}</div>`}
+  if(m.role==='user')return`<div class="msg user${cls}"><div class="who">${t('you')}</div>${m.files?.length?`<div class="chips">${m.files.map(f=>`<span class="chip">${ic('file')}${esc(f)}</span>`).join('')}</div>`:''}<div class="bd">${esc(m.text)}</div></div>`;
+  return`<div class="msg${cls}" data-i="${i}"><div class="who">${t('axom')}</div>${m.think?`<details class="think"><summary>${t('thinking')} · ${(m.thinkMs/1e3).toFixed(1)}s</summary><div>${esc(m.think)}</div></details>`:''}<div class="bd">${md(m.text)}</div>
+  ${m.err?`<div class="err" role="alert"><span>${esc(m.err)}</span><button class="btn" data-act="retry">${t('retry')}</button></div>`:''}
+  ${run&&last?'':`<div class="acts"><button class="ib" data-act="copymsg" aria-label="${t('copy')}" title="${t('copy')}">${ic('copy')}</button>${last?`<button class="ib" data-act="retry" aria-label="${t('regenerate')}" title="${t('regenerate')}">${ic('redo')}</button>`:''}<button class="ib ${m.fb==='up'?'on':''}" data-act="fb" data-v="up" aria-label="${t('goodResp')}">${ic('up2')}</button><button class="ib ${m.fb==='dn'?'on':''}" data-act="fb" data-v="dn" aria-label="${t('badResp')}">${ic('dn')}</button></div>`}</div>`}
 
 function drawMsgs(){
   const c=cur(),el=$('#msgs'),app=$('#app');if(!el)return;
   const isHome = !c || !c.msgs.length;
   if(app) app.classList.toggle('home-view', isHome);
   if(isHome){el.innerHTML=welcome();return}
-  el.innerHTML='<div class="session-label">SESSION / '+esc(c.title)+'</div>'+c.msgs.map((m,i)=>msgHTML(m,i,i===c.msgs.length-1)).join('');scrollEnd();
+  el.innerHTML='<div class="session-label">'+t('sessionPrefix')+esc(c.title)+'</div>'+c.msgs.map((m,i)=>msgHTML(m,i,i===c.msgs.length-1)).join('');scrollEnd();
 }
 const scrollEnd=()=>{const c=$('#chat');if(c)c.scrollTop=c.scrollHeight};
 function updSend(){
   const b=$('#send'),i=$('#inp');if(!b)return;
-  if(run){b.innerHTML=ic('stop');b.dataset.act='stop';b.setAttribute('aria-label','Stop generating');b.disabled=false}
-  else{b.innerHTML=ic('up');b.dataset.act='send';b.setAttribute('aria-label','Send');b.disabled=!(i.value.trim()||atts.length)}
+  if(run){b.innerHTML=ic('stop');b.dataset.act='stop';b.setAttribute('aria-label',t('stop'));b.title=t('stop');b.disabled=false}
+  else{b.innerHTML=ic('up');b.dataset.act='send';b.setAttribute('aria-label',t('send'));b.title=t('send');b.disabled=!(i.value.trim()||atts.length)}
 }
 
 /* ---- file & folder recursive scanner ---- */
@@ -387,12 +593,12 @@ async function scanFiles(items) {
 
 async function addFiles(list){
   for(const f of list){
-    if(atts.length>=10){toast('Maximum 10 files/code files');break}
-    if(f.size>4e6){toast(f.name+' exceeds 4MB');continue}
-    let t;try{t=await f.text()}catch(e){continue}
-    if(t.includes('\0')){toast(f.name+': text/code files only');continue}
-    if(t.length>MAXF){t=t.slice(0,MAXF);toast(f.name+' trimmed to fit context')}
-    atts.push({name:f.name,text:t})
+    if(atts.length>=10){toast(t('maxFiles'));break}
+    if(f.size>4e6){toast(f.name+' '+t('fileExceeds'));continue}
+    let tText;try{tText=await f.text()}catch(e){continue}
+    if(tText.includes('\0')){toast(f.name+t('textFilesOnly'));continue}
+    if(tText.length>MAXF){tText=tText.slice(0,MAXF);toast(f.name+' '+t('fileTrimmed'))}
+    atts.push({name:f.name,text:tText})
   }
   drawAtts();updSend();
 }
@@ -417,7 +623,7 @@ function bindInput(){
       addFiles(e.dataTransfer.files);
     }
   });
-  let t;$('#q').addEventListener('input',e=>{clearTimeout(t);t=setTimeout(()=>{query=e.target.value;$('#list').innerHTML=sideHTML()},120)});
+  let tTimeout;$('#q').addEventListener('input',e=>{clearTimeout(tTimeout);tTimeout=setTimeout(()=>{query=e.target.value;$('#list').innerHTML=sideHTML()},120)});
 }
 addEventListener('dragover',e=>e.preventDefault());addEventListener('drop',e=>e.preventDefault());
 
@@ -425,7 +631,7 @@ addEventListener('dragover',e=>e.preventDefault());addEventListener('drop',e=>e.
 function newChat(){S.cur=null;save();atts=[];shell();$('#inp').focus();closeDrawer()}
 async function send(text){
   const i=$('#inp');text=(text??i.value);if((!text.trim()&&!atts.length)||run)return;
-  let c=cur();if(!c){c={id:'c'+Date.now(),title:text.slice(0,40)||atts[0]?.name||'Conversation',ts:Date.now(),msgs:[]};S.convs.push(c);S.cur=c.id}
+  let c=cur();if(!c){c={id:'c'+Date.now(),title:text.slice(0,40)||atts[0]?.name||t('newConvHeader'),ts:Date.now(),msgs:[]};S.convs.push(c);S.cur=c.id}
   c.msgs.push({role:'user',text,files:atts.map(f=>f.name),ctx:atts.map(f=>`[File: ${f.name}]\n${f.text}`).join('\n\n')});
   c.ts=Date.now();atts=[];i.value='';i.style.height='auto';
   fresh=c.msgs.length-1;shell();fresh=-1;await generate(c);
@@ -452,8 +658,8 @@ async function generate(c){
       if(!raf)raf=requestAnimationFrame(paint);
     }
   }catch(e){
-    if(e.name==='AbortError'){m.text+=m.text?'\n\n*Generation stopped.*':'*Generation stopped.*'}
-    else m.err=e.message||'Generation stopped unexpectedly.';
+    if(e.name==='AbortError'){m.text+=m.text?'\n\n'+t('genStopped'):t('genStopped')}
+    else m.err=e.message||t('genStoppedUnexpected');
   }
   
   if(raf)cancelAnimationFrame(raf);
@@ -466,7 +672,7 @@ let recognition = null, isRecording = false;
 function toggleVoice(){
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) {
-    toast('Voice recognition not supported in this browser. Please use Chrome or Edge.');
+    toast(t('voiceNotSupported'));
     return;
   }
   const micBtn = $('#micBtn'), inp = $('#inp');
@@ -476,7 +682,7 @@ function toggleVoice(){
     }
     isRecording = false;
     micBtn?.classList.remove('recording');
-    toast('Voice input stopped');
+    toast(t('voiceStopped'));
     return;
   }
 
@@ -484,21 +690,21 @@ function toggleVoice(){
     recognition = new SR();
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.lang = navigator.language || 'en-US';
+    recognition.lang = S.lang === 'pt' ? 'pt-PT' : 'en-US';
 
     let baseText = inp.value ? inp.value.trim() + ' ' : '';
 
     recognition.onstart = () => {
       isRecording = true;
       micBtn?.classList.add('recording');
-      toast('Listening... Speak now');
+      toast(t('voiceListening'));
     };
 
     recognition.onresult = (e) => {
       let interim = '';
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const transcript = e.results[i][0].transcript;
-        if (e.results[i].isFinal) {
+      for (let idx = e.resultIndex; idx < e.results.length; idx++) {
+        const transcript = e.results[idx][0].transcript;
+        if (e.results[idx].isFinal) {
           baseText += transcript + ' ';
         } else {
           interim += transcript;
@@ -515,7 +721,7 @@ function toggleVoice(){
       isRecording = false;
       micBtn?.classList.remove('recording');
       if (e.error !== 'no-speech') {
-        toast('Mic error: ' + e.error);
+        toast(t('micError') + e.error);
       }
     };
 
@@ -530,7 +736,7 @@ function toggleVoice(){
     console.error('Failed to start speech recognition:', err);
     isRecording = false;
     micBtn?.classList.remove('recording');
-    toast('Could not access microphone');
+    toast(t('micAccessError'));
   }
 }
 
@@ -538,9 +744,9 @@ function toggleVoice(){
 function closePop(){pop?.remove();pop=null}
 function popover(anchor,html){closePop();pop=document.createElement('div');pop.className='pop';pop.innerHTML=html;pop.setAttribute('role','menu');document.body.appendChild(pop);
   const r=anchor.getBoundingClientRect(),w=pop.offsetWidth;pop.style.top=r.bottom+6+'px';pop.style.left=Math.max(8,Math.min(innerWidth-w-8,r.left))+'px'}
-function toast(t){const e=document.createElement('div');e.className='toast';e.textContent=t;e.setAttribute('role','status');document.body.appendChild(e);setTimeout(()=>e.remove(),2200)}
-function dialog({title,body='',ok='OK',danger,input}){return new Promise(res=>{
-  const o=document.createElement('div');o.className='ov';o.innerHTML=`<div class="modal" role="dialog" aria-modal="true" aria-label="${esc(title)}" style="width:min(420px,100%)"><div class="mh">${esc(title)}</div><div style="padding:16px">${body?`<p style="margin:0 0 10px;color:var(--tx2)">${body}</p>`:''}${input!=null?`<input class="mi" value="${esc(input)}">`:''}</div><div style="display:flex;gap:8px;justify-content:flex-end;padding:0 16px 16px"><button class="btn" data-r="0">Cancel</button><button class="btn ${danger?'dng':'pri'}" data-r="1">${ok}</button></div></div>`;
+function toast(text){const e=document.createElement('div');e.className='toast';e.textContent=text;e.setAttribute('role','status');document.body.appendChild(e);setTimeout(()=>e.remove(),2200)}
+function dialog({title,body='',ok=t('ok'),cancel=t('cancel'),danger,input}){return new Promise(res=>{
+  const o=document.createElement('div');o.className='ov';o.innerHTML=`<div class="modal" role="dialog" aria-modal="true" aria-label="${esc(title)}" style="width:min(420px,100%)"><div class="mh">${esc(title)}</div><div style="padding:16px">${body?`<p style="margin:0 0 10px;color:var(--tx2)">${body}</p>`:''}${input!=null?`<input class="mi" value="${esc(input)}">`:''}</div><div style="display:flex;gap:8px;justify-content:flex-end;padding:0 16px 16px"><button class="btn" data-r="0">${cancel}</button><button class="btn ${danger?'dng':'pri'}" data-r="1">${ok}</button></div></div>`;
   document.body.appendChild(o);const inp=$('input',o);(inp||$('[data-r="1"]',o)).focus();inp?.select();
   const done=v=>{o.remove();res(v?(inp?inp.value:true):null)};
   o.addEventListener('click',e=>{if(e.target===o)done(0);const r=e.target.closest('[data-r]');if(r)done(+r.dataset.r)});
@@ -548,7 +754,6 @@ function dialog({title,body='',ok='OK',danger,input}){return new Promise(res=>{
 function closeDrawer(){$('#side')?.classList.remove('open')}
 
 /* ---- settings ---- */
-const SL=[['temperature','Temperature',.05,2,.05],['top_k','Top K (0 = unrestricted)',0,100,1],['max_tokens','Maximum reply tokens',64,1024,64]];
 let activeMemories=[], trainingMetrics=null, activeProjects=[];
 
 async function fetchSettingsData(){
@@ -565,29 +770,40 @@ async function fetchSettingsData(){
 async function settings(tab='account'){
   await fetchSettingsData();
   $('.set-ov')?.remove();const o=document.createElement('div');o.className='ov set-ov';
-  const tabs=['account','brain','appearance','generation','training','about'].map(t=>`<button class="${t===tab?'on':''}" data-tab="${t}">${t}</button>`).join('');
+  const tabKeys=['account','brain','appearance','generation','training','about'];
+  const tabLabels={
+    account: t('tabAccount'),
+    brain: t('tabBrain'),
+    appearance: t('tabAppearance'),
+    generation: t('tabGeneration'),
+    training: t('tabTraining'),
+    about: t('tabAbout')
+  };
+  const tabs=tabKeys.map(k=>`<button class="${k===tab?'on':''}" data-tab="${k}">${tabLabels[k]}</button>`).join('');
+  const modelOptions = (models.length ? models : [{id:'axom:1.1',name:'Axom v1.1'}]).map(m=>`<option value="${esc(m.id)}" ${m.id===S.model?'selected':''}>${esc(m.name||m.id)}</option>`).join('');
+
   const pane={
    account:`<div class="set">
      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
        <div class="avatar" style="width:42px;height:42px;font-size:20px">A</div>
        <div>
          <strong style="font-size:14px;color:var(--tx)">Abiral</strong>
-         <small style="color:var(--acid);font-family:'JetBrains Mono',monospace;display:block">FOUNDER & CREATOR</small>
+         <small style="color:var(--acid);font-family:'JetBrains Mono',monospace;display:block">${t('founderRole')}</small>
        </div>
      </div>
      <div style="padding:10px 12px;background:var(--surf);border:1px solid var(--bd);font-size:12px;color:var(--tx2);line-height:1.6">
-       <strong>Role:</strong> Model Creator & System Architect<br>
-       <strong>Environment:</strong> Local Hardware Acceleration (RTX 5060 GPU)<br>
-       <strong>Neural Engine:</strong> Axom Unified Neural Core Active (Axom v1.1)
+       <strong>${t('roleLabel')}:</strong> ${t('accountRole')}<br>
+       <strong>${t('envLabel')}:</strong> ${t('accountEnv')}<br>
+       <strong>${t('engineLabel')}:</strong> ${t('accountEngine')}
      </div>
    </div>`,
    brain:`<div class="set">
      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
        <div>
-         <strong style="color:var(--tx);font-size:13px">Persistent Long-Term Memory</strong>
-         <small style="color:var(--acid);font-family:'JetBrains Mono',monospace;display:block">DUAL-STATE SQLITE BRAIN</small>
+         <strong style="color:var(--tx);font-size:13px">${t('brainTitle')}</strong>
+         <small style="color:var(--acid);font-family:'JetBrains Mono',monospace;display:block">${t('brainBadge')}</small>
        </div>
-       <button id="btn-review-memory" class="btn pri" style="padding:5px 9px;font-size:9px">Review Session Now</button>
+       <button id="btn-review-memory" class="btn pri" style="padding:5px 9px;font-size:9px">${t('btnReview')}</button>
      </div>
      <div style="max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:6px">
        ${activeMemories && activeMemories.length ? activeMemories.map(m => `
@@ -598,41 +814,41 @@ async function settings(tab='account'){
            </div>
            <div style="color:var(--tx);line-height:1.4">${esc(m.value || m.text)}</div>
          </div>
-       `).join('') : '<div style="color:var(--tx3);font-size:11px">No persistent memories recorded yet.</div>'}
+       `).join('') : `<div style="color:var(--tx3);font-size:11px">${t('noMemories')}</div>`}
      </div>
    </div>`,
-   appearance:`<div class="set"><label for="th">Color Theme<small>Choose dark, light, or follow your OS preference.</small></label><div class="ctl"><select id="th"><option value="dark">Dark</option><option value="light">Light</option><option value="system">System</option></select></div></div><div class="set"><label><span>Enter sends message<small>When off, press Ctrl+Enter to send.</small></span><input type="checkbox" id="ent" ${S.enterSends?'checked':''}></label></div>`,
-   generation:SL.map(([k,l,a,b,s])=>`<div class="set"><label for="r-${k}">${l}</label><div class="ctl"><input type="range" id="r-${k}" data-g="${k}" min="${a}" max="${b}" step="${s}" value="${S.gen[k]}"><input type="number" data-g="${k}" min="${a}" max="${b}" step="${s}" value="${S.gen[k]}" aria-label="${l} value"></div></div>`).join('')+`<div class="set"><label for="seed">Seed<small>-1 for random.</small></label><div class="ctl"><input type="number" data-g="seed" id="seed" value="${S.gen.seed}"></div></div><div class="set"><label for="stp">Stop sequences</label><div class="ctl"><input type="text" id="stp" data-g="stop" value="${esc(S.gen.stop)}" placeholder="comma separated"></div></div>`,
+   appearance:`<div class="set"><label for="th">${t('themeLabel')}<small>${t('themeSub')}</small></label><div class="ctl"><select id="th"><option value="dark">${t('themeDark')}</option><option value="light">${t('themeLight')}</option><option value="system">${t('themeSystem')}</option></select></div></div><div class="set"><label><span>${t('enterSendsLabel')}<small>${t('enterSendsSub')}</small></span><input type="checkbox" id="ent" ${S.enterSends?'checked':''}></label></div>`,
+   generation:`<div class="set"><label for="m-sel">${t('modelLabel')}<small>${t('modelSub')}</small></label><div class="ctl"><select id="modelSelect" style="font-family:'JetBrains Mono',monospace">${modelOptions}</select></div></div>` +
+     `<div class="set"><label for="r-temperature">${t('tempLabel')}</label><div class="ctl"><input type="range" id="r-temperature" data-g="temperature" min="0.05" max="2" step="0.05" value="${S.gen.temperature}"><input type="number" data-g="temperature" min="0.05" max="2" step="0.05" value="${S.gen.temperature}"></div></div>` +
+     `<div class="set"><label for="r-top_k">${t('topKLabel')}</label><div class="ctl"><input type="range" id="r-top_k" data-g="top_k" min="0" max="100" step="1" value="${S.gen.top_k}"><input type="number" data-g="top_k" min="0" max="100" step="1" value="${S.gen.top_k}"></div></div>` +
+     `<div class="set"><label for="r-max_tokens">${t('maxTokensLabel')}</label><div class="ctl"><input type="range" id="r-max_tokens" data-g="max_tokens" min="64" max="1024" step="64" value="${S.gen.max_tokens}"><input type="number" data-g="max_tokens" min="64" max="1024" step="64" value="${S.gen.max_tokens}"></div></div>` +
+     `<div class="set"><label for="seed">${t('seedLabel')}<small>${t('seedSub')}</small></label><div class="ctl"><input type="number" data-g="seed" id="seed" value="${S.gen.seed}"></div></div><div class="set"><label for="stp">${t('stopSeqLabel')}</label><div class="ctl"><input type="text" id="stp" data-g="stop" value="${esc(S.gen.stop)}" placeholder="${t('stopSeqPlaceholder')}"></div></div>`,
    training:`<div class="set">
-     <label>Live AXOM Training Dashboard<small>Real-time metrics from background training checkpoints.</small></label>
+     <label>${t('trainingDash')}<small>${t('trainingSub')}</small></label>
      ${trainingMetrics?`
        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
-         <div style="background:var(--surf);border:1px solid var(--bd);padding:10px"><strong>Step:</strong> ${trainingMetrics.step} / ${trainingMetrics.max_steps}</div>
-         <div style="background:var(--surf);border:1px solid var(--bd);padding:10px"><strong>Loss:</strong> ${trainingMetrics.loss || '0.7069'}</div>
-         <div style="background:var(--surf);border:1px solid var(--bd);padding:10px"><strong>Speed:</strong> ${trainingMetrics.speed || '~28.5s/step'}</div>
-         <div style="background:var(--surf);border:1px solid var(--bd);padding:10px"><strong>Checkpoints:</strong> ${trainingMetrics.checkpoints?.join(', ') || 'checkpoint-250'}</div>
+         <div style="background:var(--surf);border:1px solid var(--bd);padding:10px"><strong>${t('stepLabel')}:</strong> ${trainingMetrics.step} / ${trainingMetrics.max_steps}</div>
+         <div style="background:var(--surf);border:1px solid var(--bd);padding:10px"><strong>${t('lossLabel')}:</strong> ${trainingMetrics.loss || '0.7069'}</div>
+         <div style="background:var(--surf);border:1px solid var(--bd);padding:10px"><strong>${t('speedLabel')}:</strong> ${trainingMetrics.speed || '~28.5s/step'}</div>
+         <div style="background:var(--surf);border:1px solid var(--bd);padding:10px"><strong>${t('checkpointsLabel')}:</strong> ${trainingMetrics.checkpoints?.join(', ') || 'checkpoint-250'}</div>
        </div>
        <div style="margin-top:10px;padding:8px;background:var(--input);border:1px solid var(--bd);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--acid)">
          Model: axomv1 4B · Fine-Tuned QLoRA · Saved to Drive & Ollama
        </div>
-     `:'<div style="color:var(--tx3);font-size:11px;margin-top:8px">Metrics updating...</div>'}
+     `:`<div style="color:var(--tx3);font-size:11px;margin-top:8px">${t('metricsUpdating')}</div>`}
    </div>`,
    about:`<div class="set" style="line-height:1.7;font-size:13px">
-     <b style="font-size:16px;color:var(--tx)">AXOM AI</b><br>
-     Founder & Creator: <b>Abiral</b><br>
-     Active Model: <b>Axom v1.1</b> (Qwen 3.5 4B Uncensored Fine-Tuned)<br>
-     Hardware: <b>NVIDIA GeForce RTX 5060 Laptop GPU (CUDA)</b> · 32GB RAM · HP OMEN<br>
-     Dataset: Blended coding (CodeAlpaca), reasoning (FineTome), and custom creator grounding.
+     ${t('aboutText')}
    </div>`}[tab];
-  o.innerHTML=`<div class="modal" role="dialog" aria-modal="true" aria-label="Settings"><div class="mh">Settings<button class="ib" data-close aria-label="Close">${ic('x')}</button></div><div class="mb"><nav class="tabs">${tabs}</nav><div class="pane">${pane}</div></div></div>`;
+  o.innerHTML=`<div class="modal" role="dialog" aria-modal="true" aria-label="${t('settingsTitle')}"><div class="mh">${t('settingsTitle')}<button class="ib" data-close aria-label="Close">${ic('x')}</button></div><div class="mb"><nav class="tabs">${tabs}</nav><div class="pane">${pane}</div></div></div>`;
   document.body.appendChild(o);const th=$('#th',o);if(th)th.value=S.theme;
 
   o.onclick=async e=>{
-    const t=e.target;
-    if(t===o||t.closest('[data-close]'))return o.remove();
-    if(t.dataset.tab)settings(t.dataset.tab);
-    if(t.id==='btn-review-memory'){
-      t.disabled=true;t.textContent='Reviewing...';
+    const target=e.target;
+    if(target===o||target.closest('[data-close]'))return o.remove();
+    if(target.dataset.tab)settings(target.dataset.tab);
+    if(target.id==='btn-review-memory'){
+      target.disabled=true;target.textContent=t('btnReviewing');
       try{
         await fetch('/api/sessions/review',{
           method:'POST',
@@ -642,15 +858,14 @@ async function settings(tab='account'){
         await fetchSettingsData();
         settings('brain');
       }catch(err){
-        t.disabled=false;t.textContent='Review Failed';
+        target.disabled=false;target.textContent=t('btnReviewFailed');
       }
     }
   };
-  o.oninput=e=>{const t=e.target,g=t.dataset.g;
-    if(g){const v=t.type==='number'||t.type==='range'?+t.value:t.value;S.gen[g]=v;$$(`[data-g="${g}"]`,o).forEach(x=>{if(x!==t)x.value=v})}
-    if(t.id==='hf_token'){S.hf_token=t.value.trim();save()}
-    if(t.id==='th'){S.theme=t.value;applyTheme()}if(t.id==='api')S.api=t.value.trim().replace(/\/$/,'');if(t.id==='ent')S.enterSends=t.checked;save();
-    fetch('/api/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({theme:S.theme,gen:S.gen,effort:S.effort,hf_token:S.hf_token})});
+  o.oninput=e=>{const target=e.target,g=target.dataset.g;
+    if(g){const v=target.type==='number'||target.type==='range'?+target.value:target.value;S.gen[g]=v;$$(`[data-g="${g}"]`,o).forEach(x=>{if(x!==target)x.value=v})}
+    if(target.id==='th'){S.theme=target.value;applyTheme()}if(target.id==='api')S.api=target.value.trim().replace(/\/$/,'');if(target.id==='ent')S.enterSends=target.checked;save();
+    fetch('/api/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({theme:S.theme,gen:S.gen,effort:S.effort})});
   };
   o.onkeydown=e=>{if(e.key==='Escape')o.remove()}}
 function applyTheme(){document.documentElement.dataset.theme=S.theme==='system'?(matchMedia('(prefers-color-scheme:light)').matches?'light':'dark'):S.theme}
@@ -660,7 +875,7 @@ document.addEventListener('change',e=>{
   if(e.target.id==='modelSelect'){
     S.model=e.target.value;
     save();
-    toast('Switched to '+e.target.options[e.target.selectedIndex].text);
+    toast(e.target.options[e.target.selectedIndex].text);
   }
 });
 
@@ -668,8 +883,17 @@ document.addEventListener('change',e=>{
 document.addEventListener('click',async e=>{
   const b=e.target.closest('[data-act]');if(!e.target.closest('.pop'))closePop();if(!b)return;
   const a=b.dataset.act,id=b.dataset.id,c=cur();
-  if(run&&['new','open','rename','del','pinc','retry','fb','sug'].includes(a)){toast('Stop generation first.');return}
+  if(run&&['new','open','rename','del','pinc','retry','fb','sug'].includes(a)){toast(t('stopGenFirst'));return}
   if(a==='gohome'||a==='new')newChat();
+  else if(a==='setlang'){
+    const targetLang=b.dataset.l;
+    if(targetLang && targetLang !== S.lang){
+      S.lang = targetLang;
+      save();
+      shell();
+      toast(S.lang === 'pt' ? 'Idioma: Português' : 'Language: English');
+    }
+  }
   else if(a==='theme'){S.theme=document.documentElement.dataset.theme==='dark'?'light':'dark';applyTheme();updateThemeLabel();save();}
   else if(a==='open'){S.cur=id;save();shell();closeDrawer()}
   else if(a==='collapse'){S.col=!S.col;save();$('#side').classList.toggle('col',S.col)}
@@ -681,19 +905,19 @@ document.addEventListener('click',async e=>{
   else if(a==='voice')toggleVoice();
   else if(a==='rmfile'){atts.splice(+b.dataset.i,1);drawAtts();updSend()}
   else if(a==='settings')settings();
-  else if(a==='menu'){e.stopPropagation();const v=S.convs.find(x=>x.id===id);popover(b,`<button data-act="rename" data-id="${id}">Rename</button><button data-act="pinc" data-id="${id}">${v.pinned?'Unpin':'Pin'}</button><button data-act="exp" data-id="${id}">Export as Markdown</button><div class="sep"></div><button style="color:var(--err)" data-act="del" data-id="${id}">Delete</button>`)}
-  else if(a==='rename'){const v=S.convs.find(x=>x.id===id),t=await dialog({title:'Rename conversation',input:v.title,ok:'Rename'});if(t?.trim()){v.title=t.trim();save();shell()}}
+  else if(a==='menu'){e.stopPropagation();const v=S.convs.find(x=>x.id===id);popover(b,`<button data-act="rename" data-id="${id}">${t('rename')}</button><button data-act="pinc" data-id="${id}">${v.pinned?t('unpin'):t('pin')}</button><button data-act="exp" data-id="${id}">${t('exportMd')}</button><div class="sep"></div><button style="color:var(--err)" data-act="del" data-id="${id}">${t('del')}</button>`)}
+  else if(a==='rename'){const v=S.convs.find(x=>x.id===id),rName=await dialog({title:t('renameTitle'),input:v.title,ok:t('rename')});if(rName?.trim()){v.title=rName.trim();save();shell()}}
   else if(a==='pinc'){const v=S.convs.find(x=>x.id===id);v.pinned=!v.pinned;save();$('#list').innerHTML=sideHTML()}
   else if(a==='exp'){const v=S.convs.find(x=>x.id===id),u=URL.createObjectURL(new Blob([v.msgs.map(m=>`**${m.role}**\n\n${m.text}`).join('\n\n---\n\n')],{type:'text/markdown'})),l=document.createElement('a');l.href=u;l.download=v.title+'.md';l.click();URL.revokeObjectURL(u)}
-  else if(a==='del'){const v=S.convs.find(x=>x.id===id);if(await dialog({title:'Delete conversation?',body:`"${esc(v.title)}" will be permanently deleted.`,ok:'Delete',danger:1})){S.convs=S.convs.filter(x=>x.id!==id);if(S.cur===id)S.cur=null;save();shell()}}
-  else if(a==='copymsg'){const m=c.msgs[+b.closest('.msg').dataset.i];navigator.clipboard.writeText(m.text).then(()=>toast('Copied'),()=>toast('Copy failed'))}
-  else if(a==='copycode'){navigator.clipboard.writeText($('code',b.closest('.cb')).textContent).then(()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)},()=>toast('Copy failed'))}
+  else if(a==='del'){const v=S.convs.find(x=>x.id===id);if(await dialog({title:t('delTitle'),body:`"${esc(v.title)}" ${t('delConfirm')}`,ok:t('del'),danger:1})){S.convs=S.convs.filter(x=>x.id!==id);if(S.cur===id)S.cur=null;save();shell()}}
+  else if(a==='copymsg'){const m=c.msgs[+b.closest('.msg').dataset.i];navigator.clipboard.writeText(m.text).then(()=>toast(t('copied')),()=>toast(t('copyFailed')))}
+  else if(a==='copycode'){navigator.clipboard.writeText($('code',b.closest('.cb')).textContent).then(()=>{b.textContent=t('copiedCode');setTimeout(()=>b.textContent=t('copyCode'),1200)},()=>toast(t('copyFailed')))}
   else if(a==='fb'){const m=c.msgs[+b.closest('.msg').dataset.i];m.fb=m.fb===b.dataset.v?null:b.dataset.v;save();drawMsgs()}
   else if(a==='retry'&&!run){while(c.msgs.at(-1)?.role==='assistant')c.msgs.pop();drawMsgs();await generate(c)}
 });
 
 document.addEventListener('keydown',e=>{const k=e.key.toLowerCase(),mod=e.ctrlKey||e.metaKey;
-  if(mod&&k==='n'){e.preventDefault();run?toast('Stop generation first.'):newChat()}
+  if(mod&&k==='n'){e.preventDefault();run?toast(t('stopGenFirst')):newChat()}
   else if(mod&&k==='k'){e.preventDefault();S.col=false;$('#side').classList.remove('col');$('#side').classList.add('open');$('#q').focus()}
   else if(mod&&k==='/'){e.preventDefault();$('#inp').focus()}else if(k==='escape'){closePop();closeDrawer()}
 });
@@ -705,11 +929,6 @@ Axom.models().then(m=>{
   if(m.length&&!m.some(x=>x.id===S.model))S.model=m[0].id;
   save();
   updSend();
-  updConn();
-  const sel=$('#modelSelect');
-  if(sel&&m.length){
-    sel.innerHTML=m.map(x=>`<option value="${esc(x.id)}" ${x.id===S.model?'selected':''}>${esc(x.name||x.id)}</option>`).join('');
-  }
 });
 </script>
 </body>

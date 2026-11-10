@@ -318,9 +318,34 @@
 
 ---
 
+### 16. Header Simplification & Full Bilingual Translation (Portuguese / English)
+- **Date:** November 10, 2026
+- **What Was Done:**
+  - Removed the top-right header cluster shown in the user's screenshot (`model-select` dropdown, `conn` status badge, `top-version` label, and duplicate `+` button) to clean up visual clutter.
+  - Added a dedicated, styled bilingual language switcher (`EN` / `PT`) in the top-right of the header.
+  - Implemented complete, end-to-end Portuguese (`pt`) and English (`en`) internationalization (`I18N`) across all UI surfaces:
+    - Sidebar (Nova conversa, Pesquisar conversas, Configurações, Fixadas, Hoje, Ontem, Anteriores, Fundador & Criador).
+    - Header & Titles (Espaço de Trabalho / Nova conversa, Alternar barra lateral, etc.).
+    - Hero Home Screen ("PENSE FORA DO PADRÃO" / "THINK OFF-SCRIPT").
+    - Chat & Composer (Placeholder, Anexar, Voz, Enviar, Parar geração, Avisos de IA, Teclas de atalho).
+    - Message actions & Thinking blocks ("A pensar...", Copiar, Regenerar, Boa resposta, Resposta inadequada).
+    - Context menus & Popovers (Renomear, Fixar/Desafixar, Exportar Markdown, Eliminar).
+    - Confirmation Dialogs (Renomear, Eliminar conversa com botões Cancelar / Confirmar).
+    - Settings Modal (Abas e painéis de Conta, Cérebro, Aparência, Geração com seletor de modelos, Treino e Sobre).
+    - Speech-to-text voice dictation language automatically switching between `pt-PT` and `en-US`.
+- **How It Was Implemented:**
+  - Built a reactive `I18N` dictionary mapping in `index.html` with a helper `t(key)`.
+  - Stored language selection in `localStorage` (`S.lang = 'pt' | 'en'`), defaulting to Portuguese (`pt`) as requested.
+  - Added action handler `data-act="setlang"` to dynamically switch language on click, update `document.documentElement.lang`, reload `shell()`, and display toast notifications.
+  - Moved the local inference model selector cleanly into the **Generation** tab in Settings to eliminate clutter from the top header while preserving user control.
+- **Why It Was Done:**
+  - The user requested removing the cluttered top-right header section and fully translating the interface into Portuguese with an interactive option to toggle between English (En) and Portuguese (Pt).
+
+---
+
 ## 🔮 Active & Upcoming Work
 
-### 16. Periodic LoRA Fine-Tuning Pipeline (Neural Weight Evolution)
+### 17. Periodic LoRA Fine-Tuning Pipeline (Neural Weight Evolution)
 - **Goal:** Periodically bake long-term conversational data directly into updated neural weights (`axom:1.2`, `axom:1.3`).
 - **Architecture Strategy:**
   1. Export curated `chat_logs` into Alpaca / ShareGPT JSONL training datasets.
