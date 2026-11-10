@@ -303,9 +303,24 @@
 
 ---
 
+### 15. Purge Stored User Profile Memories to Clean Slate
+- **Date:** November 10, 2026
+- **What Was Done:**
+  - Wiped all accumulated and learned user memory keys from `user_profile_memory` in the SQLite database (`nepal_trek_plan_duration`, `architecting_project`, `favorite_programming_language`).
+  - Restored the profile memory state to foundational creator identity and target machine environment parameters (`creator_and_developer: Abiral`, `operating_system: Windows 11`, `primary_hardware: HP OMEN RTX 5060`, `primary_ai_model: Axom v1.1`, `preferred_communication_style: ChatGPT/Claude style`).
+  - Updated seed definitions in `db.js` so default style aligns with modern conversational persona.
+- **How It Was Implemented:**
+  - Executed targeted deletion query removing all non-foundational keys from SQLite `user_profile_memory`.
+  - Updated default seed array in `db.js` (`initDatabase`) to match the ChatGPT/Claude communication style directive.
+  - Verified inference via live `/api/chat` call: confirmed model accurately identifies Abiral and host hardware without carrying over past conversational baggage (no Zenith OS, no Rust, no Nepal trek).
+- **Why It Was Done:**
+  - The user requested to clear user profile memory to start fresh with a clean slate, removing outdated facts and synthetic test traces while keeping the Dual-State memory architecture ready for future conversations.
+
+---
+
 ## 🔮 Active & Upcoming Work
 
-### 15. Periodic LoRA Fine-Tuning Pipeline (Neural Weight Evolution)
+### 16. Periodic LoRA Fine-Tuning Pipeline (Neural Weight Evolution)
 - **Goal:** Periodically bake long-term conversational data directly into updated neural weights (`axom:1.2`, `axom:1.3`).
 - **Architecture Strategy:**
   1. Export curated `chat_logs` into Alpaca / ShareGPT JSONL training datasets.

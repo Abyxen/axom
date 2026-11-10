@@ -72,7 +72,7 @@ function initDatabase(dbFilePath = DEFAULT_DB_PATH) {
       ['primary_hardware', 'HP OMEN Gaming Laptop with NVIDIA GeForce RTX 5060 Laptop GPU (8GB VRAM) and 32GB RAM', 'technical_stack', 1.0, 'Hardware configuration profile', now, now],
       ['primary_ai_model', 'Axom v1.1 based on Qwen 3.5 4B Uncensored (Q4_K_M quantization)', 'technical_stack', 1.0, 'Active model specifications', now, now],
       ['operating_system', 'Windows 11', 'technical_stack', 1.0, 'Host operating system profile', now, now],
-      ['preferred_communication_style', 'Direct, technically rigorous, highly concise, uncensored, zero fluff', 'user_preference', 1.0, 'Developer system directive', now, now]
+      ['preferred_communication_style', 'Conversational, articulate, warm, thoughtful, and highly capable (ChatGPT/Claude style) with clean markdown formatting', 'user_preference', 1.0, 'Developer system directive', now, now]
     ];
 
     for (const [k, v, cat, conf, r, ca, ua] of seeds) {
