@@ -336,81 +336,21 @@ const server = http.createServer(async (req, res) => {
           if (!res.writableEnded) controller.abort();
         });
 
-        // --- AGENTIC WORKFLOW: Autonomous Web Search & Browsing ---
+        // --- AGENTIC WORKFLOW: Autonomous Multi-Turn Web Search & Browsing ---
         if (webSearchEnabled) {
-          const toolPayload = {
-            model: requestedModel,
-            messages: formattedMessages,
-            tools: browser.BROWSING_TOOLS,
-            stream: false,
-            options: {
-              temperature: typeof params.temperature === 'number' ? params.temperature : 0.7,
-              num_predict: Math.max(typeof params.max_tokens === 'number' ? params.max_tokens : 1024, 2048),
-              top_k: typeof params.top_k === 'number' ? params.top_k : 50,
-              stop: Array.isArray(params.stop) ? params.stop : []
-            }
-          };
+          let headersSent = false;
+          let turn = 0;
+          const MAX_AGENT_TURNS = 4;
+          let finalReply = '';
 
-          const initialRes = await fetch(`${OLLAMA_BASE}/api/chat`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(toolPayload),
-            signal: controller.signal
-          });
+          while (turn < MAX_AGENT_TURNS) {
+            turn++;
 
-          if (!initialRes.ok) {
-            const errDetail = await initialRes.text().catch(() => '');
-            return sendJson(res, initialRes.status, { error: `Ollama error (${initialRes.status}): ${errDetail}` });
-          }
-
-          const initialData = await initialRes.json();
-          const toolCalls = initialData.message?.tool_calls;
-
-          if (Array.isArray(toolCalls) && toolCalls.length > 0) {
-            if (isStream) {
-              setCors(res);
-              res.writeHead(200, {
-                'Content-Type': 'text/event-stream; charset=utf-8',
-                'Cache-Control': 'no-cache, no-transform',
-                'Connection': 'keep-alive'
-              });
-            }
-
-            // Append assistant tool request
-            formattedMessages.push(initialData.message);
-
-            for (const call of toolCalls) {
-              const toolName = call.function.name;
-              const toolArgs = call.function.arguments || {};
-              const callId = call.id || `tool_${Date.now()}`;
-
-              if (isStream) {
-                res.write(`data: ${JSON.stringify({ type: 'tool_start', id: callId, name: toolName, args: toolArgs })}\n\n`);
-              }
-
-              let toolResult;
-              try {
-                toolResult = await browser.executeTool(toolName, toolArgs);
-              } catch (err) {
-                toolResult = { error: err.message };
-              }
-
-              if (isStream) {
-                res.write(`data: ${JSON.stringify({ type: 'tool_end', id: callId, name: toolName, result: toolResult })}\n\n`);
-              }
-
-              formattedMessages.push({
-                role: 'tool',
-                content: typeof toolResult === 'string' ? toolResult : JSON.stringify(toolResult),
-                tool_call_id: call.id
-              });
-            }
-
-            // Synthesis turn with tool outputs
-            const synthPayload = {
+            const turnPayload = {
               model: requestedModel,
               messages: formattedMessages,
-              stream: isStream,
+              tools: browser.BROWSING_TOOLS,
+              stream: false,
               options: {
                 temperature: typeof params.temperature === 'number' ? params.temperature : 0.7,
                 num_predict: Math.max(typeof params.max_tokens === 'number' ? params.max_tokens : 1024, 2048),
@@ -419,70 +359,125 @@ const server = http.createServer(async (req, res) => {
               }
             };
 
-            const synthRes = await fetch(`${OLLAMA_BASE}/api/chat`, {
+            const turnRes = await fetch(`${OLLAMA_BASE}/api/chat`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(synthPayload),
+              body: JSON.stringify(turnPayload),
               signal: controller.signal
             });
 
-            if (!synthRes.ok) {
-              const errDetail = await synthRes.text().catch(() => '');
-              if (isStream) {
+            if (!turnRes.ok) {
+              const errDetail = await turnRes.text().catch(() => '');
+              if (headersSent) {
                 res.write(`data: ${JSON.stringify({ type: 'error', message: errDetail })}\n\n`);
                 return res.end();
               }
-              return sendJson(res, synthRes.status, { error: errDetail });
+              return sendJson(res, turnRes.status, { error: `Ollama error (${turnRes.status}): ${errDetail}` });
             }
 
-            if (!isStream) {
-              const synthData = await synthRes.json();
-              let finalReply = (synthData.message?.content || '').replace(/^<\/think>\s*/i, '');
-              if (synthData.message) synthData.message.content = finalReply;
-              if (finalReply) {
-                db.logChatMessage(sessionId, 'assistant', finalReply);
-                reviewer.scheduleSessionReview(sessionId, 15000, requestedModel, OLLAMA_BASE);
+            const turnData = await turnRes.json();
+            let toolCalls = turnData.message?.tool_calls;
+
+            // Also parse XML/JSON tool calls embedded directly into message.content text
+            if (!Array.isArray(toolCalls) || toolCalls.length === 0) {
+              const parsedTextCalls = browser.parseTextToolCalls(turnData.message?.content);
+              if (parsedTextCalls && parsedTextCalls.length > 0) {
+                toolCalls = parsedTextCalls;
               }
-              return sendJson(res, 200, synthData);
             }
 
-            return pipeOllamaStream(synthRes, res, sessionId, requestedModel);
-          } else {
-            // No tools triggered: return initial response directly
-            if (!isStream) {
-              let finalReply = (initialData.message?.content || '').replace(/^<\/think>\s*/i, '');
-              if (initialData.message) initialData.message.content = finalReply;
-              if (finalReply) {
-                db.logChatMessage(sessionId, 'assistant', finalReply);
-                reviewer.scheduleSessionReview(sessionId, 15000, requestedModel, OLLAMA_BASE);
+            if (Array.isArray(toolCalls) && toolCalls.length > 0) {
+              if (isStream && !headersSent) {
+                setCors(res);
+                res.writeHead(200, {
+                  'Content-Type': 'text/event-stream; charset=utf-8',
+                  'Cache-Control': 'no-cache, no-transform',
+                  'Connection': 'keep-alive'
+                });
+                headersSent = true;
               }
-              return sendJson(res, 200, initialData);
-            }
 
+              // Append assistant message with tool calls
+              formattedMessages.push({
+                role: 'assistant',
+                content: turnData.message?.content || '',
+                tool_calls: toolCalls
+              });
+
+              for (const call of toolCalls) {
+                const toolName = call.function.name;
+                const toolArgs = call.function.arguments || {};
+                const callId = call.id || `tool_${Date.now()}`;
+
+                if (isStream) {
+                  res.write(`data: ${JSON.stringify({ type: 'tool_start', id: callId, name: toolName, args: toolArgs })}\n\n`);
+                }
+
+                let toolResult;
+                try {
+                  toolResult = await browser.executeTool(toolName, toolArgs);
+                } catch (err) {
+                  toolResult = { error: err.message };
+                }
+
+                if (isStream) {
+                  res.write(`data: ${JSON.stringify({ type: 'tool_end', id: callId, name: toolName, result: toolResult })}\n\n`);
+                }
+
+                formattedMessages.push({
+                  role: 'tool',
+                  content: typeof toolResult === 'string' ? toolResult : JSON.stringify(toolResult),
+                  tool_call_id: call.id
+                });
+              }
+
+              // Continue the loop so AXOM can browse the page found or synthesize!
+              continue;
+            } else {
+              // No more tool calls! AXOM has computed the actual final answer.
+              finalReply = (turnData.message?.content || '').replace(/^<\/think>\s*/i, '');
+              if (!finalReply && turnData.message?.thinking) {
+                finalReply = turnData.message.thinking;
+              }
+              // Strip any leftover <tool_call> tags from final text if any
+              finalReply = finalReply.replace(/<tool_call>[\s\S]*?<\/tool_call>/gi, '').trim();
+              break;
+            }
+          }
+
+          if (!isStream) {
+            if (finalReply) {
+              db.logChatMessage(sessionId, 'assistant', finalReply);
+              reviewer.scheduleSessionReview(sessionId, 15000, requestedModel, OLLAMA_BASE);
+            }
+            return sendJson(res, 200, { message: { role: 'assistant', content: finalReply } });
+          }
+
+          if (!headersSent) {
             setCors(res);
             res.writeHead(200, {
               'Content-Type': 'text/event-stream; charset=utf-8',
               'Cache-Control': 'no-cache, no-transform',
               'Connection': 'keep-alive'
             });
-
-            if (initialData.message?.thinking) {
-              res.write(`data: ${JSON.stringify({ type: 'think', text: initialData.message.thinking })}\n\n`);
-            }
-            let text = (initialData.message?.content || '').replace(/^<\/think>\s*/i, '');
-            if (!text && initialData.message?.thinking) text = initialData.message.thinking;
-            if (text) {
-              res.write(`data: ${JSON.stringify({ text })}\n\n`);
-            }
-            res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
-            res.end();
-
-            if (text) {
-              db.logChatMessage(sessionId, 'assistant', text);
-              reviewer.scheduleSessionReview(sessionId, 15000, requestedModel, OLLAMA_BASE);
-            }
-            return;
+            headersSent = true;
           }
+
+          // Stream the final synthesized text smoothly to the client
+          if (finalReply) {
+            const tokens = finalReply.split(/(?<=\s+)/);
+            for (const token of tokens) {
+              res.write(`data: ${JSON.stringify({ text: token })}\n\n`);
+            }
+          }
+          res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+          res.end();
+
+          if (finalReply) {
+            db.logChatMessage(sessionId, 'assistant', finalReply);
+            reviewer.scheduleSessionReview(sessionId, 15000, requestedModel, OLLAMA_BASE);
+          }
+          return;
         }
 
         // --- DIRECT STREAMING (Ultra-fast direct pipeline when web search is toggled off) ---

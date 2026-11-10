@@ -377,8 +377,11 @@
     - Detects system Edge or Chrome binaries (`C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe` or Google Chrome) and launches a visible browser window using detached `child_process.spawn`.
   - **Native Tool Calling Pipeline in `server.js`:**
     - Defined Ollama/OpenAI tool specs in `BROWSING_TOOLS`.
-    - When `web_search: true` is active, passes `tools` to `axom:1.1` and injects an autonomous web browsing directive into the system prompt.
-    - On model `tool_calls`, emits SSE `tool_start` event, executes the tool via `browser_service.executeTool()`, emits `tool_end` event, appends tool responses to `messages`, and streams the final synthesized answer.
+    - Implemented an autonomous multi-turn tool execution loop (`while (turn < MAX_AGENT_TURNS)`):
+      - In Turn 1, the model searches DuckDuckGo via `search_web`.
+      - In Turn 2, the model autonomously visits the top search result (e.g. AccuWeather) using `browse_page` to read the exact live webpage.
+      - Added `parseTextToolCalls()` in `browser_service.js` to catch and parse both native Ollama `tool_calls` and XML/JSON tool call tags (`<tool_call><function=browse_page>...`) if the model emits them into content text, preventing raw XML tags from leaking to the user.
+      - In Turn 3, feeds the extracted page data into the model to produce the final comprehensive, factual answer with zero raw `<tool_call>` leakage.
     - When `web_search: false` is toggled off, uses ultra-fast direct streaming with 0ms tool latency.
   - **Bilingual Interface & Tool Cards in `index.html`:**
     - Added `webTitle`, `webBadge`, `webEnabled`, `webDisabled`, `toolSearching`, `toolFoundSources`, `toolReadingPage`, `toolPageRead`, `toolOpeningBrowser`, and `toolBrowserOpened` to `I18N.en` and `I18N.pt`.

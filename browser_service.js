@@ -273,6 +273,54 @@ const BROWSING_TOOLS = [
 ];
 
 /**
+ * Parse any raw XML or JSON tool calls that the model might emit directly into content text
+ */
+function parseTextToolCalls(text) {
+  if (!text || typeof text !== 'string') return null;
+  const calls = [];
+
+  // Format 1: XML-style <tool_call><function=NAME><parameter=KEY>VALUE</parameter></function></tool_call>
+  const xmlRegex = /<tool_call>[\s\S]*?<function=([a-zA-Z0-9_]+)>([\s\S]*?)<\/function>[\s\S]*?<\/tool_call>/gi;
+  let match;
+  while ((match = xmlRegex.exec(text)) !== null) {
+    const fnName = match[1].trim();
+    const body = match[2];
+    const args = {};
+    const paramRegex = /<parameter=([a-zA-Z0-9_]+)>([\s\S]*?)<\/parameter>/gi;
+    let pMatch;
+    while ((pMatch = paramRegex.exec(body)) !== null) {
+      args[pMatch[1].trim()] = pMatch[2].trim();
+    }
+    calls.push({
+      id: 'call_' + Math.random().toString(36).slice(2, 10),
+      function: { name: fnName, arguments: args }
+    });
+  }
+
+  // Format 2: JSON-style <tool_call>{"name": "...", "arguments": {...}}</tool_call>
+  if (calls.length === 0) {
+    const jsonRegex = /<tool_call>([\s\S]*?)<\/tool_call>/gi;
+    let jMatch;
+    while ((jMatch = jsonRegex.exec(text)) !== null) {
+      try {
+        const parsed = JSON.parse(jMatch[1].trim());
+        if (parsed.name) {
+          calls.push({
+            id: 'call_' + Math.random().toString(36).slice(2, 10),
+            function: {
+              name: parsed.name,
+              arguments: parsed.arguments || parsed.parameters || {}
+            }
+          });
+        }
+      } catch (e) {}
+    }
+  }
+
+  return calls.length > 0 ? calls : null;
+}
+
+/**
  * Dispatcher to execute a tool call
  */
 async function executeTool(name, args = {}) {
@@ -294,5 +342,6 @@ module.exports = {
   searchWeb,
   browsePage,
   openBrowserWindow,
+  parseTextToolCalls,
   executeTool
 };
