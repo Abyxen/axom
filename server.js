@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const db = require('./db');
 const reviewer = require('./memory_reviewer');
+const browser = require('./browser_service');
 
 const PORT = 8000;
 const HOST = '127.0.0.1';
@@ -34,6 +35,84 @@ function sendJson(res, statusCode, data) {
   setCors(res);
   res.writeHead(statusCode, { 'Content-Type': 'application/json; charset=utf-8' });
   res.end(JSON.stringify(data));
+}
+
+async function pipeOllamaStream(ollamaRes, res, sessionId, requestedModel) {
+  const reader = ollamaRes.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let hasContent = false;
+  let gatheredThinking = '';
+  let isFirstChunk = true;
+  let fullAssistantReply = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop();
+
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      try {
+        const parsed = JSON.parse(line);
+        if (parsed.message?.thinking) {
+          gatheredThinking += parsed.message.thinking;
+          res.write(`data: ${JSON.stringify({ type: 'think', text: parsed.message.thinking })}\n\n`);
+        }
+        let textChunk = parsed.message?.content || '';
+        if (isFirstChunk && textChunk) {
+          textChunk = textChunk.replace(/^<\/think>\s*/i, '');
+          if (textChunk) isFirstChunk = false;
+        }
+        if (textChunk) {
+          hasContent = true;
+          fullAssistantReply += textChunk;
+          res.write(`data: ${JSON.stringify({ text: textChunk })}\n\n`);
+        }
+        if (parsed.done) {
+          if (!hasContent && gatheredThinking) {
+            fullAssistantReply = gatheredThinking;
+            res.write(`data: ${JSON.stringify({ text: gatheredThinking })}\n\n`);
+          }
+          res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+        }
+      } catch (e) {}
+    }
+  }
+
+  if (buffer.trim()) {
+    try {
+      const parsed = JSON.parse(buffer);
+      if (parsed.message?.thinking) {
+        gatheredThinking += parsed.message.thinking;
+        res.write(`data: ${JSON.stringify({ type: 'think', text: parsed.message.thinking })}\n\n`);
+      }
+      let textChunk = parsed.message?.content || '';
+      if (isFirstChunk && textChunk) {
+        textChunk = textChunk.replace(/^<\/think>\s*/i, '');
+        if (textChunk) isFirstChunk = false;
+      }
+      if (textChunk) {
+        hasContent = true;
+        fullAssistantReply += textChunk;
+        res.write(`data: ${JSON.stringify({ text: textChunk })}\n\n`);
+      }
+    } catch (e) {}
+  }
+
+  if (!hasContent && gatheredThinking) {
+    fullAssistantReply = gatheredThinking;
+    res.write(`data: ${JSON.stringify({ text: gatheredThinking })}\n\n`);
+  }
+  res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+  res.end();
+
+  if (fullAssistantReply) {
+    db.logChatMessage(sessionId, 'assistant', fullAssistantReply);
+    reviewer.scheduleSessionReview(sessionId, 15000, requestedModel, OLLAMA_BASE);
+  }
 }
 
 function sendText(res, statusCode, text) {
@@ -217,9 +296,13 @@ const server = http.createServer(async (req, res) => {
           db.logChatMessage(sessionId, 'user', lastUserMsg.content);
         }
 
-        // COMPONENT B: SESSION DATA INJECTION
+        // COMPONENT B: SESSION DATA INJECTION & AGENTIC DIRECTIVE
         // Query user_profile_memory for active keys and format into context block
         const profileContext = db.formatProfileContext();
+        const webSearchEnabled = body.web_search === true;
+        const webDirective = webSearchEnabled
+          ? '\n\n# AUTONOMOUS WEB BROWSING DIRECTIVE:\nYou have real-time access to the live internet via search_web, browse_page, and open_browser tools.\nWhen answering questions about current facts, versions, releases, news, documentation, or when browsing or searching is requested, actively call the search_web or browse_page tool to retrieve live, accurate information.'
+          : '';
 
         const formattedMessages = [];
         let systemInjected = false;
@@ -228,7 +311,7 @@ const server = http.createServer(async (req, res) => {
           if (msg.role === 'system') {
             formattedMessages.push({
               role: 'system',
-              content: `${profileContext}\n\n${msg.content}`
+              content: `${profileContext}${webDirective}\n\n${msg.content}`
             });
             systemInjected = true;
           } else {
@@ -236,10 +319,10 @@ const server = http.createServer(async (req, res) => {
           }
         }
 
-        if (!systemInjected && profileContext) {
+        if (!systemInjected && (profileContext || webDirective)) {
           formattedMessages.unshift({
             role: 'system',
-            content: profileContext
+            content: `${profileContext}${webDirective}`
           });
         }
 
@@ -248,6 +331,161 @@ const server = http.createServer(async (req, res) => {
           formattedMessages.push({ role: 'assistant', content: '</think>' });
         }
 
+        const controller = new AbortController();
+        res.on('close', () => {
+          if (!res.writableEnded) controller.abort();
+        });
+
+        // --- AGENTIC WORKFLOW: Autonomous Web Search & Browsing ---
+        if (webSearchEnabled) {
+          const toolPayload = {
+            model: requestedModel,
+            messages: formattedMessages,
+            tools: browser.BROWSING_TOOLS,
+            stream: false,
+            options: {
+              temperature: typeof params.temperature === 'number' ? params.temperature : 0.7,
+              num_predict: Math.max(typeof params.max_tokens === 'number' ? params.max_tokens : 1024, 2048),
+              top_k: typeof params.top_k === 'number' ? params.top_k : 50,
+              stop: Array.isArray(params.stop) ? params.stop : []
+            }
+          };
+
+          const initialRes = await fetch(`${OLLAMA_BASE}/api/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(toolPayload),
+            signal: controller.signal
+          });
+
+          if (!initialRes.ok) {
+            const errDetail = await initialRes.text().catch(() => '');
+            return sendJson(res, initialRes.status, { error: `Ollama error (${initialRes.status}): ${errDetail}` });
+          }
+
+          const initialData = await initialRes.json();
+          const toolCalls = initialData.message?.tool_calls;
+
+          if (Array.isArray(toolCalls) && toolCalls.length > 0) {
+            if (isStream) {
+              setCors(res);
+              res.writeHead(200, {
+                'Content-Type': 'text/event-stream; charset=utf-8',
+                'Cache-Control': 'no-cache, no-transform',
+                'Connection': 'keep-alive'
+              });
+            }
+
+            // Append assistant tool request
+            formattedMessages.push(initialData.message);
+
+            for (const call of toolCalls) {
+              const toolName = call.function.name;
+              const toolArgs = call.function.arguments || {};
+              const callId = call.id || `tool_${Date.now()}`;
+
+              if (isStream) {
+                res.write(`data: ${JSON.stringify({ type: 'tool_start', id: callId, name: toolName, args: toolArgs })}\n\n`);
+              }
+
+              let toolResult;
+              try {
+                toolResult = await browser.executeTool(toolName, toolArgs);
+              } catch (err) {
+                toolResult = { error: err.message };
+              }
+
+              if (isStream) {
+                res.write(`data: ${JSON.stringify({ type: 'tool_end', id: callId, name: toolName, result: toolResult })}\n\n`);
+              }
+
+              formattedMessages.push({
+                role: 'tool',
+                content: typeof toolResult === 'string' ? toolResult : JSON.stringify(toolResult),
+                tool_call_id: call.id
+              });
+            }
+
+            // Synthesis turn with tool outputs
+            const synthPayload = {
+              model: requestedModel,
+              messages: formattedMessages,
+              stream: isStream,
+              options: {
+                temperature: typeof params.temperature === 'number' ? params.temperature : 0.7,
+                num_predict: Math.max(typeof params.max_tokens === 'number' ? params.max_tokens : 1024, 2048),
+                top_k: typeof params.top_k === 'number' ? params.top_k : 50,
+                stop: Array.isArray(params.stop) ? params.stop : []
+              }
+            };
+
+            const synthRes = await fetch(`${OLLAMA_BASE}/api/chat`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(synthPayload),
+              signal: controller.signal
+            });
+
+            if (!synthRes.ok) {
+              const errDetail = await synthRes.text().catch(() => '');
+              if (isStream) {
+                res.write(`data: ${JSON.stringify({ type: 'error', message: errDetail })}\n\n`);
+                return res.end();
+              }
+              return sendJson(res, synthRes.status, { error: errDetail });
+            }
+
+            if (!isStream) {
+              const synthData = await synthRes.json();
+              let finalReply = (synthData.message?.content || '').replace(/^<\/think>\s*/i, '');
+              if (synthData.message) synthData.message.content = finalReply;
+              if (finalReply) {
+                db.logChatMessage(sessionId, 'assistant', finalReply);
+                reviewer.scheduleSessionReview(sessionId, 15000, requestedModel, OLLAMA_BASE);
+              }
+              return sendJson(res, 200, synthData);
+            }
+
+            return pipeOllamaStream(synthRes, res, sessionId, requestedModel);
+          } else {
+            // No tools triggered: return initial response directly
+            if (!isStream) {
+              let finalReply = (initialData.message?.content || '').replace(/^<\/think>\s*/i, '');
+              if (initialData.message) initialData.message.content = finalReply;
+              if (finalReply) {
+                db.logChatMessage(sessionId, 'assistant', finalReply);
+                reviewer.scheduleSessionReview(sessionId, 15000, requestedModel, OLLAMA_BASE);
+              }
+              return sendJson(res, 200, initialData);
+            }
+
+            setCors(res);
+            res.writeHead(200, {
+              'Content-Type': 'text/event-stream; charset=utf-8',
+              'Cache-Control': 'no-cache, no-transform',
+              'Connection': 'keep-alive'
+            });
+
+            if (initialData.message?.thinking) {
+              res.write(`data: ${JSON.stringify({ type: 'think', text: initialData.message.thinking })}\n\n`);
+            }
+            let text = (initialData.message?.content || '').replace(/^<\/think>\s*/i, '');
+            if (!text && initialData.message?.thinking) text = initialData.message.thinking;
+            if (text) {
+              res.write(`data: ${JSON.stringify({ text })}\n\n`);
+            }
+            res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+            res.end();
+
+            if (text) {
+              db.logChatMessage(sessionId, 'assistant', text);
+              reviewer.scheduleSessionReview(sessionId, 15000, requestedModel, OLLAMA_BASE);
+            }
+            return;
+          }
+        }
+
+        // --- DIRECT STREAMING (Ultra-fast direct pipeline when web search is toggled off) ---
         const ollamaPayload = {
           model: requestedModel,
           messages: formattedMessages,
@@ -259,11 +497,6 @@ const server = http.createServer(async (req, res) => {
             stop: Array.isArray(params.stop) ? params.stop : []
           }
         };
-
-        const controller = new AbortController();
-        res.on('close', () => {
-          if (!res.writableEnded) controller.abort();
-        });
 
         const ollamaRes = await fetch(`${OLLAMA_BASE}/api/chat`, {
           method: 'POST',
@@ -288,7 +521,6 @@ const server = http.createServer(async (req, res) => {
             data.message.content = finalReply;
           }
 
-          // COMPONENT A & C: Log assistant message and schedule reviewer
           if (finalReply) {
             db.logChatMessage(sessionId, 'assistant', finalReply);
             reviewer.scheduleSessionReview(sessionId, 15000, requestedModel, OLLAMA_BASE);
@@ -297,7 +529,7 @@ const server = http.createServer(async (req, res) => {
           return sendJson(res, 200, data);
         }
 
-        // Server-Sent Events (SSE) Streaming
+        // Server-Sent Events (SSE) Direct Streaming
         setCors(res);
         res.writeHead(200, {
           'Content-Type': 'text/event-stream; charset=utf-8',
@@ -305,86 +537,7 @@ const server = http.createServer(async (req, res) => {
           'Connection': 'keep-alive'
         });
 
-        const reader = ollamaRes.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
-        let hasContent = false;
-        let gatheredThinking = '';
-        let isFirstChunk = true;
-        let fullAssistantReply = '';
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          buffer = lines.pop();
-
-          for (const line of lines) {
-            if (!line.trim()) continue;
-            try {
-              const parsed = JSON.parse(line);
-              if (parsed.message?.thinking) {
-                gatheredThinking += parsed.message.thinking;
-                res.write(`data: ${JSON.stringify({ type: 'think', text: parsed.message.thinking })}\n\n`);
-              }
-              let textChunk = parsed.message?.content || '';
-              if (isFirstChunk && textChunk) {
-                textChunk = textChunk.replace(/^<\/think>\s*/i, '');
-                if (textChunk) isFirstChunk = false;
-              }
-              if (textChunk) {
-                hasContent = true;
-                fullAssistantReply += textChunk;
-                res.write(`data: ${JSON.stringify({ text: textChunk })}\n\n`);
-              }
-              if (parsed.done) {
-                if (!hasContent && gatheredThinking) {
-                  fullAssistantReply = gatheredThinking;
-                  res.write(`data: ${JSON.stringify({ text: gatheredThinking })}\n\n`);
-                }
-                res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
-              }
-            } catch (e) {}
-          }
-        }
-
-        if (buffer.trim()) {
-          try {
-            const parsed = JSON.parse(buffer);
-            if (parsed.message?.thinking) {
-              gatheredThinking += parsed.message.thinking;
-              res.write(`data: ${JSON.stringify({ type: 'think', text: parsed.message.thinking })}\n\n`);
-            }
-            let textChunk = parsed.message?.content || '';
-            if (isFirstChunk && textChunk) {
-              textChunk = textChunk.replace(/^<\/think>\s*/i, '');
-              if (textChunk) isFirstChunk = false;
-            }
-            if (textChunk) {
-              hasContent = true;
-              fullAssistantReply += textChunk;
-              res.write(`data: ${JSON.stringify({ text: textChunk })}\n\n`);
-            }
-            if (parsed.done && !hasContent && gatheredThinking) {
-              fullAssistantReply = gatheredThinking;
-              res.write(`data: ${JSON.stringify({ text: gatheredThinking })}\n\n`);
-            }
-          } catch (e) {}
-        }
-
-        if (!hasContent && gatheredThinking) {
-          fullAssistantReply = gatheredThinking;
-          res.write(`data: ${JSON.stringify({ text: gatheredThinking })}\n\n`);
-        }
-        res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
-        res.end();
-
-        // COMPONENT A & C: Log assistant message and schedule reviewer
-        if (fullAssistantReply) {
-          db.logChatMessage(sessionId, 'assistant', fullAssistantReply);
-          reviewer.scheduleSessionReview(sessionId, 15000, requestedModel, OLLAMA_BASE);
-        }
+        return pipeOllamaStream(ollamaRes, res, sessionId, requestedModel);
       } catch (err) {
         if (err.name === 'AbortError') return res.end();
         console.error('Chat error:', err);

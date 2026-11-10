@@ -360,9 +360,38 @@
 
 ---
 
+### 18. Autonomous Agentic Web Search, Live Webpage Browsing & Desktop Browser Engine
+- **Date:** November 10, 2026
+- **What Was Done:**
+  - Designed and built a zero-external-dependency autonomous agentic browser engine (`browser_service.js`) empowering AXOM to search the live web, read dynamic web pages, and launch desktop browser windows.
+  - Integrated native OpenAI/Ollama tool calling directly into `server.js` with multi-turn synthesis loops (`search_web`, `browse_page`, `open_browser`).
+  - Added an interactive `🌐 Web` toggle button in the composer toolbar with persistent state (`localStorage`), visual toggle feedback, and full bilingual localization (`EN` / `PT`).
+  - Created real-time SSE tool execution cards in `index.html` displaying live animated search status, query strings, and clickable source reference pills in the chat stream and message history.
+- **How It Was Implemented:**
+  - **Zero-API-Key Web Search (`searchWeb`):**
+    - Queries DuckDuckGo HTML endpoint with custom headers, parsing titles, clean outbound URLs (decoding `uddg`), and snippet summaries in ~200ms without requiring paid search APIs or API keys.
+  - **Clean Page Extraction & Headless Chromium Fallback (`browsePage`):**
+    - High-speed HTTP fetch with regex-based HTML boiler-plate stripping (strips `<script>`, `<style>`, `<nav>`, `<footer>`, `<svg>`, `<noscript>`) and converts markdown headings, lists, and paragraphs.
+    - If a client-side JavaScript SPA (React/Vue/Angular) returns minimal text (<250 chars), automatically invokes Windows Microsoft Edge / Chrome in headless mode (`--headless=new --dump-dom --virtual-time-budget=5000`) via `node:child_process` to capture the fully hydrated dynamic DOM without installing Puppeteer.
+  - **Desktop Browser Launching (`openBrowserWindow`):**
+    - Detects system Edge or Chrome binaries (`C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe` or Google Chrome) and launches a visible browser window using detached `child_process.spawn`.
+  - **Native Tool Calling Pipeline in `server.js`:**
+    - Defined Ollama/OpenAI tool specs in `BROWSING_TOOLS`.
+    - When `web_search: true` is active, passes `tools` to `axom:1.1` and injects an autonomous web browsing directive into the system prompt.
+    - On model `tool_calls`, emits SSE `tool_start` event, executes the tool via `browser_service.executeTool()`, emits `tool_end` event, appends tool responses to `messages`, and streams the final synthesized answer.
+    - When `web_search: false` is toggled off, uses ultra-fast direct streaming with 0ms tool latency.
+  - **Bilingual Interface & Tool Cards in `index.html`:**
+    - Added `webTitle`, `webBadge`, `webEnabled`, `webDisabled`, `toolSearching`, `toolFoundSources`, `toolReadingPage`, `toolPageRead`, `toolOpeningBrowser`, and `toolBrowserOpened` to `I18N.en` and `I18N.pt`.
+    - Implemented `.web-btn` toggle and `.tool-card` UI with live pulse animations and link chips.
+- **Why It Was Done:**
+  - The user asked if there is a way to give AXOM agentic capabilities like live web search and its own browser so it can browse the internet and open URLs on their Windows laptop.
+  - Implemented with zero third-party npm packages to maintain a clean, lightweight, private architecture adhering to the zero-dependency rule.
+
+---
+
 ## 🔮 Active & Upcoming Work
 
-### 18. Periodic LoRA Fine-Tuning Pipeline (Neural Weight Evolution)
+### 19. Periodic LoRA Fine-Tuning Pipeline (Neural Weight Evolution)
 - **Goal:** Periodically bake long-term conversational data directly into updated neural weights (`axom:1.2`, `axom:1.3`).
 - **Architecture Strategy:**
   1. Export curated `chat_logs` into Alpaca / ShareGPT JSONL training datasets.

@@ -174,6 +174,22 @@ mark{background:var(--acid);color:#000;border-radius:0}
 .hint{max-width:936px;margin:12px auto 0;display:flex;justify-content:space-between;font:8px 'JetBrains Mono',monospace;letter-spacing:.25px;color:var(--tx3)}
 .hint kbd{font:inherit;color:var(--tx2)}
 
+/* web toggle & tool cards */
+.web-btn{display:inline-flex;align-items:center;gap:6px;padding:0 8px;height:32px;border:1px solid transparent;color:var(--tx3);font:10px 'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.5px;transition:all .18s var(--ease);cursor:pointer}
+.web-btn svg{width:14px;height:14px}
+.web-btn:hover{background:var(--elev);color:var(--tx)}
+.web-btn.on{color:var(--ac);background:rgba(255,81,47,.12);border-color:var(--ac)}
+.tool-card{margin:8px 0 12px;background:var(--surf);border:1px solid var(--bd);border-left:3px solid var(--ac);padding:9px 12px;font:11px 'JetBrains Mono',monospace;animation:rise .25s var(--ease)}
+.tool-hdr{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--tx);flex-wrap:wrap}
+.tool-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(255,81,47,.15);color:var(--ac);padding:2px 6px;font-size:10px;letter-spacing:.5px;text-transform:uppercase}
+.tool-badge svg{width:12px;height:12px}
+.tool-badge.running{animation:micPulse 1.2s infinite ease-in-out}
+.tool-desc{color:var(--tx2);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:550px}
+.tool-sources{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;padding-top:7px;border-top:1px dashed var(--bd)}
+.tool-source-link{display:inline-flex;align-items:center;gap:4px;color:var(--tx2);text-decoration:none;background:var(--elev);padding:2px 7px;font-size:10px;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:all .15s}
+.tool-source-link:hover{background:var(--surf);color:var(--ac)}
+.tool-source-link svg{width:11px;height:11px;flex:none}
+
 /* attachments */
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}.chips:empty{display:none}
 .chip{display:inline-flex;align-items:center;gap:6px;padding:3px 6px 3px 9px;background:var(--surf);border:1px solid var(--bd);font:11px 'JetBrains Mono',monospace}
@@ -205,7 +221,7 @@ mark{background:var(--acid);color:#000;border-radius:0}
 <script>
 const $=(s,e=document)=>e.querySelector(s),$$=(s,e=document)=>[...e.querySelectorAll(s)];
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const P={plus:'M12 5v14M5 12h14',search:'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-5-5',panel:'M3 5h18v14H3zM9 5v14',gear:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19 12l2-1-2-4-2 1-2-1V5h-4v2l-2 1-2-1-2 4 2 1v2l-2 1 2 4 2-1 2 1v2h4v-2l2-1 2 1 2-4-2-1z',more:'M5 12h.01M12 12h.01M19 12h.01',clip:'M20 12l-8 8a5 5 0 0 1-7-7l9-9a3.5 3.5 0 0 1 5 5l-9 9a2 2 0 0 1-3-3l8-8',up:'M12 19V5M5 12l7-7 7 7',stop:'M7 7h10v10H7z',copy:'M9 9h11v11H9zM5 15V4h11',redo:'M20 11a8 8 0 1 0-2 6M20 4v7h-7',up2:'M7 11l4-8 2 1-1 5h7l-1 8H7zM3 11h4v10H3z',dn:'M17 13l-4 8-2-1 1-5H5l1-8h11zM21 13h-4V3h4',x:'M6 6l12 12M18 6L6 18',file:'M6 3h8l4 4v14H6zM14 3v4h4',mic:'M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3zm7 8v2a7 7 0 0 1-14 0v-2M12 19v3m-4 0h8'};
+const P={plus:'M12 5v14M5 12h14',search:'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-5-5',panel:'M3 5h18v14H3zM9 5v14',gear:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19 12l2-1-2-4-2 1-2-1V5h-4v2l-2 1-2-1-2 4 2 1v2l-2 1 2 4 2-1 2 1v2h4v-2l2-1 2 1 2-4-2-1z',more:'M5 12h.01M12 12h.01M19 12h.01',clip:'M20 12l-8 8a5 5 0 0 1-7-7l9-9a3.5 3.5 0 0 1 5 5l-9 9a2 2 0 0 1-3-3l8-8',up:'M12 19V5M5 12l7-7 7 7',stop:'M7 7h10v10H7z',copy:'M9 9h11v11H9zM5 15V4h11',redo:'M20 11a8 8 0 1 0-2 6M20 4v7h-7',up2:'M7 11l4-8 2 1-1 5h7l-1 8H7zM3 11h4v10H3z',dn:'M17 13l-4 8-2-1 1-5H5l1-8h11zM21 13h-4V3h4',x:'M6 6l12 12M18 6L6 18',file:'M6 3h8l4 4v14H6zM14 3v4h4',mic:'M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3zm7 8v2a7 7 0 0 1-14 0v-2M12 19v3m-4 0h8',globe:'M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 0c2.5 2.7 4 6.2 4 10s-1.5 7.3-4 10c-2.5-2.7-4-6.2-4-10s1.5-7.3 4-10zm-8 10h16M4.9 6.5h14.2M4.9 17.5h14.2'};
 const ic=n=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${P[n]}"/></svg>`;
 
 /* ---- API layer ---- */
@@ -241,6 +257,7 @@ const Axom={
         body:JSON.stringify({
           model:S.model,
           session_id:S.cur||'default_session',
+          web_search:!!S.web,
           messages:messages.map(m=>({role:m.role,content:m.ctx?m.ctx+'\n\n'+m.text:m.text})),
           params:{...S.gen, ...effortParams, stop:String(S.gen.stop||'').split(',').map(x=>x.trim()).filter(Boolean), stream: true}
         })
@@ -261,10 +278,11 @@ const Axom={
 
 /* ---- state ---- */
 const D=864e5,MAXF=24000;
-let S={convs:[],cur:null,api:'',model:'axom:1.1',lang:'pt',theme:'dark',col:false,enterSends:true,effort:'fast',gen:{temperature:.7,top_k:50,max_tokens:512,seed:-1,stop:'',stream:true}};
+let S={convs:[],cur:null,api:'',model:'axom:1.1',lang:'pt',web:true,theme:'dark',col:false,enterSends:true,effort:'fast',gen:{temperature:.7,top_k:50,max_tokens:512,seed:-1,stop:'',stream:true}};
 try{const j=JSON.parse(localStorage.getItem('axom-v2'));if(j)S={...S,...j,gen:{...S.gen,...j.gen}}}catch(e){}
 if(!S.lang) S.lang = 'pt';
 if(!S.effort) S.effort = 'fast';
+if(S.web===undefined) S.web = true;
 const save=()=>{try{localStorage.setItem('axom-v2',JSON.stringify(S))}catch(e){}};
 let models=[],query='',atts=[],run=null,pop=null,fresh=-1;
 const cur=()=>S.convs.find(c=>c.id===S.cur);
@@ -302,6 +320,16 @@ const I18N = {
     copyCode: "Copy",
     copiedCode: "Copied",
     inputPlaceholder: "Ask Axom",
+    webTitle: "Toggle Autonomous Web Browsing",
+    webBadge: "Web",
+    webEnabled: "Web browsing enabled",
+    webDisabled: "Web browsing disabled",
+    toolSearching: "Searching the web",
+    toolFoundSources: "Web sources found",
+    toolReadingPage: "Reading webpage",
+    toolPageRead: "Page content extracted",
+    toolOpeningBrowser: "Launching desktop browser",
+    toolBrowserOpened: "Browser opened on desktop",
     attachTitle: "Attach text, code or folder files",
     voiceTitle: "Voice input (dictate with mic)",
     voiceListening: "Listening... Speak now",
@@ -407,6 +435,16 @@ const I18N = {
     copyCode: "Copiar",
     copiedCode: "Copiado",
     inputPlaceholder: "Pergunte o Axom",
+    webTitle: "Ativar/Desativar Navegação Web Autónoma",
+    webBadge: "Web",
+    webEnabled: "Navegação web ativada",
+    webDisabled: "Navegação web desativada",
+    toolSearching: "A pesquisar na web",
+    toolFoundSources: "Fontes web encontradas",
+    toolReadingPage: "A ler página web",
+    toolPageRead: "Conteúdo da página extraído",
+    toolOpeningBrowser: "A iniciar navegador",
+    toolBrowserOpened: "Navegador aberto na área de trabalho",
     attachTitle: "Anexar texto, código ou pastas",
     voiceTitle: "Entrada por voz (ditar com microfone)",
     voiceListening: "A escutar... Fale agora",
@@ -532,7 +570,7 @@ function shell(){
   <div class="scrim" data-act="drawer"></div>
   <section class="main"><header class="hdr"><button class="ib" data-act="drawer" aria-label="${t('toggleSidebar')}" title="${t('toggleSidebar')}">${ic('panel')}</button><div class="ttl">${t('workspacePrefix')} <b>/ ${esc(cur()?.title||t('newConvHeader'))}</b></div><span class="sp"></span><div class="lang-switch" role="group" aria-label="Language / Idioma"><button class="lang-btn ${S.lang==='en'?'on':''}" data-act="setlang" data-l="en" title="English">EN</button><button class="lang-btn ${S.lang==='pt'?'on':''}" data-act="setlang" data-l="pt" title="Português">PT</button></div></header>
   <main class="chat" id="chat" aria-label="Chat"><div class="col-in" id="msgs" aria-live="polite"></div></main>
-  <div class="comp"><div class="cbox" id="cbox"><div class="chips" id="atts"></div><textarea id="inp" rows="1" placeholder="${t('inputPlaceholder')}" aria-label="Message" maxlength="32000"></textarea><div class="tools"><button class="ib" data-act="attach" aria-label="${t('attachTitle')}" title="${t('attachTitle')}">${ic('clip')}</button><button class="ib mic-btn" id="micBtn" data-act="voice" aria-label="${t('voiceTitle')}" title="${t('voiceTitle')}">${ic('mic')}</button><span class="sp"></span><button class="send" id="send" data-act="send" aria-label="${t('send')}" title="${t('send')}">${ic('up')}</button></div></div><div class="hint"><span>${t('disclaimer')}</span><span>${t('hintKeys')}</span></div></div><input type="file" id="file" multiple hidden></section>`;
+  <div class="comp"><div class="cbox" id="cbox"><div class="chips" id="atts"></div><textarea id="inp" rows="1" placeholder="${t('inputPlaceholder')}" aria-label="Message" maxlength="32000"></textarea><div class="tools"><button class="ib" data-act="attach" aria-label="${t('attachTitle')}" title="${t('attachTitle')}">${ic('clip')}</button><button class="ib mic-btn" id="micBtn" data-act="voice" aria-label="${t('voiceTitle')}" title="${t('voiceTitle')}">${ic('mic')}</button><button class="ib web-btn ${S.web?'on':''}" id="webBtn" data-act="toggleweb" aria-label="${t('webTitle')}" title="${t('webTitle')}">${ic('globe')}<span>${t('webBadge')}</span></button><span class="sp"></span><button class="send" id="send" data-act="send" aria-label="${t('send')}" title="${t('send')}">${ic('up')}</button></div></div><div class="hint"><span>${t('disclaimer')}</span><span>${t('hintKeys')}</span></div></div><input type="file" id="file" multiple hidden></section>`;
   drawMsgs();drawAtts();bindInput();updSend();updateThemeLabel();}
 
 function welcome(){
@@ -546,10 +584,34 @@ function welcome(){
   </div>`;
 }
 
+function toolHTML(tObj){
+  const isDone=tObj.status==='done';
+  const name=tObj.name;
+  let label='',desc='',sources='';
+  if(name==='search_web'){
+    label=isDone?t('toolFoundSources'):t('toolSearching');
+    desc=tObj.args?.query?`"${tObj.args.query}"`:'';
+    if(isDone&&tObj.result?.results?.length){
+      sources=`<div class="tool-sources">${tObj.result.results.slice(0,4).map(r=>`<a href="${esc(r.url)}" target="_blank" rel="noopener" class="tool-source-link">${ic('clip')} ${esc(r.title||r.url)}</a>`).join('')}</div>`;
+    }
+  }else if(name==='browse_page'){
+    label=isDone?t('toolPageRead'):t('toolReadingPage');
+    desc=tObj.args?.url||'';
+  }else if(name==='open_browser'){
+    label=isDone?t('toolBrowserOpened'):t('toolOpeningBrowser');
+    desc=tObj.args?.url||'';
+  }else{
+    label=name;
+    desc=JSON.stringify(tObj.args||'');
+  }
+  return`<div class="tool-card"><div class="tool-hdr"><span class="tool-badge ${isDone?'':'running'}">${ic('globe')} ${label}</span><span class="tool-desc">${esc(desc)}</span></div>${sources}</div>`;
+}
+
 function msgHTML(m,i,last){
   const cls=i===fresh?' in':'';
   if(m.role==='user')return`<div class="msg user${cls}"><div class="who">${t('you')}</div>${m.files?.length?`<div class="chips">${m.files.map(f=>`<span class="chip">${ic('file')}${esc(f)}</span>`).join('')}</div>`:''}<div class="bd">${esc(m.text)}</div></div>`;
-  return`<div class="msg${cls}" data-i="${i}"><div class="who">${t('axom')}</div>${m.think?`<details class="think"><summary>${t('thinking')} · ${(m.thinkMs/1e3).toFixed(1)}s</summary><div>${esc(m.think)}</div></details>`:''}<div class="bd">${md(m.text)}</div>
+  const toolsRender=(m.tools&&m.tools.length)?`<div class="tools-wrap">${m.tools.map(toolHTML).join('')}</div>`:'';
+  return`<div class="msg${cls}" data-i="${i}"><div class="who">${t('axom')}</div>${m.think?`<details class="think"><summary>${t('thinking')} · ${(m.thinkMs/1e3).toFixed(1)}s</summary><div>${esc(m.think)}</div></details>`:''}${toolsRender}<div class="bd">${md(m.text)}</div>
   ${m.err?`<div class="err" role="alert"><span>${esc(m.err)}</span><button class="btn" data-act="retry">${t('retry')}</button></div>`:''}
   ${run&&last?'':`<div class="acts"><button class="ib" data-act="copymsg" aria-label="${t('copy')}" title="${t('copy')}">${ic('copy')}</button>${last?`<button class="ib" data-act="retry" aria-label="${t('regenerate')}" title="${t('regenerate')}">${ic('redo')}</button>`:''}<button class="ib ${m.fb==='up'?'on':''}" data-act="fb" data-v="up" aria-label="${t('goodResp')}">${ic('up2')}</button><button class="ib ${m.fb==='dn'?'on':''}" data-act="fb" data-v="dn" aria-label="${t('badResp')}">${ic('dn')}</button></div>`}</div>`}
 
@@ -637,25 +699,45 @@ async function send(text){
   fresh=c.msgs.length-1;shell();fresh=-1;await generate(c);
 }
 
-/* Live Generation with Working Step Previewer */
+/* Live Generation with Working Step Previewer & Agentic Tool Visualizer */
 async function generate(c){
-  const m={role:'assistant',text:'',think:'',thinkMs:0};c.msgs.push(m);run=new AbortController();const t0=Date.now();
+  const m={role:'assistant',text:'',think:'',thinkMs:0,tools:[]};c.msgs.push(m);run=new AbortController();const t0=Date.now();
   fresh=c.msgs.length-1;drawMsgs();fresh=-1;updSend();
 
-  const el=$('.msg:last-child .bd',$('#msgs'));el.classList.add('live');
+  const msgEl=$('.msg:last-child',$('#msgs'));
+  const el=$('.bd',msgEl);el.classList.add('live');
 
   let raf=0;
   const paint=()=>{
     raf=0;
+    if(m.tools&&m.tools.length){
+      let tContainer=$('.tools-wrap',msgEl);
+      if(!tContainer){
+        tContainer=document.createElement('div');
+        tContainer.className='tools-wrap';
+        msgEl.insertBefore(tContainer,el);
+      }
+      tContainer.innerHTML=m.tools.map(toolHTML).join('');
+    }
     el.innerHTML=md(m.text);
     scrollEnd();
   };
 
   try{
     for await(const ev of Axom.stream({messages:c.msgs.slice(0,-1),signal:run.signal})){
-      const chunk = ev.text || ev.token || '';
-      if(ev.type==='think'){m.think+=chunk;m.thinkMs=Date.now()-t0}else if(chunk)m.text+=chunk;
-      if(!raf)raf=requestAnimationFrame(paint);
+      if(ev.type==='tool_start'){
+        m.tools.push({id:ev.id,name:ev.name,args:ev.args,status:'running'});
+        if(!raf)raf=requestAnimationFrame(paint);
+      }else if(ev.type==='tool_end'){
+        const tObj=m.tools.find(x=>x.id===ev.id)||m.tools.find(x=>x.status==='running')||m.tools.at(-1);
+        if(tObj){tObj.status='done';tObj.result=ev.result;}
+        if(!raf)raf=requestAnimationFrame(paint);
+      }else if(ev.type==='think'){
+        m.think+=(ev.text||'');m.thinkMs=Date.now()-t0;
+      }else{
+        const chunk=ev.text||ev.token||'';
+        if(chunk){m.text+=chunk;if(!raf)raf=requestAnimationFrame(paint);}
+      }
     }
   }catch(e){
     if(e.name==='AbortError'){m.text+=m.text?'\n\n'+t('genStopped'):t('genStopped')}
@@ -893,6 +975,13 @@ document.addEventListener('click',async e=>{
       shell();
       toast(S.lang === 'pt' ? 'Idioma: Português' : 'Language: English');
     }
+  }
+  else if(a==='toggleweb'){
+    S.web = !S.web;
+    save();
+    const btn=$('#webBtn');
+    if(btn) btn.classList.toggle('on', S.web);
+    toast(S.web ? t('webEnabled') : t('webDisabled'));
   }
   else if(a==='theme'){S.theme=document.documentElement.dataset.theme==='dark'?'light':'dark';applyTheme();updateThemeLabel();save();}
   else if(a==='open'){S.cur=id;save();shell();closeDrawer()}
