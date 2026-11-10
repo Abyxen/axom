@@ -404,6 +404,48 @@ details.think .think-body {
 .pop button{display:block;width:100%;text-align:left;padding:10px 12px;border-radius:0;font-size:12px}.pop button:hover{background:var(--elev)}
 .scrim{display:none}
 
+/* live compute & loading indicators */
+.compute-loading{display:inline-flex;align-items:center;gap:8px;color:var(--tx2);font:500 13px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif;padding:6px 0 10px;animation:fade .2s ease}
+.compute-loading .spin-circle{color:var(--ac);flex-shrink:0}
+.spin-circle{animation:spin .85s linear infinite}
+
+/* inside browser panel */
+.inside-browser{display:flex;flex-direction:column;width:0;overflow:hidden;background:var(--bg2);border-left:1px solid var(--bd);transition:width .28s var(--ease),transform .28s var(--ease);position:relative;z-index:20;flex-shrink:0}
+.app.browser-open .inside-browser{width:min(600px,50vw)}
+.inside-browser.maximized{position:absolute;inset:0;width:100%!important;z-index:50}
+.ib-header{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:#141416;border-bottom:1px solid var(--bd);gap:10px;min-height:44px}
+.ib-tab{display:inline-flex;align-items:center;gap:8px;background:#1c1c20;border:1px solid #2e2e34;border-radius:6px;padding:4px 10px;font:500 11.5px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif;color:#f4f4f5;max-width:220px}
+.ib-tab-dot{width:7px;height:7px;border-radius:50%;background:#45D483;box-shadow:0 0 6px rgba(69,212,131,.6);flex-shrink:0}
+.ib-tab-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ib-tab-badge{font-size:9px;font-family:'JetBrains Mono',monospace;background:rgba(69,212,131,.15);color:#45D483;padding:2px 4px;border-radius:3px;font-weight:600;letter-spacing:.04em}
+.ib-actions{display:flex;align-items:center;gap:4px}
+.ib-btn{display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border-radius:5px;color:#a1a1aa;font:500 11px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif;transition:all .15s ease;cursor:pointer;background:transparent;border:1px solid transparent}
+.ib-btn:hover{background:#27272a;color:#ffffff;border-color:#3f3f46}
+.ib-btn svg{width:13px;height:13px}
+.ib-address-bar{display:flex;align-items:center;gap:8px;padding:6px 12px;background:#0d0d0f;border-bottom:1px solid var(--bd)}
+.ib-nav-btn{display:grid;place-items:center;width:26px;height:26px;border-radius:5px;color:#71717a;background:transparent;border:0;cursor:pointer;transition:all .15s}
+.ib-nav-btn:hover{background:#1f1f23;color:#f4f4f5}
+.ib-nav-btn svg{width:13px;height:13px}
+.ib-url-box{flex:1;display:flex;align-items:center;gap:6px;background:#18181b;border:1px solid #27272a;border-radius:6px;padding:4px 10px}
+.ib-lock svg{width:12px;height:12px;color:#45D483}
+.ib-url-input{flex:1;background:transparent;border:0;outline:0;color:#a1a1aa;font:11.5px/1 'JetBrains Mono',Consolas,monospace}
+.ib-viewport{flex:1;min-height:0;position:relative;background:#ffffff}
+.ib-frame{width:100%;height:100%;border:0;display:block;background:#ffffff}
+.ib-code-view{width:100%;height:100%;display:flex;flex-direction:column;background:#111114}
+.ib-code-view textarea{width:100%;height:100%;background:transparent;border:0;outline:0;color:#f4f4f5;font:12.5px/1.6 'JetBrains Mono',Consolas,monospace;padding:16px;resize:none;white-space:pre;tab-size:2}
+
+/* code block preview button */
+.cb header .btn-preview{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;background:rgba(255,81,47,.12);border:1px solid rgba(255,81,47,.35);border-radius:5px;font:500 11px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif;color:var(--ac);transition:all .15s ease;cursor:pointer;margin-right:4px}
+.cb header .btn-preview:hover{background:var(--ac);color:#ffffff;border-color:var(--ac);box-shadow:0 2px 8px rgba(255,81,47,.35)}
+.cb header .btn-preview svg{width:12px;height:12px}
+
+/* header browser button */
+.header-btn{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border:1px solid var(--bd);background:var(--surf);border-radius:6px;color:var(--tx2);font:500 11px 'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.06em;transition:all .18s var(--ease);cursor:pointer}
+.header-btn svg{width:13px;height:13px}
+.header-btn:hover{background:var(--elev);color:var(--tx);border-color:#3f3f46}
+.header-btn.on{background:rgba(255,81,47,.12);color:var(--ac);border-color:var(--ac)}
+.header-btn.on svg{color:var(--ac)}
+
 @media(max-width:1100px){.side{width:225px;padding-inline:15px}.col-in{padding-inline:35px}.comp{padding-inline:35px}.hero-side{right:0;top:14px}.seal{width:85px;height:85px;font-size:10px}.seal b{font-size:22px}.sug button{padding:15px 12px}.sug button strong{font-size:18px}.empty h1{font-size:83px}}
 @media(max-width:800px){.side{position:fixed;width:270px!important;padding:25px 20px;z-index:40;transform:translateX(-100%);transition:transform .25s var(--ease)}.side.open{transform:none}.side.col{padding:25px 20px}.side.col .logo-btn,.side.col .edition,.side.col .sidebar-note,.side.col .profile{display:flex}.side.col .list{visibility:visible}.side.col .row{justify-content:flex-start}.side.col .colonly{display:none}.hdr{height:64px;min-height:64px;padding-inline:20px}.top-version{display:none}.col-in{padding-inline:24px}.intro-meta{margin-top:27px;margin-bottom:27px;font-size:8px}.empty h1{font-size:clamp(64px,12vw,92px);letter-spacing:-1.5px}.hero-side{top:11px;right:5px}.empty .intro-copy{font-size:12px;max-width:350px;margin:22px 0 29px}.sug{grid-template-columns:repeat(3,1fr);gap:9px}.sug button{min-height:119px;padding:13px}.comp{padding:13px 24px 18px}.side.open~.scrim{display:block;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:35;animation:fade .2s}}
 @media(max-width:480px){.hero-side{right:0;top:5px}.seal{width:68px;height:68px;font-size:8px}.seal b{font-size:18px}.hero-side .seal-note{display:none}.empty h1{font-size:66px}.sug{grid-template-columns:1fr}.empty .foot{margin-top:20px;padding-bottom:18px;font-size:7px}.cbox{padding:14px}.comp{padding-inline:20px}.attach-label{display:none}}
@@ -414,7 +456,7 @@ details.think .think-body {
 <script>
 const $=(s,e=document)=>e.querySelector(s),$$=(s,e=document)=>[...e.querySelectorAll(s)];
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const P={plus:'M12 5v14M5 12h14',search:'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-5-5',panel:'M3 5h18v14H3zM9 5v14',gear:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19 12l2-1-2-4-2 1-2-1V5h-4v2l-2 1-2-1-2 4 2 1v2l-2 1 2 4 2-1 2 1v2h4v-2l2-1 2 1 2-4-2-1z',more:'M5 12h.01M12 12h.01M19 12h.01',clip:'M20 12l-8 8a5 5 0 0 1-7-7l9-9a3.5 3.5 0 0 1 5 5l-9 9a2 2 0 0 1-3-3l8-8',up:'M12 19V5M5 12l7-7 7 7',stop:'M7 7h10v10H7z',copy:'M9 9h11v11H9zM5 15V4h11',redo:'M20 11a8 8 0 1 0-2 6M20 4v7h-7',up2:'M7 11l4-8 2 1-1 5h7l-1 8H7zM3 11h4v10H3z',dn:'M17 13l-4 8-2-1 1-5H5l1-8h11zM21 13h-4V3h4',x:'M6 6l12 12M18 6L6 18',file:'M6 3h8l4 4v14H6zM14 3v4h4',mic:'M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3zm7 8v2a7 7 0 0 1-14 0v-2M12 19v3m-4 0h8',globe:'M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 0c2.5 2.7 4 6.2 4 10s-1.5 7.3-4 10c-2.5-2.7-4-6.2-4-10s1.5-7.3 4-10zm-8 10h16M4.9 6.5h14.2M4.9 17.5h14.2',code:'M16 18l6-6-6-6M8 6l-6 6 6 6',check:'M20 6L9 17l-5-5',chevron:'M6 9l6 6 6-6',ext:'M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3'};
+const P={plus:'M12 5v14M5 12h14',search:'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-5-5',panel:'M3 5h18v14H3zM9 5v14',gear:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19 12l2-1-2-4-2 1-2-1V5h-4v2l-2 1-2-1-2 4 2 1v2l-2 1 2 4 2-1 2 1v2h4v-2l2-1 2 1 2-4-2-1z',more:'M5 12h.01M12 12h.01M19 12h.01',clip:'M20 12l-8 8a5 5 0 0 1-7-7l9-9a3.5 3.5 0 0 1 5 5l-9 9a2 2 0 0 1-3-3l8-8',up:'M12 19V5M5 12l7-7 7 7',stop:'M7 7h10v10H7z',copy:'M9 9h11v11H9zM5 15V4h11',redo:'M20 11a8 8 0 1 0-2 6M20 4v7h-7',up2:'M7 11l4-8 2 1-1 5h7l-1 8H7zM3 11h4v10H3z',dn:'M17 13l-4 8-2-1 1-5H5l1-8h11zM21 13h-4V3h4',x:'M6 6l12 12M18 6L6 18',file:'M6 3h8l4 4v14H6zM14 3v4h4',mic:'M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3zm7 8v2a7 7 0 0 1-14 0v-2M12 19v3m-4 0h8',globe:'M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 0c2.5 2.7 4 6.2 4 10s-1.5 7.3-4 10c-2.5-2.7-4-6.2-4-10s1.5-7.3 4-10zm-8 10h16M4.9 6.5h14.2M4.9 17.5h14.2',code:'M16 18l6-6-6-6M8 6l-6 6 6 6',check:'M20 6L9 17l-5-5',chevron:'M6 9l6 6 6-6',ext:'M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3',lock:'M7 11V7a5 5 0 0 1 10 0v4m-12 0h14v10H5z',expand:'M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7',shrink:'M4 14h6v6M20 10h-6V4M14 10l7-7M10 14l-7 7'};
 const ic=n=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${P[n]}"/></svg>`;
 
 /* ---- API layer ---- */
@@ -531,6 +573,18 @@ const I18N = {
     searchQueryLabel: "Search:",
     readPageLabel: "Read:",
     openedBrowserLabel: "Browser:",
+    insideBrowserTitle: "Inside Browser (Preview & Run HTML Sites)",
+    insideBrowserBtn: "Browser",
+    previewInBrowser: "Preview in Inside Browser",
+    previewBtn: "Preview",
+    ibToggleView: "Toggle Code / Preview",
+    ibViewCode: "Code",
+    ibViewPreview: "Preview",
+    ibReload: "Reload Site",
+    ibOpenNewTab: "Open in New Window",
+    ibDownload: "Download HTML",
+    ibMaximize: "Expand / Restore",
+    ibClose: "Close Browser",
     attachTitle: "Attach text, code or folder files",
     voiceTitle: "Voice input (dictate with mic)",
     voiceListening: "Listening... Speak now",
@@ -654,6 +708,18 @@ const I18N = {
     searchQueryLabel: "Pesquisa:",
     readPageLabel: "Leitura:",
     openedBrowserLabel: "Navegador:",
+    insideBrowserTitle: "Navegador Interno (Ver & Executar Sites HTML)",
+    insideBrowserBtn: "Navegador",
+    previewInBrowser: "Visualizar no Navegador Interno",
+    previewBtn: "Visualizar",
+    ibToggleView: "Alternar Código / Pré-visualização",
+    ibViewCode: "Código",
+    ibViewPreview: "Visualizar",
+    ibReload: "Recarregar Site",
+    ibOpenNewTab: "Abrir em Nova Janela",
+    ibDownload: "Descarregar HTML",
+    ibMaximize: "Maximizar / Restaurar",
+    ibClose: "Fechar Navegador",
     attachTitle: "Anexar texto, código ou pastas",
     voiceTitle: "Entrada por voz (ditar com microfone)",
     voiceListening: "A escutar... Fale agora",
@@ -742,7 +808,9 @@ function md(src){
   src.split(/```/).forEach((p,i)=>{
     if(i%2){
       const nl=p.indexOf('\n'),lang=(nl<0?p:p.slice(0,nl)).trim(),code=nl<0?'':p.slice(nl+1);
-      h.push(`<div class="cb"><header><span class="cb-tag">${ic('code')} ${esc(lang||'text')}</span><button class="btn-copy" data-act="copycode">${ic('copy')} <span>${t('copy')}</span></button></header><pre><code>${esc(code.replace(/\n$/,''))}</code></pre></div>`);
+      const isHtml = ['html','htm'].includes(lang.toLowerCase()) || /<!DOCTYPE html|<html[\s>]/i.test(code);
+      const previewBtn = isHtml ? `<button class="btn-preview" data-act="openpreview" title="${t('previewInBrowser')}">${ic('globe')} <span>${t('previewBtn')}</span></button>` : '';
+      h.push(`<div class="cb"><header><span class="cb-tag">${ic('code')} ${esc(lang||'text')}</span><div class="cb-actions">${previewBtn}<button class="btn-copy" data-act="copycode">${ic('copy')} <span>${t('copy')}</span></button></div></header><pre><code>${esc(code.replace(/\n$/,''))}</code></pre></div>`);
       return;
     }
     const lines = p.split('\n');
@@ -810,6 +878,184 @@ function sideHTML(){
   const h=Object.entries(g).filter(([,a])=>a.length).map(([k,a])=>`<div class="grp">${k}</div>`+a.map(([c,s])=>`<div class="item" style="--n:${Math.min(n++,12)}"><button class="row ${c.id===S.cur?'on':''}" data-act="open" data-id="${c.id}" ${c.id===S.cur?'aria-current="true"':''}><span class="lbl" style="min-width:0"><span class="t" style="display:block;overflow:hidden;text-overflow:ellipsis">${hl(c.title,q)}</span>${s?`<span class="snip">${hl(s,q)}</span>`:''}</span></button><button class="ib more" data-act="menu" data-id="${c.id}" aria-label="${t('rename')}">${ic('more')}</button></div>`).join('')).join('');
   return h||`<div style="padding:20px 10px;color:var(--tx3);font-family:'JetBrains Mono',monospace;font-size:11px">${q?t('noMatches'):t('noConvs')}</div>`}
 
+function defaultStarterHTML(){
+  const isPt = S.lang === 'pt';
+  const title = isPt ? 'Navegador Interno AXOM' : 'AXOM Inside Browser';
+  const heading = isPt ? 'Crie & Visualize <span>Sites HTML</span>' : 'Create & Preview <span>HTML Sites</span>';
+  const sub = isPt
+    ? 'Peça ao Axom no chat para criar qualquer página, jogo ou aplicação web interativa e teste-a aqui em tempo real.'
+    : 'Ask Axom in the chat to build any interactive webpage, game, or tool and preview it live right here.';
+  const c1Title = isPt ? '🧮 Calculadora' : '🧮 Calculator';
+  const c1Sub = isPt ? 'Calculadora moderna e responsiva' : 'Modern responsive calculator';
+  const c1Prompt = isPt
+    ? 'Cria uma calculadora científica moderna em HTML, CSS e JavaScript num único ficheiro com design escuro elegante.'
+    : 'Create a modern scientific calculator in HTML, CSS and JavaScript in a single file with sleek dark design.';
+  const c2Title = isPt ? '🎮 Jogo 2D (Snake)' : '🎮 2D Game (Snake)';
+  const c2Sub = isPt ? 'Jogo clássico interativo em Canvas' : 'Classic interactive Canvas game';
+  const c2Prompt = isPt
+    ? 'Cria o jogo clássico Snake (Cobrinha) interativo em HTML5 Canvas e JavaScript com pontuação e efeitos visuais.'
+    : 'Create an interactive classic Snake game in HTML5 Canvas and JavaScript with scoring and smooth visual effects.';
+  const c3Title = isPt ? '⏱️ Pomodoro Timer' : '⏱️ Pomodoro Timer';
+  const c3Sub = isPt ? 'Temporizador com animações circulares' : 'Timer with smooth circular animation';
+  const c3Prompt = isPt
+    ? 'Cria um temporizador Pomodoro minimalista e produtivo em HTML com animações circulares suaves e controlos de pausa/início.'
+    : 'Create a minimalist Pomodoro timer in HTML with smooth circular animations and start/pause controls.';
+  const c4Title = isPt ? '🚀 Landing Page' : '🚀 Landing Page';
+  const c4Sub = isPt ? 'Página moderna e minimalista' : 'Modern minimalist landing page';
+  const c4Prompt = isPt
+    ? 'Cria uma página de destino (landing page) minimalista e moderna em HTML para uma startup com modo escuro.'
+    : 'Create a sleek modern landing page in HTML for a startup with dark mode.';
+
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title><style>
+body{margin:0;padding:32px 20px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#09090b;color:#f4f4f5;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:85vh;text-align:center;box-sizing:border-box}
+.badge{display:inline-block;padding:3px 10px;border-radius:4px;background:rgba(255,81,47,.12);color:#ff512f;font-size:10px;font-weight:600;margin-bottom:14px;letter-spacing:.08em;font-family:monospace}
+h1{font-size:24px;margin:0 0 10px;font-weight:700;letter-spacing:-.02em}
+h1 span{color:#ff512f}
+p{color:#a1a1aa;max-width:440px;font-size:13px;line-height:1.6;margin:0 0 24px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:440px}
+.card{background:#141416;border:1px solid #27272a;border-radius:10px;padding:14px;cursor:pointer;transition:all .18s;text-align:left}
+.card:hover{border-color:#ff512f;background:#18181b;transform:translateY(-2px);box-shadow:0 4px 14px rgba(255,81,47,.2)}
+.card strong{display:block;font-size:13px;margin-bottom:4px;color:#fff}
+.card span{font-size:11px;color:#71717a}
+@media(max-width:440px){.grid{grid-template-columns:1fr}}
+</style></head><body>
+<div class="badge">AXOM INSIDE BROWSER</div>
+<h1>${heading}</h1>
+<p>${sub}</p>
+<div class="grid">
+  <div class="card" onclick="window.parent.postMessage({act:'prompt',text:${JSON.stringify(c1Prompt)}},'*')">
+    <strong>${c1Title}</strong><span>${c1Sub}</span>
+  </div>
+  <div class="card" onclick="window.parent.postMessage({act:'prompt',text:${JSON.stringify(c2Prompt)}},'*')">
+    <strong>${c2Title}</strong><span>${c2Sub}</span>
+  </div>
+  <div class="card" onclick="window.parent.postMessage({act:'prompt',text:${JSON.stringify(c3Prompt)}},'*')">
+    <strong>${c3Title}</strong><span>${c3Sub}</span>
+  </div>
+  <div class="card" onclick="window.parent.postMessage({act:'prompt',text:${JSON.stringify(c4Prompt)}},'*')">
+    <strong>${c4Title}</strong><span>${c4Sub}</span>
+  </div>
+</div>
+</body></html>`;
+}
+
+const InsideBrowser = {
+  isOpen: false,
+  isMaximized: false,
+  viewMode: 'preview',
+  currentCode: '',
+  currentTitle: 'index.html',
+
+  init(){
+    window.addEventListener('message', ev => {
+      if(ev.data && ev.data.act === 'prompt'){
+        send(ev.data.text);
+      }
+    });
+  },
+
+  open(code, title = 'index.html'){
+    this.isOpen = true;
+    if(code !== undefined && code !== null) {
+      this.currentCode = code;
+      this.currentTitle = title;
+    } else if(!this.currentCode) {
+      this.currentCode = defaultStarterHTML();
+    }
+    const app = $('#app');
+    if(app) app.classList.add('browser-open');
+    const headerBtn = $('#browserHeaderBtn');
+    if(headerBtn) headerBtn.classList.add('on');
+    this.render();
+  },
+
+  close(){
+    this.isOpen = false;
+    this.isMaximized = false;
+    const app = $('#app');
+    if(app) app.classList.remove('browser-open');
+    const panel = $('#insideBrowser');
+    if(panel) panel.classList.remove('maximized');
+    const headerBtn = $('#browserHeaderBtn');
+    if(headerBtn) headerBtn.classList.remove('on');
+  },
+
+  toggle(){
+    if(this.isOpen) this.close();
+    else this.open(this.currentCode || defaultStarterHTML());
+  },
+
+  toggleMaximize(){
+    this.isMaximized = !this.isMaximized;
+    const panel = $('#insideBrowser');
+    if(panel) panel.classList.toggle('maximized', this.isMaximized);
+    const maxBtn = $('#ibMaxBtn');
+    if(maxBtn) maxBtn.innerHTML = ic(this.isMaximized ? 'shrink' : 'expand');
+  },
+
+  toggleView(){
+    this.viewMode = this.viewMode === 'preview' ? 'code' : 'preview';
+    const isCode = this.viewMode === 'code';
+    const frame = $('#ibFrame');
+    const editor = $('#ibCodeEditor');
+    const toggleBtn = $('#ibViewToggle');
+    if(frame) frame.style.display = isCode ? 'none' : 'block';
+    if(editor) {
+      editor.style.display = isCode ? 'flex' : 'none';
+      if(isCode) {
+        const text = $('#ibCodeText');
+        if(text) text.value = this.currentCode;
+      }
+    }
+    if(toggleBtn){
+      const prevSpan = $('.ib-view-mode-preview', toggleBtn);
+      const codeSpan = $('.ib-view-mode-code', toggleBtn);
+      if(prevSpan) prevSpan.style.display = isCode ? 'none' : 'inline-flex';
+      if(codeSpan) codeSpan.style.display = isCode ? 'inline-flex' : 'none';
+    }
+    if(!isCode){
+      const text = $('#ibCodeText');
+      if(text) this.currentCode = text.value;
+      this.reload();
+    }
+  },
+
+  reload(){
+    const frame = $('#ibFrame');
+    if(!frame) return;
+    const doc = this.currentCode || defaultStarterHTML();
+    frame.srcdoc = doc;
+  },
+
+  openNewTab(){
+    const code = this.currentCode || defaultStarterHTML();
+    const blob = new Blob([code], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+  },
+
+  download(){
+    const code = this.currentCode || defaultStarterHTML();
+    const blob = new Blob([code], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = (this.currentTitle || 'index.html').replace(/[^\w.-]/g, '_');
+    a.click();
+    URL.revokeObjectURL(url);
+  },
+
+  render(){
+    const tabTitle = $('#ibTabTitle');
+    if(tabTitle) tabTitle.textContent = this.currentTitle || 'index.html';
+    const urlInput = $('#ibUrlInput');
+    if(urlInput) urlInput.value = `axom://workspace/${this.currentTitle || 'index.html'}`;
+    const codeText = $('#ibCodeText');
+    if(codeText) codeText.value = this.currentCode || '';
+    this.reload();
+  }
+};
+
 function shell(){
   document.title = t('appTitle');
   document.documentElement.lang = S.lang || 'pt';
@@ -824,10 +1070,43 @@ function shell(){
   <button class="row" data-act="settings" title="${t('settings')}">${ic('gear')}<span class="lbl">${t('settings')}</span></button>
   </aside>
   <div class="scrim" data-act="drawer"></div>
-  <section class="main"><header class="hdr"><button class="ib" data-act="drawer" aria-label="${t('toggleSidebar')}" title="${t('toggleSidebar')}">${ic('panel')}</button><div class="ttl">${t('workspacePrefix')} <b>/ ${esc(cur()?.title||t('newConvHeader'))}</b></div><span class="sp"></span><div class="lang-switch" role="group" aria-label="Language / Idioma"><button class="lang-btn ${S.lang==='en'?'on':''}" data-act="setlang" data-l="en" title="English">EN</button><button class="lang-btn ${S.lang==='pt'?'on':''}" data-act="setlang" data-l="pt" title="Português">PT</button></div></header>
+  <section class="main"><header class="hdr"><button class="ib" data-act="drawer" aria-label="${t('toggleSidebar')}" title="${t('toggleSidebar')}">${ic('panel')}</button><div class="ttl">${t('workspacePrefix')} <b>/ ${esc(cur()?.title||t('newConvHeader'))}</b></div><span class="sp"></span><button class="header-btn ${InsideBrowser.isOpen?'on':''}" id="browserHeaderBtn" data-act="togglebrowser" title="${t('insideBrowserTitle')}">${ic('globe')} <span>${t('insideBrowserBtn')}</span></button><div class="lang-switch" role="group" aria-label="Language / Idioma"><button class="lang-btn ${S.lang==='en'?'on':''}" data-act="setlang" data-l="en" title="English">EN</button><button class="lang-btn ${S.lang==='pt'?'on':''}" data-act="setlang" data-l="pt" title="Português">PT</button></div></header>
   <main class="chat" id="chat" aria-label="Chat"><div class="col-in" id="msgs" aria-live="polite"></div></main>
-  <div class="comp"><div class="cbox" id="cbox"><div class="chips" id="atts"></div><textarea id="inp" rows="1" placeholder="${t('inputPlaceholder')}" aria-label="Message" maxlength="32000"></textarea><div class="tools"><button class="ib" data-act="attach" aria-label="${t('attachTitle')}" title="${t('attachTitle')}">${ic('clip')}</button><button class="ib mic-btn" id="micBtn" data-act="voice" aria-label="${t('voiceTitle')}" title="${t('voiceTitle')}">${ic('mic')}</button><button class="web-btn ${S.web?'on':''}" id="webBtn" data-act="toggleweb" aria-label="${t('webTitle')}" title="${t('webTitle')}">${ic('globe')}<span>${t('webBadge')}</span></button><span class="sp"></span><button class="send" id="send" data-act="send" aria-label="${t('send')}" title="${t('send')}">${ic('up')}</button></div></div><div class="hint"><span>${t('disclaimer')}</span><span>${t('hintKeys')}</span></div></div><input type="file" id="file" multiple hidden></section>`;
-  drawMsgs();drawAtts();bindInput();updSend();updateThemeLabel();}
+  <div class="comp"><div class="cbox" id="cbox"><div class="chips" id="atts"></div><textarea id="inp" rows="1" placeholder="${t('inputPlaceholder')}" aria-label="Message" maxlength="32000"></textarea><div class="tools"><button class="ib" data-act="attach" aria-label="${t('attachTitle')}" title="${t('attachTitle')}">${ic('clip')}</button><button class="ib mic-btn" id="micBtn" data-act="voice" aria-label="${t('voiceTitle')}" title="${t('voiceTitle')}">${ic('mic')}</button><button class="web-btn ${S.web?'on':''}" id="webBtn" data-act="toggleweb" aria-label="${t('webTitle')}" title="${t('webTitle')}">${ic('globe')}<span>${t('webBadge')}</span></button><span class="sp"></span><button class="send" id="send" data-act="send" aria-label="${t('send')}" title="${t('send')}">${ic('up')}</button></div></div><div class="hint"><span>${t('disclaimer')}</span><span>${t('hintKeys')}</span></div></div><input type="file" id="file" multiple hidden></section>
+  <aside class="inside-browser ${InsideBrowser.isMaximized?'maximized':''}" id="insideBrowser">
+    <div class="ib-header">
+      <div class="ib-tab">
+        <span class="ib-tab-dot"></span>
+        <span class="ib-tab-title" id="ibTabTitle">${esc(InsideBrowser.currentTitle||'index.html')}</span>
+        <span class="ib-tab-badge">LIVE</span>
+      </div>
+      <div class="ib-actions">
+        <button class="ib-btn" data-act="toggleibview" id="ibViewToggle" title="${t('ibToggleView')}">
+          <span class="ib-view-mode-preview" style="${InsideBrowser.viewMode==='code'?'display:none':'display:inline-flex'}">${ic('code')} <span>${t('ibViewCode')}</span></span>
+          <span class="ib-view-mode-code" style="${InsideBrowser.viewMode==='code'?'display:inline-flex':'display:none'}">${ic('globe')} <span>${t('ibViewPreview')}</span></span>
+        </button>
+        <button class="ib-btn" data-act="reloadib" title="${t('ibReload')}">${ic('redo')}</button>
+        <button class="ib-btn" data-act="openibnewtab" title="${t('ibOpenNewTab')}">${ic('ext')}</button>
+        <button class="ib-btn" data-act="downloadib" title="${t('ibDownload')}">${ic('file')}</button>
+        <button class="ib-btn" data-act="maximizeib" id="ibMaxBtn" title="${t('ibMaximize')}">${ic(InsideBrowser.isMaximized?'shrink':'expand')}</button>
+        <button class="ib-btn" data-act="closeib" title="${t('ibClose')}">${ic('x')}</button>
+      </div>
+    </div>
+    <div class="ib-address-bar">
+      <button class="ib-nav-btn" data-act="reloadib" title="${t('ibReload')}">${ic('redo')}</button>
+      <div class="ib-url-box">
+        <span class="ib-lock">${ic('lock')}</span>
+        <input type="text" class="ib-url-input" id="ibUrlInput" value="axom://workspace/${esc(InsideBrowser.currentTitle||'index.html')}" readonly>
+      </div>
+    </div>
+    <div class="ib-viewport">
+      <iframe id="ibFrame" class="ib-frame" sandbox="allow-scripts allow-forms allow-modals allow-popups" style="${InsideBrowser.viewMode==='code'?'display:none':'display:block'}"></iframe>
+      <div id="ibCodeEditor" class="ib-code-view" style="${InsideBrowser.viewMode==='code'?'display:flex':'display:none'}">
+        <textarea id="ibCodeText" spellcheck="false">${esc(InsideBrowser.currentCode||'')}</textarea>
+      </div>
+    </div>
+  </aside>`;
+  drawMsgs();drawAtts();bindInput();updSend();updateThemeLabel();if(InsideBrowser.isOpen){$('#app').classList.add('browser-open');InsideBrowser.render();}}
 
 function welcome(){
   return `<div class="empty">
@@ -916,9 +1195,13 @@ function toolsTraceHTML(tools, isOpen=false){
       `</div></div>`;
   }
 
+  const iconHtml = isRunning
+    ? `<svg class="spin-circle" viewBox="0 0 24 24" width="14" height="14"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.5" stroke-opacity="0.25" fill="none"/><path d="M12 3a9 9 0 0 1 9 9" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>`
+    : ic('globe');
+
   return `<details class="tool-trace think-trace"${isOpen?' open':''}>
     <summary class="think-summary">
-      <span class="think-icon ${isRunning?'running':''}">${ic('globe')}</span>
+      <span class="think-icon ${isRunning?'running':''}">${iconHtml}</span>
       <span class="think-title">${esc(summaryTitle)}</span>
       <span class="think-chevron">${ic('chevron')}</span>
     </summary>
@@ -932,11 +1215,16 @@ function toolsTraceHTML(tools, isOpen=false){
 function msgHTML(m,i,last){
   const cls=i===fresh?' in':'';
   if(m.role==='user')return`<div class="msg user${cls}"><div class="who">${t('you')}</div>${m.files?.length?`<div class="chips">${m.files.map(f=>`<span class="chip">${ic('file')}${esc(f)}</span>`).join('')}</div>`:''}<div class="bd">${esc(m.text)}</div></div>`;
+  const isLive = run && last;
+  const isComputing = isLive && !m.text;
   const toolsRender=(m.tools&&m.tools.length)?toolsTraceHTML(m.tools,false):'';
   const thinkRender=m.think?`<details class="think think-trace"><summary class="think-summary"><span class="think-icon">${ic('code')}</span><span class="think-title">${t('thinking')} · ${(m.thinkMs/1e3).toFixed(1)}s</span><span class="think-chevron">${ic('chevron')}</span></summary><div class="think-body">${esc(m.think)}</div></details>`:'';
-  return`<div class="msg${cls}" data-i="${i}"><div class="who">${t('axom')}</div>${thinkRender}${toolsRender}<div class="bd">${md(m.text)}</div>
+  const loadingIndicator = isComputing ? `<div class="compute-loading"><svg class="spin-circle" viewBox="0 0 24 24" width="15" height="15"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.5" stroke-opacity="0.25" fill="none"/><path d="M12 3a9 9 0 0 1 9 9" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg><span>${t('thinking')}...</span></div>` : '';
+
+  return`<div class="msg${cls}" data-i="${i}"><div class="who">${t('axom')}</div>${thinkRender}${toolsRender}${loadingIndicator}<div class="bd">${md(m.text)}</div>
   ${m.err?`<div class="err" role="alert"><span>${esc(m.err)}</span><button class="btn" data-act="retry">${t('retry')}</button></div>`:''}
-  ${run&&last?'':`<div class="acts"><button class="ib" data-act="copymsg" aria-label="${t('copy')}" title="${t('copy')}">${ic('copy')}</button>${last?`<button class="ib" data-act="retry" aria-label="${t('regenerate')}" title="${t('regenerate')}">${ic('redo')}</button>`:''}<button class="ib ${m.fb==='up'?'on':''}" data-act="fb" data-v="up" aria-label="${t('goodResp')}">${ic('up2')}</button><button class="ib ${m.fb==='dn'?'on':''}" data-act="fb" data-v="dn" aria-label="${t('badResp')}">${ic('dn')}</button></div>`}</div>`}
+  ${run&&last?'':`<div class="acts"><button class="ib" data-act="copymsg" aria-label="${t('copy')}" title="${t('copy')}">${ic('copy')}</button>${last?`<button class="ib" data-act="retry" aria-label="${t('regenerate')}" title="${t('regenerate')}">${ic('redo')}</button>`:''}<button class="ib ${m.fb==='up'?'on':''}" data-act="fb" data-v="up" aria-label="${t('goodResp')}">${ic('up2')}</button><button class="ib ${m.fb==='dn'?'on':''}" data-act="fb" data-v="dn" aria-label="${t('badResp')}">${ic('dn')}</button></div>`}</div>`;
+}
 
 function drawMsgs(){
   const c=cur(),el=$('#msgs'),app=$('#app');if(!el)return;
@@ -1054,6 +1342,17 @@ async function generate(c){
       const existingDetails = tContainer.querySelector('details');
       const wasOpen = existingDetails ? existingDetails.hasAttribute('open') : false;
       tContainer.innerHTML=toolsTraceHTML(m.tools, wasOpen);
+    }
+    let loadEl = $('.compute-loading', msgEl);
+    if (!m.text) {
+      if (!loadEl) {
+        loadEl = document.createElement('div');
+        loadEl.className = 'compute-loading';
+        loadEl.innerHTML = `<svg class="spin-circle" viewBox="0 0 24 24" width="15" height="15"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.5" stroke-opacity="0.25" fill="none"/><path d="M12 3a9 9 0 0 1 9 9" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg><span>${t('thinking')}...</span>`;
+        msgEl.insertBefore(loadEl, el);
+      }
+    } else {
+      if (loadEl) loadEl.remove();
     }
     el.innerHTML=md(m.text);
     scrollEnd();
@@ -1337,8 +1636,43 @@ document.addEventListener('click',async e=>{
   else if(a==='del'){const v=S.convs.find(x=>x.id===id);if(await dialog({title:t('delTitle'),body:`"${esc(v.title)}" ${t('delConfirm')}`,ok:t('del'),danger:1})){S.convs=S.convs.filter(x=>x.id!==id);if(S.cur===id)S.cur=null;save();shell()}}
   else if(a==='copymsg'){const m=c.msgs[+b.closest('.msg').dataset.i];navigator.clipboard.writeText(m.text).then(()=>toast(t('copied')),()=>toast(t('copyFailed')))}
   else if(a==='copycode'){navigator.clipboard.writeText($('code',b.closest('.cb')).textContent).then(()=>{const orig=b.innerHTML;b.innerHTML=`${ic('check')} <span>${t('copiedCode')}</span>`;setTimeout(()=>b.innerHTML=orig,1400)},()=>toast(t('copyFailed')))}
+  else if(a==='openpreview'){
+    const cb = b.closest('.cb');
+    if(cb){
+      const code = $('pre code', cb)?.textContent || '';
+      InsideBrowser.open(code, 'site.html');
+    }
+  }
+  else if(a==='togglebrowser'){
+    InsideBrowser.toggle();
+  }
+  else if(a==='closeib'){
+    InsideBrowser.close();
+  }
+  else if(a==='maximizeib'){
+    InsideBrowser.toggleMaximize();
+  }
+  else if(a==='reloadib'){
+    InsideBrowser.reload();
+  }
+  else if(a==='toggleibview'){
+    InsideBrowser.toggleView();
+  }
+  else if(a==='openibnewtab'){
+    InsideBrowser.openNewTab();
+  }
+  else if(a==='downloadib'){
+    InsideBrowser.download();
+  }
   else if(a==='fb'){const m=c.msgs[+b.closest('.msg').dataset.i];m.fb=m.fb===b.dataset.v?null:b.dataset.v;save();drawMsgs()}
   else if(a==='retry'&&!run){while(c.msgs.at(-1)?.role==='assistant')c.msgs.pop();drawMsgs();await generate(c)}
+});
+
+document.addEventListener('input', e => {
+  if (e.target && e.target.id === 'ibCodeText') {
+    InsideBrowser.currentCode = e.target.value;
+    InsideBrowser.reload();
+  }
 });
 
 document.addEventListener('keydown',e=>{const k=e.key.toLowerCase(),mod=e.ctrlKey||e.metaKey;
@@ -1348,7 +1682,7 @@ document.addEventListener('keydown',e=>{const k=e.key.toLowerCase(),mod=e.ctrlKe
 });
 matchMedia('(prefers-color-scheme:light)').addEventListener('change',()=>S.theme==='system'&&applyTheme());
 
-applyTheme();shell();
+applyTheme();shell();InsideBrowser.init();
 Axom.models().then(m=>{
   models=m;
   if(m.length&&!m.some(x=>x.id===S.model))S.model=m[0].id;

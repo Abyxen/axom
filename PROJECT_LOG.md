@@ -451,9 +451,43 @@
 
 ---
 
+### 22. Live Compute Spinner & Inside Browser HTML Studio
+- **Date:** November 10, 2026
+- **What Was Done:**
+  - **Live Compute & Loading Circle Spinner:**
+    - Resolved the empty pause during initial inference planning, tool execution, and neural synthesis.
+    - Added an animated SVG loading circle (`.spin-circle`) with clear status text (`Thinking...` / `A pensar...`) before text arrival, and `Thinking & Searching web...` / `A pensar & A pesquisar na web...` while autonomous tool browsing is executing.
+    - Prevents users from ever feeling the interface is hung or frozen.
+  - **Inside Browser / HTML Sandbox Studio:**
+    - Implemented a complete embedded browser panel (`#insideBrowser`) right inside the AXOM desktop interface.
+    - Users can create, preview, run, test, and edit HTML/CSS/JS websites, games, and web apps directly inside AXOM in a secure, sandboxed `<iframe>`.
+    - Integrated with code blocks: any HTML code block in chat features a prominent `[ 🌐 Visualizar / Preview ]` button in its header to open it immediately in the Inside Browser.
+    - Added a dedicated `[ 🌐 Navegador / Browser ]` toggle button in the top navigation header bar.
+    - Features of the Inside Browser:
+      - Live address bar with virtual workspace path (`axom://workspace/index.html`).
+      - Code / Preview view toggle with live editing and instant re-render.
+      - Hot reload button `↻`.
+      - Open in native external browser window `↗` via Blob URL.
+      - One-click HTML download button `💾`.
+      - Expand / Maximize to full screen `⛶`.
+      - Interactive starter playground with 4 one-click creation cards (Calculator, Snake Game, Pomodoro Timer, Landing Page) via `postMessage`.
+- **How It Was Implemented:**
+  - In `index.html`:
+    - Added `.compute-loading` and `.spin-circle` CSS with continuous `@keyframes spin` animation.
+    - Added `InsideBrowser` controller object with `open()`, `close()`, `toggle()`, `toggleMaximize()`, `toggleView()`, `reload()`, `openNewTab()`, and `download()`.
+    - Added `defaultStarterHTML()` template for starter workspace.
+    - Added `btn-preview` in `md()` parser when syntax is `html`/`htm` or contains HTML markup.
+    - Added `browserHeaderBtn` and `<aside class="inside-browser">` in `shell()`.
+    - Updated `msgHTML()` and `paint()` to display `.compute-loading` while computing before text arrival.
+    - Added localization keys to `I18N.en` and `I18N.pt`.
+- **Why It Was Done:**
+  - User requested: *"while its searching web or doing something that really needs compute make it so it says thinking and shows loading circle so that people dont just get hanget while doing things and also add a browser indide maybe where it can create and show html sites in it"*.
+
+---
+
 ## 🔮 Active & Upcoming Work
 
-### 22. Periodic LoRA Fine-Tuning Pipeline (Neural Weight Evolution)
+### 23. Periodic LoRA Fine-Tuning Pipeline (Neural Weight Evolution)
 - **Goal:** Periodically bake long-term conversational data directly into updated neural weights (`axom:1.2`, `axom:1.3`).
 - **Architecture Strategy:**
   1. Export curated `chat_logs` into Alpaca / ShareGPT JSONL training datasets.
