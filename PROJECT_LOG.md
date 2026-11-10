@@ -343,9 +343,26 @@
 
 ---
 
+### 17. Brand Slogan Preservation and Custom Composer Placeholders
+- **Date:** November 10, 2026
+- **What Was Done:**
+  - Preserved the official brand slogan `THINK OFF-SCRIPT.` verbatim in both the English and Portuguese versions of the website.
+  - Updated the composer input text box placeholder:
+    - English (`EN`): `"Ask Axom"`
+    - Portuguese (`PT`): `"Pergunte o Axom"`
+- **How It Was Implemented:**
+  - In `index.html` `I18N`:
+    - Updated `pt.heroTitle` to `THINK <span class="outline">OFF-SCRIPT.</span>` matching `en.heroTitle`.
+    - Updated `en.inputPlaceholder` to `"Ask Axom"`.
+    - Updated `pt.inputPlaceholder` to `"Pergunte o Axom"`.
+- **Why It Was Done:**
+  - The user requested preserving "THINK OFF-SCRIPT." across all languages as it is AXOM's official brand slogan, and customized the input placeholder to provide clean, direct branding ("Ask Axom" / "Pergunte o Axom").
+
+---
+
 ## 🔮 Active & Upcoming Work
 
-### 17. Periodic LoRA Fine-Tuning Pipeline (Neural Weight Evolution)
+### 18. Periodic LoRA Fine-Tuning Pipeline (Neural Weight Evolution)
 - **Goal:** Periodically bake long-term conversational data directly into updated neural weights (`axom:1.2`, `axom:1.3`).
 - **Architecture Strategy:**
   1. Export curated `chat_logs` into Alpaca / ShareGPT JSONL training datasets.
