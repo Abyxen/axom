@@ -511,9 +511,31 @@
 
 ---
 
+### 24. Obsidian Second Brain Integration & Automatic Neural Knowledge Graph (2026-11-10)
+- **What Was Done:**
+  - Integrated Obsidian as AXOM's living "Second Brain", connecting `axom:1.1`'s neural context directly to an Obsidian Knowledge Graph vault.
+  - Initialized dedicated Obsidian Vault at `C:\Users\abira\Documents\Axom_Brain`:
+    - Fully configured with `.obsidian` configurations: dark mode theme, live preview, AXOM signature flame accent `#ff512f`, and core plugins enabled.
+    - Synchronized all 45+ conversation transcripts, user profile memories, system/hardware specifications, preferences, and project milestones into inter-linked markdown notes with YAML frontmatter, tags, and wikilinks (`[[...]]`).
+  - Implemented Bi-Directional Memory Engine (`obsidian_vault.js`):
+    - **Obsidian -> Model Context**: `readVaultKnowledge()` scans notes in `Knowledge/` and `Projects/` and injects them directly into AXOM's system prompt context so AXOM remembers and reasons over everything in Obsidian.
+    - **Model Review -> Obsidian Vault**: `memory_reviewer.js` automatically triggers `obsidian_vault.syncAll()` after reviewing chat sessions, keeping the vault updated in real time.
+    - Added API endpoints: `GET /api/obsidian/status`, `POST /api/obsidian/sync`, and `POST /api/obsidian/open`.
+    - Added Obsidian Second Brain UI card in the Settings modal Brain tab with one-click "Open in Obsidian" and "Sync Vault Now".
+    - Handled automatic background download and installation of Obsidian for Windows.
+- **How It Was Implemented:**
+  - Created `obsidian_vault.js`.
+  - Updated `memory_reviewer.js` to dispatch real-time syncs on review.
+  - Updated `server.js` with Obsidian API routes and `vaultKnowledge` context injection.
+  - Updated `index.html` with bilingual localization and interactive vault controls.
+- **Why It Was Done:**
+  - User requested: *"now download obsidian and connect my model to its brain so it remembers everything"*.
+
+---
+
 ## 🔮 Active & Upcoming Work
 
-### 24. Periodic LoRA Fine-Tuning Pipeline (Neural Weight Evolution)
+### 25. Periodic LoRA Fine-Tuning Pipeline (Neural Weight Evolution)
 - **Goal:** Periodically bake long-term conversational data directly into updated neural weights (`axom:1.2`, `axom:1.3`).
 - **Architecture Strategy:**
   1. Export curated `chat_logs` into Alpaca / ShareGPT JSONL training datasets.

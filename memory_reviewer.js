@@ -166,6 +166,15 @@ async function processSessionReview(sessionId, model = 'axom:1.1', ollamaBase = 
       console.log(`[REVIEWER] Summary: "${reviewResult.session_summary}"`);
     }
 
+    // COMPONENT E: OBSIDIAN SECOND BRAIN REAL-TIME VAULT SYNC
+    try {
+      const obsidianVault = require('./obsidian_vault');
+      obsidianVault.syncAll();
+      console.log(`[REVIEWER] Obsidian Second Brain synced with vault at ${obsidianVault.VAULT_PATH}`);
+    } catch (obsidianErr) {
+      console.warn('[REVIEWER] Failed to sync with Obsidian vault:', obsidianErr.message);
+    }
+
     return {
       status: 'success',
       session_id: sessionId,

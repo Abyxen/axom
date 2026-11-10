@@ -21,7 +21,7 @@
 
 | Attribute | Specification |
 |---|---|
-| **Primary Model Alias** | `axomv1:4b` / `axom-chat` |
+| **Primary Model Alias** | `axomv1.1:4b` |
 | **Foundation Base Model** | `Qwen 3.5 4B Uncensored` (Abliterated Q4_K_M) |
 | **Model Size on Disk** | 2.7 GB (Q4_K_M quantization) |
 | **VRAM Footprint** | ~3.0 GB (fits comfortably within the 8 GB RTX 5060 VRAM with 5 GB free) |
@@ -166,12 +166,29 @@ Verify that your NVIDIA RTX 5060 Laptop GPU is processing inference:
 
 ```
 C:\Users\abira\Documents\axom\
-├── index.html        # AXOM responsive web interface (HTML, CSS, JS)
-├── server.js         # Zero-dependency local backend & API adapter (Node.js)
-├── Modelfile         # Ollama model definition & persona for axom:1.1
-├── PROJECT_LOG.md    # Master architectural & engineering log (What, How, Why)
-├── Start_AXOM.bat    # One-click Windows startup script
-├── Stop_AXOM.bat     # Clean shutdown script
-├── test_suite.ps1    # Automated verification test suite
-└── README.md         # Documentation & user guide
+├── index.html         # AXOM responsive web interface & In-App Web Browser (HTML, CSS, JS)
+├── server.js          # Zero-dependency local backend, API adapter, & live browser proxy (Node.js)
+├── db.js              # Living memory database (SQLite dual-state store)
+├── memory_reviewer.js # Autonomous background LLM session reviewer & insight extractor
+├── obsidian_vault.js  # Obsidian Second Brain bi-directional vault sync engine
+├── browser_service.js # Agentic multi-turn web search, page scraping, & browser automation
+├── Modelfile          # Ollama model definition & persona for axom:1.1
+├── PROJECT_LOG.md     # Master architectural & engineering log (What, How, Why)
+├── Start_AXOM.bat     # One-click Windows startup script
+├── Stop_AXOM.bat      # Clean shutdown script
+├── test_suite.ps1     # Automated verification test suite
+└── README.md          # Documentation & user guide
 ```
+
+---
+
+## 🧠 Obsidian Second Brain Integration
+
+AXOM connects directly to an Obsidian Knowledge Graph vault located at:
+```
+C:\Users\abira\Documents\Axom_Brain\
+```
+
+- **Bi-Directional Recall**: Any Markdown note you drop into `Knowledge/` or `Projects/` in Obsidian is continuously indexed and injected into AXOM's LLM prompt context.
+- **Autonomous Archival**: Conversations, user preferences, hardware specs, and reviewed memories are automatically organized into inter-linked `.md` files with wikilinks (`[[...]]`) and tags.
+- **One-Click Launch**: Open your brain graph directly in Obsidian from AXOM's Settings modal or via `obsidian://open?vault=Axom_Brain`.

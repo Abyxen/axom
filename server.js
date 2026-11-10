@@ -4,14 +4,21 @@ const path = require('node:path');
 const db = require('./db');
 const reviewer = require('./memory_reviewer');
 const browser = require('./browser_service');
+const obsidianVault = require('./obsidian_vault');
 
 const PORT = 8000;
 const HOST = '127.0.0.1';
 const OLLAMA_BASE = 'http://127.0.0.1:11434';
 const PUBLIC_DIR = __dirname;
 
-// Initialize Component A database
+// Initialize Component A database & Obsidian Second Brain Vault
 db.initDatabase();
+try {
+  obsidianVault.initVault();
+  obsidianVault.syncAll();
+} catch (e) {
+  console.warn('[OBSIDIAN] Initial vault sync notice:', e.message);
+}
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -383,6 +390,23 @@ button:hover{background:#3f3f46}
     return sendJson(res, 200, { status: 'saved' });
   }
 
+  // --- API: Obsidian Second Brain Status, Sync & Launcher ---
+  if (req.method === 'GET' && pathname === '/api/obsidian/status') {
+    const status = obsidianVault.getStatus();
+    return sendJson(res, 200, status);
+  }
+
+  if (req.method === 'POST' && pathname === '/api/obsidian/sync') {
+    const syncRes = obsidianVault.syncAll();
+    const status = obsidianVault.getStatus();
+    return sendJson(res, 200, { success: true, ...syncRes, ...status });
+  }
+
+  if (req.method === 'POST' && pathname === '/api/obsidian/open') {
+    const launchRes = obsidianVault.launchObsidian();
+    return sendJson(res, 200, launchRes);
+  }
+
   // --- API: Chat Completion (Streaming SSE & Non-Streaming JSON) ---
   if (req.method === 'POST' && pathname === '/api/chat') {
     let bodyText = '';
@@ -409,8 +433,16 @@ button:hover{background:#3f3f46}
         }
 
         // COMPONENT B: SESSION DATA INJECTION & AGENTIC DIRECTIVE
-        // Query user_profile_memory for active keys and format into context block
+        // Query user_profile_memory and Obsidian Vault for active knowledge
         const profileContext = db.formatProfileContext();
+        let vaultKnowledge = '';
+        try {
+          vaultKnowledge = obsidianVault.readVaultKnowledge();
+        } catch (e) {
+          console.warn('[SERVER] Vault read notice:', e.message);
+        }
+        const fullMemoryContext = vaultKnowledge ? `${profileContext}\n\n${vaultKnowledge}` : profileContext;
+
         const webSearchEnabled = body.web_search === true;
         const webDirective = webSearchEnabled
           ? '\n\n# AUTONOMOUS WEB BROWSING DIRECTIVE:\nYou have real-time access to the live internet via search_web, browse_page, and open_browser tools.\nWhen answering questions about current facts, versions, releases, news, documentation, or when browsing or searching is requested, actively call the search_web or browse_page tool to retrieve live, accurate information.\nAlways present factual information using clean Markdown, clear typography, and bullet points. Strictly avoid decorative emojis.'
@@ -423,7 +455,7 @@ button:hover{background:#3f3f46}
           if (msg.role === 'system') {
             formattedMessages.push({
               role: 'system',
-              content: `${profileContext}${webDirective}\n\n${msg.content}`
+              content: `${fullMemoryContext}${webDirective}\n\n${msg.content}`
             });
             systemInjected = true;
           } else {
@@ -431,10 +463,10 @@ button:hover{background:#3f3f46}
           }
         }
 
-        if (!systemInjected && (profileContext || webDirective)) {
+        if (!systemInjected && (fullMemoryContext || webDirective)) {
           formattedMessages.unshift({
             role: 'system',
-            content: `${profileContext}${webDirective}`
+            content: `${fullMemoryContext}${webDirective}`
           });
         }
 
