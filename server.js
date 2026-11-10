@@ -5,6 +5,7 @@ const db = require('./db');
 const reviewer = require('./memory_reviewer');
 const browser = require('./browser_service');
 const obsidianVault = require('./obsidian_vault');
+const fileService = require('./file_service');
 
 const PORT = 8000;
 const HOST = '127.0.0.1';
@@ -405,6 +406,57 @@ button:hover{background:#3f3f46}
   if (req.method === 'POST' && pathname === '/api/obsidian/open') {
     const launchRes = obsidianVault.launchObsidian();
     return sendJson(res, 200, launchRes);
+  }
+
+  // --- API: Multi-Modal File Processing (Images, PDFs, Documents, & Workspace) ---
+  if (req.method === 'POST' && pathname === '/api/files/parse') {
+    let bodyText = '';
+    req.on('data', chunk => {
+      bodyText += chunk;
+      if (bodyText.length > 25 * 1024 * 1024) req.destroy();
+    });
+    req.on('end', async () => {
+      try {
+        const body = JSON.parse(bodyText);
+        const files = Array.isArray(body.files) ? body.files : [];
+        const prompt = body.prompt || '';
+        const results = [];
+        for (const f of files) {
+          const processed = await fileService.processUploadedFile(f, prompt);
+          results.push(processed);
+        }
+        return sendJson(res, 200, { success: true, results });
+      } catch (err) {
+        return sendJson(res, 500, { error: err.message });
+      }
+    });
+    return;
+  }
+
+  if (req.method === 'POST' && pathname === '/api/files/save') {
+    let bodyText = '';
+    req.on('data', chunk => {
+      bodyText += chunk;
+      if (bodyText.length > 25 * 1024 * 1024) req.destroy();
+    });
+    req.on('end', () => {
+      try {
+        const body = JSON.parse(bodyText);
+        if (!body.filename || body.content === undefined) {
+          return sendJson(res, 400, { error: 'filename and content required' });
+        }
+        const saved = fileService.saveWorkspaceFile(body.filename, body.content, body.subfolder);
+        return sendJson(res, 200, saved);
+      } catch (err) {
+        return sendJson(res, 500, { error: err.message });
+      }
+    });
+    return;
+  }
+
+  if (req.method === 'GET' && pathname === '/api/files/workspace') {
+    const list = fileService.listWorkspaceFiles();
+    return sendJson(res, 200, { files: list });
   }
 
   // --- API: Chat Completion (Streaming SSE & Non-Streaming JSON) ---

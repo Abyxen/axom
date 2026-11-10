@@ -129,11 +129,11 @@ async function processSessionReview(sessionId, model = 'axom:1.1', ollamaBase = 
         stream: false,
         options: {
           temperature: 0.1,
-          num_predict: 3072,
+          num_predict: 800,
           top_p: 0.9
         }
       }),
-      signal: AbortSignal.timeout(90000)
+      signal: AbortSignal.timeout(120000)
     });
 
     if (!response.ok) {

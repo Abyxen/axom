@@ -385,7 +385,9 @@ details.think .think-body {
 
 /* attachments */
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}.chips:empty{display:none}
-.chip{display:inline-flex;align-items:center;gap:6px;padding:3px 6px 3px 9px;background:var(--surf);border:1px solid var(--bd);font:11px 'JetBrains Mono',monospace}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:3px 6px 3px 9px;background:var(--surf);border:1px solid var(--bd);border-radius:5px;font:11px 'JetBrains Mono',monospace}
+.chip-thumb{width:20px;height:20px;object-fit:cover;border-radius:3px;border:1px solid var(--bd);vertical-align:middle}
+.chip-badge{background:var(--ac);color:#ffffff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;letter-spacing:.05em}
 .chip .x{width:18px;height:18px}.chip .x svg{width:12px;height:12px}
 
 /* modal & popover */
@@ -458,7 +460,7 @@ details.think .think-body {
 <script>
 const $=(s,e=document)=>e.querySelector(s),$$=(s,e=document)=>[...e.querySelectorAll(s)];
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const P={plus:'M12 5v14M5 12h14',search:'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-5-5',panel:'M3 5h18v14H3zM9 5v14',gear:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19 12l2-1-2-4-2 1-2-1V5h-4v2l-2 1-2-1-2 4 2 1v2l-2 1 2 4 2-1 2 1v2h4v-2l2-1 2 1 2-4-2-1z',more:'M5 12h.01M12 12h.01M19 12h.01',clip:'M20 12l-8 8a5 5 0 0 1-7-7l9-9a3.5 3.5 0 0 1 5 5l-9 9a2 2 0 0 1-3-3l8-8',up:'M12 19V5M5 12l7-7 7 7',stop:'M7 7h10v10H7z',copy:'M9 9h11v11H9zM5 15V4h11',redo:'M20 11a8 8 0 1 0-2 6M20 4v7h-7',up2:'M7 11l4-8 2 1-1 5h7l-1 8H7zM3 11h4v10H3z',dn:'M17 13l-4 8-2-1 1-5H5l1-8h11zM21 13h-4V3h4',x:'M6 6l12 12M18 6L6 18',file:'M6 3h8l4 4v14H6zM14 3v4h4',mic:'M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3zm7 8v2a7 7 0 0 1-14 0v-2M12 19v3m-4 0h8',globe:'M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 0c2.5 2.7 4 6.2 4 10s-1.5 7.3-4 10c-2.5-2.7-4-6.2-4-10s1.5-7.3 4-10zm-8 10h16M4.9 6.5h14.2M4.9 17.5h14.2',code:'M16 18l6-6-6-6M8 6l-6 6 6 6',check:'M20 6L9 17l-5-5',chevron:'M6 9l6 6 6-6',ext:'M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3',lock:'M7 11V7a5 5 0 0 1 10 0v4m-12 0h14v10H5z',expand:'M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7',shrink:'M4 14h6v6M20 10h-6V4M14 10l7-7M10 14l-7 7',leftArrow:'M15 19l-7-7 7-7',rightArrow:'M9 5l7 7-7 7'};
+const P={plus:'M12 5v14M5 12h14',search:'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-5-5',panel:'M3 5h18v14H3zM9 5v14',gear:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19 12l2-1-2-4-2 1-2-1V5h-4v2l-2 1-2-1-2 4 2 1v2l-2 1 2 4 2-1 2 1v2h4v-2l2-1 2 1 2-4-2-1z',more:'M5 12h.01M12 12h.01M19 12h.01',clip:'M20 12l-8 8a5 5 0 0 1-7-7l9-9a3.5 3.5 0 0 1 5 5l-9 9a2 2 0 0 1-3-3l8-8',up:'M12 19V5M5 12l7-7 7 7',stop:'M7 7h10v10H7z',copy:'M9 9h11v11H9zM5 15V4h11',redo:'M20 11a8 8 0 1 0-2 6M20 4v7h-7',up2:'M7 11l4-8 2 1-1 5h7l-1 8H7zM3 11h4v10H3z',dn:'M17 13l-4 8-2-1 1-5H5l1-8h11zM21 13h-4V3h4',x:'M6 6l12 12M18 6L6 18',file:'M6 3h8l4 4v14H6zM14 3v4h4',mic:'M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3zm7 8v2a7 7 0 0 1-14 0v-2M12 19v3m-4 0h8',globe:'M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 0c2.5 2.7 4 6.2 4 10s-1.5 7.3-4 10c-2.5-2.7-4-6.2-4-10s1.5-7.3 4-10zm-8 10h16M4.9 6.5h14.2M4.9 17.5h14.2',code:'M16 18l6-6-6-6M8 6l-6 6 6 6',check:'M20 6L9 17l-5-5',chevron:'M6 9l6 6 6-6',ext:'M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3',lock:'M7 11V7a5 5 0 0 1 10 0v4m-12 0h14v10H5z',expand:'M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7',shrink:'M4 14h6v6M20 10h-6V4M14 10l7-7M10 14l-7 7',leftArrow:'M15 19l-7-7 7-7',rightArrow:'M9 5l7 7-7 7',save:'M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2zM17 21v-8H7v8M7 3v5h8',download:'M12 3v13m0 0l-4-4m4 4l4-4M4 21h16'};
 const ic=n=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${P[n]}"/></svg>`;
 
 /* ---- API layer ---- */
@@ -577,6 +579,12 @@ const I18N = {
     openedBrowserLabel: "Browser:",
     insideBrowserTitle: "Web Browser (Chrome-like In-App Browser)",
     insideBrowserBtn: "Browser",
+    saveToWorkspace: "Save to workspace",
+    saveBtn: "Save",
+    savedToWorkspace: "Saved to workspace",
+    downloadFile: "Download modified file",
+    downloadBtn: "Download",
+    fileParsing: "Analyzing multi-modal files...",
     ibHome: "Home",
     ibBack: "Back",
     ibForward: "Forward",
@@ -719,6 +727,12 @@ const I18N = {
     openedBrowserLabel: "Navegador:",
     insideBrowserTitle: "Navegador Web (Navegador Integrado no AXOM)",
     insideBrowserBtn: "Navegador",
+    saveToWorkspace: "Guardar no espaço de trabalho",
+    saveBtn: "Guardar",
+    savedToWorkspace: "Guardado no espaço de trabalho",
+    downloadFile: "Descarregar ficheiro modificado",
+    downloadBtn: "Descarregar",
+    fileParsing: "A analisar ficheiros multi-modais...",
     ibHome: "Início",
     ibBack: "Voltar",
     ibForward: "Avançar",
@@ -826,7 +840,9 @@ function md(src){
       const nl=p.indexOf('\n'),lang=(nl<0?p:p.slice(0,nl)).trim(),code=nl<0?'':p.slice(nl+1);
       const isHtml = ['html','htm'].includes(lang.toLowerCase()) || /<!DOCTYPE html|<html[\s>]/i.test(code);
       const previewBtn = isHtml ? `<button class="btn-preview" data-act="openpreview" title="${t('previewInBrowser')}">${ic('globe')} <span>${t('previewBtn')}</span></button>` : '';
-      h.push(`<div class="cb"><header><span class="cb-tag">${ic('code')} ${esc(lang||'text')}</span><div class="cb-actions">${previewBtn}<button class="btn-copy" data-act="copycode">${ic('copy')} <span>${t('copy')}</span></button></div></header><pre><code>${esc(code.replace(/\n$/,''))}</code></pre></div>`);
+      const saveBtn = `<button class="btn-copy" data-act="saveworkspace" title="${t('saveToWorkspace')}">${ic('save')} <span>${t('saveBtn')}</span></button>`;
+      const dlBtn = `<button class="btn-copy" data-act="downloadcode" title="${t('downloadFile')}">${ic('download')} <span>${t('downloadBtn')}</span></button>`;
+      h.push(`<div class="cb"><header><span class="cb-tag">${ic('code')} ${esc(lang||'text')}</span><div class="cb-actions">${previewBtn}${saveBtn}${dlBtn}<button class="btn-copy" data-act="copycode">${ic('copy')} <span>${t('copy')}</span></button></div></header><pre><code>${esc(code.replace(/\n$/,''))}</code></pre></div>`);
       return;
     }
     const lines = p.split('\n');
@@ -1272,15 +1288,57 @@ async function scanFiles(items) {
 async function addFiles(list){
   for(const f of list){
     if(atts.length>=10){toast(t('maxFiles'));break}
-    if(f.size>4e6){toast(f.name+' '+t('fileExceeds'));continue}
-    let tText;try{tText=await f.text()}catch(e){continue}
-    if(tText.includes('\0')){toast(f.name+t('textFilesOnly'));continue}
-    if(tText.length>MAXF){tText=tText.slice(0,MAXF);toast(f.name+' '+t('fileTrimmed'))}
-    atts.push({name:f.name,text:tText})
+    if(f.size>25e6){toast(f.name+' '+t('fileExceeds'));continue}
+    const dotIdx = f.name.lastIndexOf('.');
+    const ext = dotIdx !== -1 ? f.name.slice(dotIdx).toLowerCase() : '';
+    const isImg = f.type.startsWith('image/') || ['.png','.jpg','.jpeg','.webp','.gif','.bmp','.svg'].includes(ext);
+    const isPdf = f.type === 'application/pdf' || ext === '.pdf';
+
+    if(isImg){
+      const dataUrl = await new Promise(res => {
+        const reader = new FileReader();
+        reader.onload = () => res(reader.result);
+        reader.readAsDataURL(f);
+      });
+      atts.push({ name: f.name, type: 'image', data: dataUrl, ext, isImg: true });
+    } else if(isPdf){
+      const dataUrl = await new Promise(res => {
+        const reader = new FileReader();
+        reader.onload = () => res(reader.result);
+        reader.readAsDataURL(f);
+      });
+      atts.push({ name: f.name, type: 'pdf', data: dataUrl, ext, isPdf: true });
+    } else {
+      let tText = '';
+      try { tText = await f.text(); } catch(e){}
+      if(tText && !tText.includes('\0')){
+        if(tText.length>MAXF){tText=tText.slice(0,MAXF);toast(f.name+' '+t('fileTrimmed'))}
+        atts.push({ name: f.name, type: 'text', text: tText, ext });
+      } else {
+        const dataUrl = await new Promise(res => {
+          const reader = new FileReader();
+          reader.onload = () => res(reader.result);
+          reader.readAsDataURL(f);
+        });
+        atts.push({ name: f.name, type: 'binary', data: dataUrl, ext });
+      }
+    }
   }
   drawAtts();updSend();
 }
-function drawAtts(){const e=$('#atts');if(e)e.innerHTML=atts.map((f,i)=>`<span class="chip">${ic('file')}${esc(f.name)}<button class="ib x" data-act="rmfile" data-i="${i}" aria-label="Remove ${esc(f.name)}">${ic('x')}</button></span>`).join('')}
+
+function drawAtts(){
+  const e=$('#atts');if(!e)return;
+  e.innerHTML=atts.map((f,i)=>{
+    if(f.isImg){
+      return `<span class="chip"><img src="${f.data}" class="chip-thumb" alt="${esc(f.name)}"><span>${esc(f.name)}</span><button class="ib x" data-act="rmfile" data-i="${i}" aria-label="Remove ${esc(f.name)}">${ic('x')}</button></span>`;
+    }
+    if(f.isPdf){
+      return `<span class="chip"><span class="chip-badge">PDF</span><span>${esc(f.name)}</span><button class="ib x" data-act="rmfile" data-i="${i}" aria-label="Remove ${esc(f.name)}">${ic('x')}</button></span>`;
+    }
+    return `<span class="chip">${ic('file')}<span>${esc(f.name)}</span><button class="ib x" data-act="rmfile" data-i="${i}" aria-label="Remove ${esc(f.name)}">${ic('x')}</button></span>`;
+  }).join('');
+}
 
 function bindInput(){
   const i=$('#inp'),box=$('#cbox'),fi=$('#file');
@@ -1310,8 +1368,48 @@ function newChat(){S.cur=null;save();atts=[];shell();$('#inp').focus();closeDraw
 async function send(text){
   const i=$('#inp');text=(text??i.value);if((!text.trim()&&!atts.length)||run)return;
   let c=cur();if(!c){c={id:'c'+Date.now(),title:text.slice(0,40)||atts[0]?.name||t('newConvHeader'),ts:Date.now(),msgs:[]};S.convs.push(c);S.cur=c.id}
-  c.msgs.push({role:'user',text,files:atts.map(f=>f.name),ctx:atts.map(f=>`[File: ${f.name}]\n${f.text}`).join('\n\n')});
-  c.ts=Date.now();atts=[];i.value='';i.style.height='auto';
+
+  const currentAtts = [...atts];
+  atts=[];i.value='';i.style.height='auto';drawAtts();updSend();
+
+  let parsedCtx = [];
+  const filesToParse = currentAtts.filter(f => f.data);
+  if(filesToParse.length > 0){
+    toast(t('fileParsing'));
+    try {
+      const pRes = await fetch('/api/files/parse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          files: filesToParse.map(f => ({ name: f.name, data: f.data, type: f.type })),
+          prompt: text
+        })
+      });
+      if(pRes.ok){
+        const pData = await pRes.json();
+        if(pData.results) parsedCtx = pData.results;
+      }
+    } catch(err){
+      console.warn('File parse error:', err);
+    }
+  }
+
+  const ctxParts = [];
+  for(const f of currentAtts){
+    if(f.text){
+      ctxParts.push(`[File: ${f.name}]\n${f.text}`);
+    } else {
+      const match = parsedCtx.find(p => p.name === f.name);
+      if(match && match.content){
+        ctxParts.push(match.content);
+      } else {
+        ctxParts.push(`[Attached file: ${f.name}]`);
+      }
+    }
+  }
+
+  c.msgs.push({role:'user',text,files:currentAtts.map(f=>f.name),ctx:ctxParts.join('\n\n')});
+  c.ts=Date.now();
   fresh=c.msgs.length-1;shell();fresh=-1;await generate(c);
 }
 
@@ -1687,6 +1785,46 @@ document.addEventListener('click',async e=>{
     if(cb){
       const code = $('pre code', cb)?.textContent || '';
       InsideBrowser.open('data:text/html;charset=utf-8,' + encodeURIComponent(code));
+    }
+  }
+  else if(a==='saveworkspace'){
+    const cb = b.closest('.cb');
+    if(cb){
+      const code = $('pre code', cb)?.textContent || '';
+      const tag = $('.cb-tag', cb)?.textContent?.trim() || 'file';
+      const ext = tag.includes(' ') ? tag.split(' ').pop() : tag;
+      const cleanExt = ext.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 10);
+      const defName = 'modified_' + (cleanExt ? 'script.' + cleanExt : 'document.txt');
+      const filename = await dialog({ title: t('saveToWorkspace'), input: defName, ok: t('saveBtn') });
+      if(filename && filename.trim()){
+        try {
+          const res = await fetch('/api/files/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filename: filename.trim(), content: code })
+          });
+          if(res.ok) {
+            toast(t('savedToWorkspace') + ` (${filename.trim()})`);
+          } else {
+            toast('Save failed');
+          }
+        } catch(err){ toast('Save failed'); }
+      }
+    }
+  }
+  else if(a==='downloadcode'){
+    const cb = b.closest('.cb');
+    if(cb){
+      const code = $('pre code', cb)?.textContent || '';
+      const tag = $('.cb-tag', cb)?.textContent?.trim() || 'file';
+      const ext = tag.includes(' ') ? tag.split(' ').pop() : tag;
+      const cleanExt = ext.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 10);
+      const filename = 'modified_' + (cleanExt ? 'file.' + cleanExt : 'document.txt');
+      const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url; link.download = filename; link.click(); URL.revokeObjectURL(url);
+      toast(t('downloadBtn') + ` (${filename})`);
     }
   }
   else if(a==='togglebrowser'){

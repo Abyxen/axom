@@ -533,14 +533,39 @@
 
 ---
 
+### 25. Multi-Modal Ingestion (Vision + PDF Parsing), File Modification Actions, System Optimization & Training Suite (2026-11-10)
+- **What Was Done:**
+  - **Multi-Modal File Ingestion**:
+    - Removed binary file barriers, expanding AXOM's intake to all file types up to 25MB: images (PNG, JPG, WEBP, GIF, BMP, SVG), PDFs, Word `.docx`, and arbitrary binary or text files.
+    - Integrated local vision processing with `moondream` (828MB) running on Ollama, extracting scene breakdowns, visual features, OCR text, and dimensions without requiring model weight replacement.
+    - Implemented a zero-dependency streaming PDF parser in pure Node.js (`node:zlib`) to decompress `/FlateDecode` streams and extract text operators (`Tj`, `TJ`, hex strings) without external npm packages.
+    - Implemented a zero-dependency Office Word `.docx` XML text extractor.
+  - **File Modification & Workspace Management**:
+    - Added one-click **Save to Workspace** (`saveworkspace`) and **Download** (`downloadcode`) buttons on code/file output blocks in the UI.
+    - Added backend endpoints `POST /api/files/save` and `GET /api/files/workspace` managing files inside `c:\Users\abira\Documents\axom\workspace`.
+    - Added interactive rename dialog and confirmation toast notifications for saved and downloaded artifacts.
+  - **System Cleanup & Optimization**:
+    - Deleted the 324MB temporary installer artifact `$env:TEMP\ObsidianSetup.exe` and obsolete setup scripts.
+    - Executed SQLite maintenance routines (`VACUUM;` and `PRAGMA optimize;`) on `data/axom_memory.db`.
+  - **Fine-Tuning & Model Training Suite for Tomorrow**:
+    - Created dataset exporter `train/export_dataset.js` generating Alpaca (`train/axom_alpaca.json`, 63 examples) and ShareGPT (`train/axom_sharegpt.jsonl`, 29 conversations) formats directly from AXOM's conversation logs and system alignment pairs.
+    - Created production-ready QLoRA training script `train/train_unsloth_lora.py` utilizing Unsloth 4-bit optimization, ready for execution on local RTX 5060 or Google Colab T4, with automatic GGUF export for Ollama (`Axom_v1.2-Q4_K_M.gguf`).
+    - Authored comprehensive step-by-step training guide `train/TRAINING_GUIDE.md`.
+- **How It Was Implemented:**
+  - Created `file_service.js` with pure Node.js multi-modal extraction routines.
+  - Added `/api/files/parse`, `/api/files/save`, `/api/files/workspace` endpoints in `server.js`.
+  - Updated file upload handling, visual thumbnails, PDF badges, and code action handlers in `index.html`.
+  - Created `train/` directory with dataset generation and Unsloth LoRA scripts.
+- **Why It Was Done:**
+  - User requested: *"and can you make it so that my ai can read images and pdfs like every file type and then modify it or so what i ask to and also optimize the files and folders related to my ai and also we will train this ai tomorrow soo lets see"*.
+
+---
+
 ## 🔮 Active & Upcoming Work
 
-### 25. Periodic LoRA Fine-Tuning Pipeline (Neural Weight Evolution)
-- **Goal:** Periodically bake long-term conversational data directly into updated neural weights (`axom:1.2`, `axom:1.3`).
-- **Architecture Strategy:**
-  1. Export curated `chat_logs` into Alpaca / ShareGPT JSONL training datasets.
-  2. One-click script to execute local LoRA fine-tuning or trigger Google Colab Unsloth runs.
-  3. Auto-convert and merge LoRA adapters into quantized GGUF weights.
+### 26. Tomorrow's Model Fine-Tuning Execution (`axom:1.2`)
+- **Goal:** Run fine-tuning training pipeline with `train/train_unsloth_lora.py` using exported Alpaca/ShareGPT dataset.
+- **Deliverable:** Compile and register `axom:1.2` in Ollama, benchmarking zero-emoji compliance, web search synthesis, and coding instruction following.
 
 ---
 
