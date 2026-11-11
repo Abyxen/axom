@@ -662,9 +662,30 @@
 
 ---
 
+### 30. Project Workspace & Database Optimization
+- **Date:** November 11, 2026
+- **What Was Done:**
+  - **SQLite Database Optimization**:
+    - Removed 6 orphaned tables (`study_podcasts`, `study_notes`, `study_insights`, `study_source_links`, `study_sources`, `study_notebooks`) from `data/axom_memory.db`.
+    - Executed `PRAGMA integrity_check`, `VACUUM`, and `PRAGMA optimize`, reducing database size from 430 KB to 244 KB (42% size reduction).
+  - **Obsidian Vault Organization**:
+    - Preserved user learning materials (`MySQL Exam Study Guide.md`) by transferring them to `C:\Users\abira\Documents\Axom_Brain\Knowledge\Programming\`.
+    - Removed leftover synthetic test directories from the Obsidian vault.
+  - **Repository Architecture & Hygiene**:
+    - Created `package.json` with standard project scripts (`npm start`, `npm test`, `npm run optimize`, `npm run export-dataset`).
+    - Enhanced `.gitignore` covering Python bytecode (`__pycache__/`, `*.pyc`), editor metadata (`.vscode/`, `.idea/`), logs, and temporary swap files.
+    - Created automated maintenance utility `scripts/optimize.js` to run integrity checks, vacuuming, and cleanup on demand.
+- **How It Was Implemented:**
+  - Ran native Node.js SQLite statements and filesystem cleanups.
+  - Validated database integrity and executed regression tests via `test_suite.ps1`.
+- **Why It Was Done:**
+  - User requested: *"optimize the folder of the project"*.
+
+---
+
 ## 🔮 Active & Upcoming Work
 
-### 30. QLoRA Fine-Tuning Execution (`axom:1.2`)
+### 31. QLoRA Fine-Tuning Execution (`axom:1.2`)
 - **Goal:** Run the fine-tuning pipeline (`train/train_unsloth_lora.py`) using the generated 500,490-word synthetic training dataset.
 - **Deliverable:** Quantized GGUF weights for Ollama.
 
