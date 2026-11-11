@@ -321,6 +321,57 @@ function parseTextToolCalls(text) {
 }
 
 /**
+ * Autonomous heuristic to detect if a prompt requires live web browsing or is a difficult task
+ */
+function isWebSearchNeeded(text) {
+  if (!text || typeof text !== 'string') return false;
+  const q = text.toLowerCase().trim();
+
+  // Pattern 1: Meteorological, Weather & Climate (typo-tolerant: weathert, wheather, wether, temperat*, etc.)
+  const weatherPattern = /\b(weathert?|wheather|wether|forecast[s]?|temperat[a-z]*|temp|climate|rain[a-z]*|snow[a-z]*|sunny|wind[a-z]*|humid[a-z]*|celsius|fahrenheit|degrees|radar|storm[s]?|tempo|clima|temperatura[s]?|previs[aã]o|chuva[s]?|chover|chovendo|sol|ensolarado|vento[s]?|ventando|humidade|umidade|graus)\b/i;
+  if (weatherPattern.test(q)) return true;
+
+  // Pattern 2: Temporal & Real-Time Indicators paired with targets
+  const timePattern = /\b(today|tomorrow|yesterday|tonight|right now|currently|current|latest|recent|recently|breaking news|live|update|updates|hoje|amanh[aã]|ontem|agora|atual|atualmente|[uú]ltimas|not[ií]cias|recente|recentemente|em tempo real)\b/i;
+  const liveTargetPattern = /\b(condition[s]?|condi[cç][oõ]es|situation|situa[cç][aã]o|score|game|match|matchup|standings|winner|who won|election|stock|price|crypto|bitcoin|btc|eth|market|flight|status|release date|version|patch notes|jogo|resultado|placar|classifica[cç][aã]o|quem ganhou|elei[cç][oõ]es|a[cç][oõ]es|pre[cç]o|cota[cç][aã]o|valor|voo|lan[cç]amento|vers[aã]o)\b/i;
+  if (timePattern.test(q) && liveTargetPattern.test(q)) return true;
+
+  // Pattern 3: Financial & Market Lookups
+  const financePattern = /\b(stock price|share price|crypto price|bitcoin price|btc price|exchange rate|inflation rate|cota[cç][aã]o do|pre[cç]o do bitcoin|pre[cç]o da a[cç][aã]o|taxa selic|eur to usd|usd to)\b/i;
+  if (financePattern.test(q)) return true;
+
+  // Pattern 4: Explicit Search Directives
+  const searchDirective = /\b(search for|search the web|search web|google|look up|find online|check online|browse for|pesquise|pesquisar|procure|procurar|busque|buscar|ver na internet|ver na web|olhe no google|busca online)\b/i;
+  if (searchDirective.test(q)) return true;
+
+  // Pattern 5: Live Entity/Facts queries (Who is current, who won, when is next)
+  const entityPattern = /\b(who is the (current|new)|who is (now )?president|who is prime minister|who won the|when is the next|current ceo of|current population of|quem [eé] o (atual|novo)|quem ganhou o|quando ser[aá] o pr[oó]ximo)\b/i;
+  if (entityPattern.test(q)) return true;
+
+  // Pattern 6: Technical stack trace, crash, or error debugging (difficult task)
+  const errorPattern = /(TypeError:|SyntaxError:|ReferenceError:|Cannot read propert|undefined is not|NullPointerException|OutOfMemory|Segmentation fault|ERR_[A-Z_]+|exit code [1-9]|npm ERR!|fatal error)/i;
+  if (errorPattern.test(text)) return true;
+
+  return false;
+}
+
+/**
+ * Extract clean search keywords from a conversational prompt
+ */
+function extractSearchQuery(text) {
+  if (!text || typeof text !== 'string') return '';
+  let q = text.trim();
+  q = q.replace(/^(can you (please )?|could you (please )?|please |hey axom,? |axom,? |i want to know |tell me |show me |give me |what is |whats |what's |who is |how is |qual [eé] |como est[aá] |diga-me |pesquise |procure |busque )/i, '');
+  q = q.replace(/^(the |a |an |o |a |os |as )/i, '');
+  q = q.replace(/^(search for|search the web for|google|look up|find online|browse for)\s+/i, '');
+  q = q.replace(/\bweathert\b/gi, 'weather');
+  q = q.replace(/\bwheather\b/gi, 'weather');
+  q = q.replace(/\bwether\b/gi, 'weather');
+  q = q.replace(/[?!.]+$/, '').trim();
+  return q || text.trim();
+}
+
+/**
  * Dispatcher to execute a tool call
  */
 async function executeTool(name, args = {}) {
@@ -343,5 +394,7 @@ module.exports = {
   browsePage,
   openBrowserWindow,
   parseTextToolCalls,
-  executeTool
+  executeTool,
+  isWebSearchNeeded,
+  extractSearchQuery
 };

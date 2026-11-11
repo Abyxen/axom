@@ -496,7 +496,8 @@ const Axom={
         body:JSON.stringify({
           model:S.model,
           session_id:S.cur||'default_session',
-          web_search:!!S.web,
+          web_search: S.web !== false,
+          web_mode: S.web === false ? 'offline' : 'auto',
           messages:messages.map(m=>({role:m.role,content:m.ctx?m.ctx+'\n\n'+m.text:m.text})),
           params:{...S.gen, ...effortParams, stop:String(S.gen.stop||'').split(',').map(x=>x.trim()).filter(Boolean), stream: true}
         })
@@ -559,10 +560,11 @@ const I18N = {
     copyCode: "Copy",
     copiedCode: "Copied",
     inputPlaceholder: "Ask Axom",
-    webTitle: "Toggle Autonomous Web Browsing",
-    webBadge: "Web",
-    webEnabled: "Web browsing enabled",
-    webDisabled: "Web browsing disabled",
+    webTitle: "Autonomous Web Search (Auto-detects weather, live facts, & complex queries)",
+    webBadge: "Auto Web",
+    webEnabled: "Autonomous web search active",
+    webDisabled: "Web search disabled (offline mode)",
+    webAuto: "Autonomous web search active",
     toolSearching: "Searching the web",
     toolFoundSources: "Web sources found",
     toolReadingPage: "Reading webpage",
@@ -707,10 +709,11 @@ const I18N = {
     copyCode: "Copiar",
     copiedCode: "Copiado",
     inputPlaceholder: "Pergunte o Axom",
-    webTitle: "Ativar/Desativar Navegação Web Autónoma",
-    webBadge: "Web",
-    webEnabled: "Navegação web ativada",
-    webDisabled: "Navegação web desativada",
+    webTitle: "Pesquisa Web Autónoma (Deteta automaticamente meteorologia, factos em direto e tarefas complexas)",
+    webBadge: "Auto Web",
+    webEnabled: "Pesquisa web autónoma ativada",
+    webDisabled: "Pesquisa web desativada (modo offline)",
+    webAuto: "Pesquisa web autónoma ativada",
     toolSearching: "A pesquisar na web",
     toolFoundSources: "Fontes web encontradas",
     toolReadingPage: "A ler página web",
@@ -1754,8 +1757,8 @@ document.addEventListener('click',async e=>{
     S.web = !S.web;
     save();
     const btn=$('#webBtn');
-    if(btn) btn.classList.toggle('on', S.web);
-    toast(S.web ? t('webEnabled') : t('webDisabled'));
+    if(btn) btn.classList.toggle('on', !!S.web);
+    toast(S.web ? t('webAuto') : t('webDisabled'));
   }
   else if(a==='theme'){S.theme=document.documentElement.dataset.theme==='dark'?'light':'dark';applyTheme();updateThemeLabel();save();}
   else if(a==='open'){S.cur=id;save();shell();closeDrawer()}

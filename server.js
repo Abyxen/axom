@@ -495,9 +495,13 @@ button:hover{background:#3f3f46}
         }
         const fullMemoryContext = vaultKnowledge ? `${profileContext}\n\n${vaultKnowledge}` : profileContext;
 
-        const webSearchEnabled = body.web_search === true;
+        const userMsgObj = messages.filter(m => m.role === 'user').slice(-1)[0];
+        const lastUserPrompt = userMsgObj ? (typeof userMsgObj.content === 'string' ? userMsgObj.content : '') : '';
+        const autoSearchNeeded = browser.isWebSearchNeeded(lastUserPrompt);
+        const webSearchEnabled = body.web_search === true || (body.web_mode !== 'offline' && autoSearchNeeded);
+
         const webDirective = webSearchEnabled
-          ? '\n\n# AUTONOMOUS WEB BROWSING DIRECTIVE:\nYou have real-time access to the live internet via search_web, browse_page, and open_browser tools.\nWhen answering questions about current facts, versions, releases, news, documentation, or when browsing or searching is requested, actively call the search_web or browse_page tool to retrieve live, accurate information.\nAlways present factual information using clean Markdown, clear typography, and bullet points. Strictly avoid decorative emojis.'
+          ? '\n\n# AUTONOMOUS REAL-TIME WEB SEARCH DIRECTIVE:\nYou have real-time access to the live internet via search_web, browse_page, and open_browser tools.\nCRITICAL RULES:\n1. When answering questions about current events, weather conditions, forecasts, temperatures, live sports scores, market prices, technical errors, releases, or documentation, YOU MUST ACTIVELY CALL search_web to retrieve accurate live data.\n2. NEVER apologize or state that you lack real-time access or cannot browse the web. You have functioning browsing tools. Use them proactively.\n3. Present findings clearly using structured Markdown and concise bullet points. Strictly avoid decorative emojis.'
           : '';
 
         const formattedMessages = [];
@@ -522,8 +526,8 @@ button:hover{background:#3f3f46}
           });
         }
 
-        // Fast response optimization: bypass slow reasoning monologue
-        if (formattedMessages.length > 0 && formattedMessages[formattedMessages.length - 1].role === 'user') {
+        // Fast response optimization: bypass slow reasoning monologue ONLY when NOT using tool calling (prevents Ollama Jinja 500 error)
+        if (!webSearchEnabled && formattedMessages.length > 0 && formattedMessages[formattedMessages.length - 1].role === 'user') {
           formattedMessages.push({ role: 'assistant', content: '</think>' });
         }
 
@@ -579,6 +583,21 @@ button:hover{background:#3f3f46}
               const parsedTextCalls = browser.parseTextToolCalls(turnData.message?.content);
               if (parsedTextCalls && parsedTextCalls.length > 0) {
                 toolCalls = parsedTextCalls;
+              }
+            }
+
+            // Autonomous fail-safe: if auto-search was needed and the model failed to emit a tool call on turn 1
+            if (turn === 1 && autoSearchNeeded && (!Array.isArray(toolCalls) || toolCalls.length === 0)) {
+              const autoQuery = browser.extractSearchQuery(lastUserPrompt);
+              if (autoQuery) {
+                console.log(`[SERVER] Autonomous web search auto-triggered for: "${lastUserPrompt}" -> query: "${autoQuery}"`);
+                toolCalls = [{
+                  id: `auto_${Date.now()}`,
+                  function: {
+                    name: 'search_web',
+                    arguments: { query: autoQuery }
+                  }
+                }];
               }
             }
 

@@ -561,9 +561,31 @@
 
 ---
 
+### 26. Autonomous Zero-Click Web Search & Complex Task Detection (2026-11-11)
+- **What Was Done:**
+  - Implemented Autonomous Web Search Detection in `browser_service.js`:
+    - `isWebSearchNeeded(query)`: Heuristic classifier detecting real-time queries (weather, temperatures, forecasts, live sports scores, crypto/stock prices, releases, versions, news) and difficult tasks (stack traces, runtime crashes, complex documentation lookups).
+    - Added typo-tolerant pattern matching (`weathert`, `wheather`, `temperat*`, `clima`, `previsão`, `chuva`, etc.) in both English and Portuguese.
+    - `extractSearchQuery(query)`: Distills natural conversation prompts into clean search keywords for DuckDuckGo.
+  - Implemented Autonomous Agent Supervisor & Fail-Safe in `server.js`:
+    - Fixed Ollama Jinja template collision (`Error: Jinja Exception: No user query found in messages`) by preventing the monologue bypass `</think>` turn when tool calling is enabled.
+    - Enabled autonomous routing: if `isWebSearchNeeded` is true, the system automatically activates web browsing without requiring the user to click the "WEB" button.
+    - Added fail-safe supervisor: if a difficult/real-time query is detected and the model forgets to call a tool on turn 1, the supervisor auto-triggers `search_web` with the cleaned query, feeds results on turn 2, and synthesizes the live answer.
+  - Updated Frontend UI (`index.html`):
+    - Changed the web button to "Auto Web", showing active autonomous web search by default.
+    - Maintained collapsible "Thinking" trace with live spinner and source pill chips.
+- **How It Was Implemented:**
+  - Added `isWebSearchNeeded` and `extractSearchQuery` to `browser_service.js`.
+  - Updated `/api/chat` agentic loop in `server.js`.
+  - Updated I18N localization and default state in `index.html`.
+- **Why It Was Done:**
+  - User requested: *"make it so if its difficult task and needs web search without clicking into web search yk like whats the weathert condition etc and all"*.
+
+---
+
 ## 🔮 Active & Upcoming Work
 
-### 26. Tomorrow's Model Fine-Tuning Execution (`axom:1.2`)
+### 27. Tomorrow's Model Fine-Tuning Execution (`axom:1.2`)
 - **Goal:** Run fine-tuning training pipeline with `train/train_unsloth_lora.py` using exported Alpaca/ShareGPT dataset.
 - **Deliverable:** Compile and register `axom:1.2` in Ollama, benchmarking zero-emoji compliance, web search synthesis, and coding instruction following.
 
