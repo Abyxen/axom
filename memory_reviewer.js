@@ -21,7 +21,7 @@ Carefully review the conversation logs to identify:
 - **Explicit Memory Commands:** Statements where the user directly requests remembrance (e.g., "Remember this snippet," "Never suggest JavaScript to me again").
 
 ## OUTPUT FORMAT
-You must return ONLY a valid JSON object. Do not include markdown formatting like \`\`\`json ... \`\`\`, and do not include any conversational preambles or post-scripts. The structure must exactly match the schema below:
+You must return ONLY a raw valid JSON object. Do NOT write any "Thinking Process:", explanations, markdown fences, or conversational text. Start immediately with { and end with }. The structure must exactly match the schema below:
 
 {
   "memory_actions": [
@@ -61,9 +61,11 @@ function parseReviewerResponse(rawText) {
   cleaned = cleaned.replace(/^<\/think>\s*/i, '').trim();
 
   // Strip markdown code fences if present
-  if (cleaned.startsWith('```')) {
-    cleaned = cleaned.replace(/^```(?:json)?\s*/i, '');
-    cleaned = cleaned.replace(/\s*```$/i, '');
+  const codeBlockMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  if (codeBlockMatch) {
+    cleaned = codeBlockMatch[1].trim();
+  } else {
+    cleaned = cleaned.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
   }
 
   // Find opening and closing brackets if there's any stray text
@@ -77,7 +79,7 @@ function parseReviewerResponse(rawText) {
     const parsed = JSON.parse(cleaned);
     return parsed;
   } catch (err) {
-    console.error('[REVIEWER] Failed to parse JSON response:', err.message, '\nRaw was:', rawText);
+    console.error('[REVIEWER] Failed to parse JSON response:', err.message, '\nRaw was:', rawText.slice(0, 300));
     return null;
   }
 }
@@ -129,7 +131,7 @@ async function processSessionReview(sessionId, model = 'axom:1.1', ollamaBase = 
         stream: false,
         options: {
           temperature: 0.1,
-          num_predict: 800,
+          num_predict: 2048,
           top_p: 0.9
         }
       }),

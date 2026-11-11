@@ -1,6 +1,14 @@
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
+
+process.on('uncaughtException', (err) => {
+  console.error('[SERVER] Uncaught exception:', err);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('[SERVER] Unhandled rejection:', reason);
+});
+
 const db = require('./db');
 const reviewer = require('./memory_reviewer');
 const browser = require('./browser_service');
