@@ -168,6 +168,7 @@ Verify that your NVIDIA RTX 5060 Laptop GPU is processing inference:
 C:\Users\abira\Documents\axom\
 ├── index.html         # AXOM responsive web interface & In-App Web Browser (HTML, CSS, JS)
 ├── server.js          # Zero-dependency local backend, API adapter, & live browser proxy (Node.js)
+├── research_skills.js # 17 AI Research Skills engine (arXiv, CrossRef, BibTeX, 3-gate dossiers, design briefs)
 ├── db.js              # Living memory database (SQLite dual-state store)
 ├── memory_reviewer.js # Autonomous background LLM session reviewer & insight extractor
 ├── obsidian_vault.js  # Obsidian Second Brain bi-directional vault sync engine
@@ -179,6 +180,28 @@ C:\Users\abira\Documents\axom\
 ├── test_suite.ps1     # Automated verification test suite
 └── README.md          # Documentation & user guide
 ```
+
+---
+
+## 🔬 AI Research Skills (WenyuChiou Architecture)
+
+AXOM embeds native, zero-dependency implementations of the **17 AI Research Skills** across 4 domain families:
+1. **Research Workspace**:
+   - `research-hub`: Scholarly search across arXiv & CrossRef with reading depth tracking (`not-read`, `abstract-only`, `selected-sections`, `full-text`).
+   - `literature-triage-matrix`: High-density 9-column comparative matrix contrasting methods, datasets, claims, findings, and limitations.
+   - `gap-to-topic`: 3-Gate candidate topic evaluator (Is gap open? Is it a contribution? Is it feasible?) generating `.research/topic_dossier.md` and `.gaps.yml`.
+   - `research-design-helper`: 5 Socratic segments (Research Question, Expected Mechanism, Identifiability, Empirical Validation, Risk Register) generating `.research/design_brief.md`.
+   - `research-context-compressor`: Context compression into `.research/project_manifest.yml`, `experiment_matrix.yml`, and `data_dictionary.yml`.
+   - `paper-memory-builder`: Structured claim-evidence maps (`.paper/claims.yml`) and figure registries (`.paper/figures.yml`).
+   - `zotero-library-curator`: Duplicate DOI detection, orphan paper auditing, and tag hygiene reports.
+   - `research-workflow-orchestrator`: Resumable 8-stage human-in-the-loop lifecycle controller.
+2. **Academic Writing**:
+   - `academic-writing-skills`: Lifecycle-aware extended outlining, section drafting, claim-evidence alignment, and release candidate checks.
+   - `paper-review`: Scientific critique auditing equation provenance, baseline fairness, statistical rigor, and rebuttal preparation.
+3. **Zotero Operations**:
+   - `zotero-skills`: Bibliographic CRUD, `@authorYear` citation keys, and BibTeX export.
+4. **AI Delegation**:
+   - `codex-delegate` & `antigravity-delegate`: Structured task briefs and verification contracts.
 
 ---
 

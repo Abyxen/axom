@@ -9,6 +9,9 @@ model_backup/
 *.sqlite
 data/*.db
 workspace/
+.research/
+.paper/
+.coord/
 
 # Node dependencies and logs
 node_modules/

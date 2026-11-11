@@ -604,11 +604,55 @@
 
 ---
 
+### 28. Integration of AI Research Skills Subsystem (2026-11-11)
+- **What Was Done:**
+  - **Full 17 AI Research Skills Architecture**:
+    - Integrated the 17 academic research skills from `WenyuChiou/ai-research-skills` spanning 4 domain families (`research-workspace`, `academic-writing`, `zotero-operations`, `ai-delegation`) across the 8-stage scientific lifecycle:
+      1. `research-hub`: Primary scholarly discovery, multi-source academic query, reading depth tracking (`not-read`, `abstract-only`, `selected-sections`, `full-text`), and vault notes.
+      2. `research-hub-multi-ai`: Multi-agent research coordination, dependency graphs, and delegation routing (`.coord/multi_ai_plan.md`).
+      3. `research-context-compressor`: Repository context compression into `.research/project_manifest.yml`, `experiment_matrix.yml`, and `data_dictionary.yml`.
+      4. `research-project-orienter`: Instant contextual orientation memos without rescanning repositories.
+      5. `research-design-helper`: 5 Socratic design segments (Research Question sharpening, Expected Mechanism, Identifiability & Confounders, Empirical Validation Plan, Risk Register with early-warning indicators) generating `.research/design_brief.md`.
+      6. `literature-triage-matrix`: High-density 9-column comparative literature matrices (`.research/literature_matrix.md`).
+      7. `paper-memory-builder`: Structured claim-evidence maps (`.paper/claims.yml`) and figure references (`.paper/figures.yml`).
+      8. `paper-summarize`: Evidence-grounded academic paper and abstract summarizer.
+      9. `notebooklm-brief-verifier`: Source coverage and contradiction audit against primary literature.
+      10. `gap-to-topic`: 3-Gate candidate topic evaluator (Is gap open? Is it a contribution? Is it feasible?) producing formal decision dossiers (`.research/topic_dossier.md` and `.gaps.yml`).
+      11. `zotero-library-curator`: Bibliographic library and BibTeX curator auditing duplicate DOIs, orphan items, and tag hygiene.
+      12. `research-workflow-orchestrator`: Resumable 8-stage human-in-the-loop workflow controller (`.research/workflow_state.yml`).
+      13. `academic-writing-skills`: Full manuscript drafting, section scaffolding, paragraph synthesis, claim-evidence alignment, and release readiness.
+      14. `paper-review`: Multi-module scientific peer-review critique (equation provenance, mathematical derivations, baseline fairness, statistical rigor, limitations, rebuttal prep).
+      15. `zotero-skills`: Bibliographic CRUD, parsing, standard `@authorYear` citation keys, and BibTeX generation.
+      16. `codex-delegate`: Technical implementation delegation briefs (`.ai/codex_task_<name>.md`) and result contract validation.
+      17. `antigravity-delegate`: Bounded mechanical execution tracking and structured result reporting.
+  - **Zero-Dependency Native Scholarly Engine (`research_skills.js`)**:
+    - Built direct arXiv XML API integration (`http://export.arxiv.org/api/query`) retrieving peer-reviewed preprints, authors, publication years, abstracts, and direct PDF URLs.
+    - Built CrossRef JSON API integration (`https://api.crossref.org/works`) querying official academic publisher DOIs and titles.
+    - Automated citation key formatting (`@authorYear`) and standards-compliant BibTeX export.
+    - Added heuristic research task classifier (`isResearchTask`) and specialized academic prompt directive (`getResearchDirective`).
+  - **Server Integration & Agentic Routing (`server.js`)**:
+    - Wired `research_skills.js` into the agent loop: when an academic query is detected or requested, AXOM automatically injects academic research directives and enables the 6 academic function tools (`academic_search`, `generate_bibtex`, `build_literature_matrix`, `evaluate_research_gap`, `create_design_brief`, `conduct_paper_review`).
+    - Added REST endpoints `GET /api/skills/research` (complete 17-skill catalog) and `POST /api/skills/research/execute` (direct programmatic skill execution).
+    - Compacted payload serialization to prevent Ollama Jinja buffer truncation and ensure smooth 2-turn synthesis.
+  - **User Interface Enhancements (`index.html`)**:
+    - Added SVG icons for `book` and `clipboard`.
+    - Added quick suggestion chips on home hero: "Discover arXiv Papers", "3-Gate Gap Dossier", "Literature Triage Matrix", "Socratic Design Brief".
+    - Enhanced tool execution trace to render academic search results with citation keys and links to arXiv/DOI papers.
+- **How It Was Implemented:**
+  - Created `research_skills.js` with pure Node.js APIs (`fetch`, `fs`, `path`).
+  - Updated `server.js` agent loop, tool execution, and system prompt.
+  - Updated `index.html` with translation keys, styles, and tools trace rendering.
+  - Added `.research/`, `.paper/`, and `.coord/` to `.gitignore`.
+- **Why It Was Done:**
+  - User requested: *"https://github.com/WenyuChiou/ai-research-skills can you put these skills in my axom"*.
+
+---
+
 ## 🔮 Active & Upcoming Work
 
-### 28. GitHub Repository Publishing & QLoRA Fine-Tuning Execution (`axom:1.2`)
-- **Goal:** Push local repository to GitHub (`Abyxen/axom`) and run the fine-tuning pipeline (`train/train_unsloth_lora.py`).
-- **Deliverable:** Full GitHub synchronization and quantized GGUF weights for Ollama.
+### 29. QLoRA Fine-Tuning Execution (`axom:1.2`)
+- **Goal:** Run the fine-tuning pipeline (`train/train_unsloth_lora.py`) using the generated 500,490-word synthetic training dataset.
+- **Deliverable:** Quantized GGUF weights for Ollama.
 
 ---
 

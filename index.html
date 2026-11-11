@@ -438,6 +438,12 @@ details.think .think-body {
 .ib-viewport{flex:1;min-height:0;position:relative;background:#ffffff}
 .ib-frame{width:100%;height:100%;border:0;display:block;background:#ffffff}
 
+/* research & home suggestions */
+.home-suggestions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:700px;margin:22px auto 0}
+.home-sug-chip{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;background:var(--surf);border:1px solid var(--bd);border-radius:20px;color:var(--tx2);font:500 12px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif;transition:all .18s var(--ease);cursor:pointer}
+.home-sug-chip:hover{background:var(--elev);color:var(--tx);border-color:#3f3f46;transform:translateY(-1px)}
+.home-sug-chip svg{width:13px;height:13px;color:var(--ac)}
+
 /* code block preview button */
 .cb header .btn-preview{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;background:rgba(255,81,47,.12);border:1px solid rgba(255,81,47,.35);border-radius:5px;font:500 11px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif;color:var(--ac);transition:all .15s ease;cursor:pointer;margin-right:4px}
 .cb header .btn-preview:hover{background:var(--ac);color:#ffffff;border-color:var(--ac);box-shadow:0 2px 8px rgba(255,81,47,.35)}
@@ -460,7 +466,7 @@ details.think .think-body {
 <script>
 const $=(s,e=document)=>e.querySelector(s),$$=(s,e=document)=>[...e.querySelectorAll(s)];
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const P={plus:'M12 5v14M5 12h14',search:'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-5-5',panel:'M3 5h18v14H3zM9 5v14',gear:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19 12l2-1-2-4-2 1-2-1V5h-4v2l-2 1-2-1-2 4 2 1v2l-2 1 2 4 2-1 2 1v2h4v-2l2-1 2 1 2-4-2-1z',more:'M5 12h.01M12 12h.01M19 12h.01',clip:'M20 12l-8 8a5 5 0 0 1-7-7l9-9a3.5 3.5 0 0 1 5 5l-9 9a2 2 0 0 1-3-3l8-8',up:'M12 19V5M5 12l7-7 7 7',stop:'M7 7h10v10H7z',copy:'M9 9h11v11H9zM5 15V4h11',redo:'M20 11a8 8 0 1 0-2 6M20 4v7h-7',up2:'M7 11l4-8 2 1-1 5h7l-1 8H7zM3 11h4v10H3z',dn:'M17 13l-4 8-2-1 1-5H5l1-8h11zM21 13h-4V3h4',x:'M6 6l12 12M18 6L6 18',file:'M6 3h8l4 4v14H6zM14 3v4h4',mic:'M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3zm7 8v2a7 7 0 0 1-14 0v-2M12 19v3m-4 0h8',globe:'M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 0c2.5 2.7 4 6.2 4 10s-1.5 7.3-4 10c-2.5-2.7-4-6.2-4-10s1.5-7.3 4-10zm-8 10h16M4.9 6.5h14.2M4.9 17.5h14.2',code:'M16 18l6-6-6-6M8 6l-6 6 6 6',check:'M20 6L9 17l-5-5',chevron:'M6 9l6 6 6-6',ext:'M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3',lock:'M7 11V7a5 5 0 0 1 10 0v4m-12 0h14v10H5z',expand:'M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7',shrink:'M4 14h6v6M20 10h-6V4M14 10l7-7M10 14l-7 7',leftArrow:'M15 19l-7-7 7-7',rightArrow:'M9 5l7 7-7 7',save:'M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2zM17 21v-8H7v8M7 3v5h8',download:'M12 3v13m0 0l-4-4m4 4l4-4M4 21h16'};
+const P={plus:'M12 5v14M5 12h14',search:'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-5-5',panel:'M3 5h18v14H3zM9 5v14',gear:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19 12l2-1-2-4-2 1-2-1V5h-4v2l-2 1-2-1-2 4 2 1v2l-2 1 2 4 2-1 2 1v2h4v-2l2-1 2 1 2-4-2-1z',more:'M5 12h.01M12 12h.01M19 12h.01',clip:'M20 12l-8 8a5 5 0 0 1-7-7l9-9a3.5 3.5 0 0 1 5 5l-9 9a2 2 0 0 1-3-3l8-8',up:'M12 19V5M5 12l7-7 7 7',stop:'M7 7h10v10H7z',copy:'M9 9h11v11H9zM5 15V4h11',redo:'M20 11a8 8 0 1 0-2 6M20 4v7h-7',up2:'M7 11l4-8 2 1-1 5h7l-1 8H7zM3 11h4v10H3z',dn:'M17 13l-4 8-2-1 1-5H5l1-8h11zM21 13h-4V3h4',x:'M6 6l12 12M18 6L6 18',file:'M6 3h8l4 4v14H6zM14 3v4h4',mic:'M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3zm7 8v2a7 7 0 0 1-14 0v-2M12 19v3m-4 0h8',globe:'M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 0c2.5 2.7 4 6.2 4 10s-1.5 7.3-4 10c-2.5-2.7-4-6.2-4-10s1.5-7.3 4-10zm-8 10h16M4.9 6.5h14.2M4.9 17.5h14.2',code:'M16 18l6-6-6-6M8 6l-6 6 6 6',check:'M20 6L9 17l-5-5',chevron:'M6 9l6 6 6-6',ext:'M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3',lock:'M7 11V7a5 5 0 0 1 10 0v4m-12 0h14v10H5z',expand:'M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7',shrink:'M4 14h6v6M20 10h-6V4M14 10l7-7M10 14l-7 7',leftArrow:'M15 19l-7-7 7-7',rightArrow:'M9 5l7 7-7 7',save:'M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2zM17 21v-8H7v8M7 3v5h8',download:'M12 3v13m0 0l-4-4m4 4l4-4M4 21h16',book:'M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z',clipboard:'M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2M9 2h6a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z'};
 const ic=n=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${P[n]}"/></svg>`;
 
 /* ---- API layer ---- */
@@ -566,6 +572,11 @@ const I18N = {
     webDisabled: "Web search disabled (offline mode)",
     webAuto: "Autonomous web search active",
     toolSearching: "Searching the web",
+    toolAcademicSearching: "Searching scholarly papers (arXiv & CrossRef)",
+    toolEvaluatingGap: "Evaluating research gap (3-gate dossier)",
+    toolCreatingDesignBrief: "Synthesizing Socratic design brief",
+    toolBuildingMatrix: "Constructing literature triage matrix",
+    toolConductingReview: "Conducting scientific peer review",
     toolFoundSources: "Web sources found",
     toolReadingPage: "Reading webpage",
     toolPageRead: "Page content extracted",
@@ -577,6 +588,7 @@ const I18N = {
     traceSearches: "Searches",
     traceSources: "Sources",
     searchQueryLabel: "Search:",
+    academicSearchLabel: "Academic Search:",
     readPageLabel: "Read:",
     openedBrowserLabel: "Browser:",
     insideBrowserTitle: "Web Browser (Chrome-like In-App Browser)",
@@ -715,6 +727,11 @@ const I18N = {
     webDisabled: "Pesquisa web desativada (modo offline)",
     webAuto: "Pesquisa web autónoma ativada",
     toolSearching: "A pesquisar na web",
+    toolAcademicSearching: "A pesquisar artigos académicos (arXiv e CrossRef)",
+    toolEvaluatingGap: "A avaliar lacuna de investigação (dossiê de 3 portas)",
+    toolCreatingDesignBrief: "A sintetizar resumo de design socrático",
+    toolBuildingMatrix: "A construir matriz de triagem de literatura",
+    toolConductingReview: "A realizar revisão científica por pares",
     toolFoundSources: "Fontes web encontradas",
     toolReadingPage: "A ler página web",
     toolPageRead: "Conteúdo da página extraído",
@@ -726,6 +743,7 @@ const I18N = {
     traceSearches: "Pesquisas",
     traceSources: "Fontes",
     searchQueryLabel: "Pesquisa:",
+    academicSearchLabel: "Pesquisa Académica:",
     readPageLabel: "Leitura:",
     openedBrowserLabel: "Navegador:",
     insideBrowserTitle: "Navegador Web (Navegador Integrado no AXOM)",
@@ -1133,12 +1151,19 @@ function shell(){
   drawMsgs();drawAtts();bindInput();updSend();updateThemeLabel();if(InsideBrowser.isOpen){$('#app').classList.add('browser-open');InsideBrowser.render();}}
 
 function welcome(){
+  const isPt = S.lang === 'pt';
   return `<div class="empty">
     <div class="home-hero">
       <div class="home-brand">
         <span class="brand-logo">AXOM</span><sup>®</sup>
       </div>
       <h1>${t('heroTitle')}</h1>
+      <div class="home-suggestions">
+        <button class="home-sug-chip" data-act="sug" data-t="${isPt ? 'Pesquise artigos no arXiv sobre Agentic AI e apresente um resumo estruturado' : 'Search arXiv for recent papers on Agentic AI and provide a structured summary'}">${ic('book')}<span>${isPt ? 'Pesquisar Artigos no arXiv' : 'Discover arXiv Papers'}</span></button>
+        <button class="home-sug-chip" data-act="sug" data-t="${isPt ? 'Avalie a lacuna de investigação (dossiê de 3 portas) para geração de código auto-corretiva com testes' : 'Evaluate the research gap (3-gate dossier) for self-correcting code generation via tests'}">${ic('clipboard')}<span>${isPt ? 'Dossiê de 3 Portas (Gap)' : '3-Gate Gap Dossier'}</span></button>
+        <button class="home-sug-chip" data-act="sug" data-t="${isPt ? 'Construa uma matriz de triagem de literatura para raciocínio multi-agente' : 'Build a literature triage matrix for multi-agent reasoning'}">${ic('file')}<span>${isPt ? 'Matriz de Literatura' : 'Literature Triage Matrix'}</span></button>
+        <button class="home-sug-chip" data-act="sug" data-t="${isPt ? 'Crie um resumo de design de investigação socrático com uma questão falsificável' : 'Create a Socratic research design brief with a falsifiable question'}">${ic('code')}<span>${isPt ? 'Design Socrático' : 'Socratic Design Brief'}</span></button>
+      </div>
     </div>
   </div>`;
 }
@@ -1161,6 +1186,26 @@ function toolsTraceHTML(tools, isOpen=false){
           sourcesMap.set(r.url, r);
         }
       }
+    }else if(tObj.name==='academic_search'){
+      const q = tObj.args?.query || '';
+      searches.push({ type: 'academic', text: q, isRunning: tObj.status==='running' });
+      const papers = tObj.result?.papers || [];
+      for(const p of papers){
+        const link = p.pdf_url || p.url;
+        if(link && !sourcesMap.has(link)){
+          sourcesMap.set(link, { title: `${p.citation_key ? '['+p.citation_key+'] ' : ''}${p.title} (${p.year})`, url: link });
+        }
+      }
+    }else if(tObj.name==='evaluate_research_gap'){
+      searches.push({ type: 'gap', text: tObj.args?.topic || '3-Gate Gap Dossier', isRunning: tObj.status==='running' });
+    }else if(tObj.name==='create_design_brief'){
+      searches.push({ type: 'design', text: tObj.args?.research_question || 'Socratic Design Brief', isRunning: tObj.status==='running' });
+    }else if(tObj.name==='build_literature_matrix'){
+      searches.push({ type: 'matrix', text: 'Literature Triage Matrix', isRunning: tObj.status==='running' });
+    }else if(tObj.name==='conduct_paper_review'){
+      searches.push({ type: 'review', text: 'Scientific Peer Review', isRunning: tObj.status==='running' });
+    }else if(tObj.name==='generate_bibtex'){
+      searches.push({ type: 'bibtex', text: tObj.args?.title || 'BibTeX Citation', isRunning: tObj.status==='running' });
     }else if(tObj.name==='browse_page'){
       searches.push({ type: 'browse', text: tObj.args?.url || '', isRunning: tObj.status==='running' });
     }else if(tObj.name==='open_browser'){
@@ -1176,6 +1221,16 @@ function toolsTraceHTML(tools, isOpen=false){
   if(isRunning && runningTool){
     if(runningTool.name==='search_web'){
       summaryTitle = runningTool.args?.query ? `${t('toolSearching')} "${runningTool.args.query}"` : t('toolSearching');
+    }else if(runningTool.name==='academic_search'){
+      summaryTitle = runningTool.args?.query ? `${t('toolAcademicSearching')} "${runningTool.args.query}"` : t('toolAcademicSearching');
+    }else if(runningTool.name==='evaluate_research_gap'){
+      summaryTitle = t('toolEvaluatingGap');
+    }else if(runningTool.name==='create_design_brief'){
+      summaryTitle = t('toolCreatingDesignBrief');
+    }else if(runningTool.name==='build_literature_matrix'){
+      summaryTitle = t('toolBuildingMatrix');
+    }else if(runningTool.name==='conduct_paper_review'){
+      summaryTitle = t('toolConductingReview');
     }else if(runningTool.name==='browse_page'){
       summaryTitle = t('toolReadingPage');
     }else if(runningTool.name==='open_browser'){
@@ -1199,6 +1254,10 @@ function toolsTraceHTML(tools, isOpen=false){
       searches.map(s=>{
         if(s.type==='search'){
           return `<div class="trace-item">${ic('search')}<span>${t('searchQueryLabel')} <span class="trace-query">"${esc(s.text)}"</span></span></div>`;
+        }else if(s.type==='academic'){
+          return `<div class="trace-item">${ic('book')}<span>${t('academicSearchLabel')} <span class="trace-query">"${esc(s.text)}"</span></span></div>`;
+        }else if(s.type==='gap' || s.type==='design' || s.type==='matrix' || s.type==='review'){
+          return `<div class="trace-item">${ic('clipboard')}<span>${esc(s.text)}</span></div>`;
         }else if(s.type==='browse'){
           return `<div class="trace-item">${ic('file')}<span>${t('readPageLabel')} <span class="trace-query">${esc(s.text)}</span></span></div>`;
         }else if(s.type==='browser'){

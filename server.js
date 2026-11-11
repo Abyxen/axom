@@ -6,6 +6,7 @@ const reviewer = require('./memory_reviewer');
 const browser = require('./browser_service');
 const obsidianVault = require('./obsidian_vault');
 const fileService = require('./file_service');
+const researchSkills = require('./research_skills');
 
 const PORT = 8000;
 const HOST = '127.0.0.1';
@@ -230,6 +231,46 @@ const server = http.createServer(async (req, res) => {
         const model = body.model || 'axom:1.1';
         const result = await reviewer.triggerSessionReviewNow(sessionId, model, OLLAMA_BASE);
         return sendJson(res, 200, result);
+      } catch (err) {
+        return sendJson(res, 500, { error: err.message });
+      }
+    });
+    return;
+  }
+
+  // --- API: AI Research Skills Catalog (WenyuChiou/ai-research-skills) ---
+  if (req.method === 'GET' && pathname === '/api/skills/research') {
+    return sendJson(res, 200, {
+      total_skills: researchSkills.RESEARCH_SKILLS.length,
+      skills: researchSkills.RESEARCH_SKILLS,
+      academic_tools: researchSkills.ACADEMIC_TOOLS,
+      stages: [
+        '1. Discover literature',
+        '2. Organise & compare',
+        '3a. Frame the problem',
+        '3b. Plan the project',
+        '4. Design & build model',
+        '5. Run experiments & validate',
+        '6. Visualise & interpret',
+        '7. Draft manuscript',
+        '8. Submit & respond'
+      ]
+    });
+  }
+
+  // --- API: Direct Research Skill Execution ---
+  if (req.method === 'POST' && pathname === '/api/skills/research/execute') {
+    let bodyText = '';
+    req.on('data', chunk => { bodyText += chunk; });
+    req.on('end', async () => {
+      try {
+        const body = bodyText ? JSON.parse(bodyText) : {};
+        const { tool, args } = body;
+        if (!tool) {
+          return sendJson(res, 400, { error: 'Missing "tool" name in request payload' });
+        }
+        const result = await researchSkills.executeResearchTool(tool, args || {}, process.cwd());
+        return sendJson(res, 200, { tool, result });
       } catch (err) {
         return sendJson(res, 500, { error: err.message });
       }
@@ -498,23 +539,26 @@ button:hover{background:#3f3f46}
         const userMsgObj = messages.filter(m => m.role === 'user').slice(-1)[0];
         const lastUserPrompt = userMsgObj ? (typeof userMsgObj.content === 'string' ? userMsgObj.content : '') : '';
         const autoSearchNeeded = browser.isWebSearchNeeded(lastUserPrompt);
-        const webSearchEnabled = body.web_search === true || (body.web_mode !== 'offline' && autoSearchNeeded);
+        const autoResearchNeeded = researchSkills.isResearchTask(lastUserPrompt);
+        const researchModeEnabled = body.research_mode === true || autoResearchNeeded;
+        const webSearchEnabled = body.web_search === true || (body.web_mode !== 'offline' && autoSearchNeeded) || researchModeEnabled;
 
-        const webDirective = webSearchEnabled
+        const researchDirective = researchModeEnabled ? researchSkills.getResearchDirective() : '';
+        const webDirective = (webSearchEnabled || researchModeEnabled)
           ? `\n\n# AUTONOMOUS DEEP INTELLIGENCE & GOOGLE LIVE WEB DIRECTIVE:
 You have real-time autonomous access to Google and live internet intelligence via the search_web, browse_page, and open_browser tools.
 CRITICAL OPERATIONAL PRINCIPLES:
-1. DEEP REASONING & ACCURACY: When presented with current events, weather conditions, live forecasts, temperatures, technical errors, market prices, or complex research questions, ALWAYS actively retrieve live data via search_web.
+1. DEEP REASONING & ACCURACY: When presented with current events, weather conditions, live forecasts, temperatures, technical errors, market prices, or complex research questions, ALWAYS actively retrieve live data via search_web or academic_search.
 2. SYNTHESIS ARCHITECTURE:
    - Provide direct, definitive answers first.
-   - Organize complex findings into high-density structured sections (e.g., Executive Summary, Current Conditions / Forecast, Technical Details, Key Sources).
+   - Organize complex findings into high-density structured sections (e.g., Executive Summary, Current Conditions / Findings, Technical Details, Key Sources).
    - If multiple sources provide slight variations, state the consensus range clearly.
 3. CITATIONS & VERIFICATION:
-   - Reference key sources naturally using markdown links (e.g., [AccuWeather](url), [BBC](url), [Official Docs](url)).
+   - Reference key sources naturally using markdown links (e.g., [AccuWeather](url), [arXiv](url), [Official Docs](url)).
 4. STRICT TONE & STYLE:
    - Maintain a mature, highly intelligent technical tone (comparable to Claude 3.5 Sonnet or Cursor).
-   - Zero decorative emojis in all assistant responses.`
-          : '';
+   - Zero decorative emojis in all assistant responses.${researchDirective}`
+          : (researchDirective || '');
 
         const formattedMessages = [];
         let systemInjected = false;
@@ -558,10 +602,14 @@ CRITICAL OPERATIONAL PRINCIPLES:
           while (turn < MAX_AGENT_TURNS) {
             turn++;
 
+            const availableTools = researchModeEnabled
+              ? [...browser.BROWSING_TOOLS, ...researchSkills.ACADEMIC_TOOLS]
+              : browser.BROWSING_TOOLS;
+
             const turnPayload = {
               model: requestedModel,
               messages: formattedMessages,
-              tools: turn === 1 ? browser.BROWSING_TOOLS : undefined,
+              tools: turn === 1 ? availableTools : undefined,
               stream: false,
               options: {
                 temperature: typeof params.temperature === 'number' ? params.temperature : 0.7,
@@ -642,7 +690,11 @@ CRITICAL OPERATIONAL PRINCIPLES:
 
                 let toolResult;
                 try {
-                  toolResult = await browser.executeTool(toolName, toolArgs);
+                  if (['academic_search', 'generate_bibtex', 'build_literature_matrix', 'evaluate_research_gap', 'create_design_brief', 'conduct_paper_review'].includes(toolName)) {
+                    toolResult = await researchSkills.executeResearchTool(toolName, toolArgs, process.cwd());
+                  } else {
+                    toolResult = await browser.executeTool(toolName, toolArgs);
+                  }
                 } catch (err) {
                   toolResult = { error: err.message };
                 }
@@ -651,9 +703,10 @@ CRITICAL OPERATIONAL PRINCIPLES:
                   res.write(`data: ${JSON.stringify({ type: 'tool_end', id: callId, name: toolName, result: toolResult })}\n\n`);
                 }
 
+                const payloadStr = typeof toolResult === 'string' ? toolResult : JSON.stringify(toolResult);
                 formattedMessages.push({
                   role: 'tool',
-                  content: typeof toolResult === 'string' ? toolResult : JSON.stringify(toolResult),
+                  content: payloadStr.length > 5000 ? payloadStr.slice(0, 5000) + '... [Results truncated for context window]' : payloadStr,
                   tool_call_id: call.id
                 });
               }
