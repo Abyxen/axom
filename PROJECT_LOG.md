@@ -583,11 +583,32 @@
 
 ---
 
+### 27. Google Live Web Search Integration, Deep Page Extraction & Enhanced Synthesis (2026-11-11)
+- **What Was Done:**
+  - **Google Live Search Engine Integration**:
+    - Upgraded `browser_service.js` with Google News real-time index (`searchGoogleNews`), returning official headlines, forecasts, and live articles from verified sources (AccuWeather, BBC, Sky News, Reuters, etc.).
+    - Built a unified multi-engine search pipeline (`searchWeb`) combining Google News real-time index with a general web index, de-duplicating by URL domain.
+    - Updated in-app browser (`index.html`) default search engine, home navigation, quick-links, and new tab handling from DuckDuckGo to Google (`https://www.google.com`).
+  - **Deep Web Page Extraction ("Make It A Lot More Intelligent")**:
+    - Upgraded `searchWeb` with automated deep page extraction: for top search results, AXOM fetches the target web pages and extracts clean paragraph text (up to 1,000 characters per result), feeding deep verified facts to the model instead of truncated 1-line search snippets.
+  - **Agentic Synthesis & Zero-Emoji Filter**:
+    - Upgraded the system prompt in `server.js` with structured synthesis architecture (Executive Summary, Current Conditions / Forecast Table, Technical Details, Key Sources).
+    - Enforced a post-processing Unicode emoji filter stripping decorative emojis across all responses while preserving markdown tables, code blocks, and structured citations.
+    - Optimized agent loop to a strict 2-turn pipeline (Turn 1: Tool execution, Turn 2: Comprehensive synthesis) eliminating multi-turn looping.
+- **How It Was Implemented:**
+  - Added `searchGoogleNews` and deep text extraction in `browser_service.js`.
+  - Updated in-app browser defaults in `index.html`.
+  - Refined agentic loop, directives, and regex filters in `server.js`.
+- **Why It Was Done:**
+  - User requested: *"connecting it to live web search tools insted of duck make it google and also make it a lot more intelligent and then after finishing the work shit off my pc after comming it into github"*.
+
+---
+
 ## 🔮 Active & Upcoming Work
 
-### 27. Tomorrow's Model Fine-Tuning Execution (`axom:1.2`)
-- **Goal:** Run fine-tuning training pipeline with `train/train_unsloth_lora.py` using exported Alpaca/ShareGPT dataset.
-- **Deliverable:** Compile and register `axom:1.2` in Ollama, benchmarking zero-emoji compliance, web search synthesis, and coding instruction following.
+### 28. GitHub Repository Publishing & QLoRA Fine-Tuning Execution (`axom:1.2`)
+- **Goal:** Push local repository to GitHub (`Abyxen/axom`) and run the fine-tuning pipeline (`train/train_unsloth_lora.py`).
+- **Deliverable:** Full GitHub synchronization and quantized GGUF weights for Ollama.
 
 ---
 

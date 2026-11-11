@@ -942,12 +942,12 @@ p{color:#a1a1aa;max-width:440px;font-size:13px;line-height:1.6;margin:0 0 24px}
 <div class="brand">AXOM <span>BROWSER</span></div>
 <h1>${heading}</h1>
 <p>${sub}</p>
-<form class="search-box" action="https://duckduckgo.com" method="GET">
+<form class="search-box" action="https://www.google.com/search" method="GET">
   <input type="text" name="q" placeholder="${searchPlaceholder}" autofocus>
   <button type="submit">${isPt ? 'Pesquisar' : 'Search'}</button>
 </form>
 <div class="quick-links">
-  <a class="ql-card" href="https://duckduckgo.com"><strong>DuckDuckGo</strong><span>${isPt ? 'Motor de busca' : 'Search engine'}</span></a>
+  <a class="ql-card" href="https://www.google.com"><strong>Google</strong><span>${isPt ? 'Motor de busca' : 'Search engine'}</span></a>
   <a class="ql-card" href="https://en.wikipedia.org"><strong>Wikipedia</strong><span>${isPt ? 'Enciclopédia' : 'Encyclopedia'}</span></a>
   <a class="ql-card" href="https://github.com"><strong>GitHub</strong><span>${isPt ? 'Código aberto' : 'Open source'}</span></a>
   <a class="ql-card" href="https://news.ycombinator.com"><strong>Hacker News</strong><span>${isPt ? 'Tecnologia' : 'Tech news'}</span></a>
@@ -960,8 +960,8 @@ p{color:#a1a1aa;max-width:440px;font-size:13px;line-height:1.6;margin:0 0 24px}
 const InsideBrowser = {
   isOpen: false,
   isMaximized: false,
-  currentUrl: 'https://duckduckgo.com',
-  currentTitle: 'DuckDuckGo',
+  currentUrl: 'https://www.google.com',
+  currentTitle: 'Google',
 
   init(){
     window.addEventListener('message', ev => {
@@ -992,7 +992,7 @@ const InsideBrowser = {
     } else if(/^[\w-]+\.[a-z]{2,}(\/.*)?$/i.test(input) || input.includes('localhost:') || input.includes('127.0.0.1:')){
       url = 'https://' + input;
     } else {
-      url = 'https://duckduckgo.com/?q=' + encodeURIComponent(input);
+      url = 'https://www.google.com/search?q=' + encodeURIComponent(input);
     }
     this.currentUrl = url;
     try {
@@ -1020,7 +1020,7 @@ const InsideBrowser = {
     if(app) app.classList.add('browser-open');
     const headerBtn = $('#browserHeaderBtn');
     if(headerBtn) headerBtn.classList.add('on');
-    this.navigate(url || this.currentUrl || 'https://duckduckgo.com');
+    this.navigate(url || this.currentUrl || 'https://www.google.com');
   },
 
   close(){
@@ -1036,7 +1036,7 @@ const InsideBrowser = {
 
   toggle(){
     if(this.isOpen) this.close();
-    else this.open(this.currentUrl || 'https://duckduckgo.com');
+    else this.open(this.currentUrl || 'https://www.google.com');
   },
 
   toggleMaximize(){
@@ -1066,21 +1066,21 @@ const InsideBrowser = {
   },
 
   home(){
-    this.navigate('https://duckduckgo.com');
+    this.navigate('https://www.google.com');
   },
 
   openNewTab(){
-    window.open(this.currentUrl || 'https://duckduckgo.com', '_blank');
+    window.open(this.currentUrl || 'https://www.google.com', '_blank');
   },
 
   render(){
     const tabTitle = $('#ibTabTitle');
-    if(tabTitle) tabTitle.textContent = this.currentTitle || 'DuckDuckGo';
+    if(tabTitle) tabTitle.textContent = this.currentTitle || 'Google';
     const urlInput = $('#ibUrlInput');
-    if(urlInput) urlInput.value = this.currentUrl || 'https://duckduckgo.com';
+    if(urlInput) urlInput.value = this.currentUrl || 'https://www.google.com';
     const frame = $('#ibFrame');
     if(frame && !frame.src){
-      frame.src = '/api/browser/proxy?url=' + encodeURIComponent(this.currentUrl || 'https://duckduckgo.com');
+      frame.src = '/api/browser/proxy?url=' + encodeURIComponent(this.currentUrl || 'https://www.google.com');
     }
   }
 };
@@ -1106,7 +1106,7 @@ function shell(){
     <div class="ib-header">
       <div class="ib-tab">
         <span class="ib-tab-dot"></span>
-        <span class="ib-tab-title" id="ibTabTitle">${esc(InsideBrowser.currentTitle||'DuckDuckGo')}</span>
+        <span class="ib-tab-title" id="ibTabTitle">${esc(InsideBrowser.currentTitle||'Google')}</span>
         <span class="ib-tab-badge">WEB</span>
       </div>
       <div class="ib-actions">
@@ -1122,7 +1122,7 @@ function shell(){
       <button class="ib-nav-btn" data-act="ibhome" title="${t('ibHome')}">${ic('globe')}</button>
       <div class="ib-url-box">
         <span class="ib-lock">${ic('lock')}</span>
-        <input type="text" class="ib-url-input" id="ibUrlInput" placeholder="${t('ibUrlPlaceholder')}" value="${esc(InsideBrowser.currentUrl||'https://duckduckgo.com')}">
+        <input type="text" class="ib-url-input" id="ibUrlInput" placeholder="${t('ibUrlPlaceholder')}" value="${esc(InsideBrowser.currentUrl||'https://www.google.com')}">
         <button class="ib-go-btn" data-act="ibgo" title="${t('ibGo')}">${ic('up')}</button>
       </div>
     </div>

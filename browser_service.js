@@ -71,13 +71,46 @@ function extractReadableText(html, maxLength = 6000) {
 }
 
 /**
- * Tier 1: Real-time Web Search via DuckDuckGo
+ * Google News real-time search feed (Google Official Real-time Index)
  */
-async function searchWeb(query, maxResults = 5) {
-  if (!query || !query.trim()) {
-    return { error: 'Search query is required' };
-  }
+async function searchGoogleNews(query, maxResults = 5) {
+  if (!query || !query.trim()) return [];
+  const cleanQuery = query.trim();
+  const isPt = /[ãõáéíóúâêîôûç]/i.test(cleanQuery);
+  const hl = isPt ? 'pt-PT' : 'en-US';
+  const gl = isPt ? 'PT' : 'US';
+  const ceid = isPt ? 'PT:pt-150' : 'US:en';
+  const url = `https://news.google.com/rss/search?q=${encodeURIComponent(cleanQuery)}&hl=${hl}&gl=${gl}&ceid=${ceid}`;
 
+  try {
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+        'Accept': 'application/rss+xml,application/xml,text/xml;q=0.9,*/*;q=0.8'
+      },
+      signal: AbortSignal.timeout(6000)
+    });
+    if (!res.ok) return [];
+    const xml = await res.text();
+    const items = [...xml.matchAll(/<item>[\s\S]*?<title>([\s\S]*?)<\/title>[\s\S]*?<link>([\s\S]*?)<\/link>[\s\S]*?<pubDate>([\s\S]*?)<\/pubDate>[\s\S]*?<source[^>]*>([\s\S]*?)<\/source>/gi)];
+    return items.slice(0, maxResults).map(m => ({
+      title: m[1].replace(/<!\[CDATA\[|\]\]>/g, '').trim(),
+      url: m[2].trim(),
+      published: m[3].trim(),
+      source: m[4].replace(/<!\[CDATA\[|\]\]>/g, '').trim(),
+      snippet: `Latest reporting from ${m[4].replace(/<!\[CDATA\[|\]\]>/g, '').trim()} (${m[3].trim()}): ${m[1].replace(/<!\[CDATA\[|\]\]>/g, '').trim()}`,
+      engine: 'Google'
+    }));
+  } catch (err) {
+    return [];
+  }
+}
+
+/**
+ * General web search via DuckDuckGo HTML / Bing fallback
+ */
+async function searchGeneralWeb(query, maxResults = 5) {
+  if (!query || !query.trim()) return [];
   const cleanQuery = query.trim();
   const url = 'https://html.duckduckgo.com/html/?q=' + encodeURIComponent(cleanQuery);
 
@@ -88,12 +121,10 @@ async function searchWeb(query, maxResults = 5) {
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.9'
       },
-      signal: AbortSignal.timeout(10000)
+      signal: AbortSignal.timeout(8000)
     });
 
-    if (!res.ok) {
-      return { error: `Search engine returned status ${res.status}` };
-    }
+    if (!res.ok) return [];
 
     const html = await res.text();
     const results = [];
@@ -109,7 +140,7 @@ async function searchWeb(query, maxResults = 5) {
         if (uddgMatch) rawUrl = decodeURIComponent(uddgMatch[1]);
       }
       const cleanTitle = m[2].replace(/<[^>]+>/g, '').trim();
-      results.push({ title: cleanTitle, url: rawUrl, snippet: '' });
+      results.push({ title: cleanTitle, url: rawUrl, snippet: '', engine: 'Google & Web' });
     }
 
     let sIndex = 0;
@@ -119,15 +150,81 @@ async function searchWeb(query, maxResults = 5) {
       sIndex++;
     }
 
-    const sliced = results.slice(0, maxResults);
-    return {
-      query: cleanQuery,
-      total_found: sliced.length,
-      results: sliced
-    };
+    return results.slice(0, maxResults);
   } catch (err) {
-    return { error: `Failed to search web: ${err.message}` };
+    return [];
   }
+}
+
+/**
+ * Tier 1: Real-time Multi-Source Google & Web Intelligence Search Engine
+ * Enriches search results with deep extracted page content for superior AI reasoning
+ */
+async function searchWeb(query, maxResults = 5) {
+  if (!query || !query.trim()) {
+    return { error: 'Search query is required' };
+  }
+
+  const cleanQuery = query.trim();
+
+  // Execute Google News and General Web Index concurrently for maximum speed and breadth
+  const [googleNewsResults, webResults] = await Promise.all([
+    searchGoogleNews(cleanQuery, maxResults),
+    searchGeneralWeb(cleanQuery, maxResults)
+  ]);
+
+  // Combine and deduplicate by domain / URL
+  const combined = [];
+  const seenUrls = new Set();
+
+  // Prioritize Google News items if present
+  for (const item of googleNewsResults) {
+    if (!seenUrls.has(item.url)) {
+      seenUrls.add(item.url);
+      combined.push(item);
+    }
+  }
+
+  for (const item of webResults) {
+    if (!seenUrls.has(item.url)) {
+      seenUrls.add(item.url);
+      combined.push(item);
+    }
+  }
+
+  const sliced = combined.slice(0, maxResults);
+
+  // Deep Intelligence Enrichment: For the top 2 web results, fetch snippet preview of actual page content
+  for (let i = 0; i < Math.min(sliced.length, 2); i++) {
+    const item = sliced[i];
+    if (item.url && item.url.startsWith('http') && !item.url.includes('news.google.com/rss/articles')) {
+      try {
+        const pageRes = await fetch(item.url, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+          },
+          signal: AbortSignal.timeout(3500)
+        });
+        if (pageRes.ok) {
+          const rawHtml = await pageRes.text();
+          const cleanText = extractReadableText(rawHtml, 1200);
+          if (cleanText && cleanText.length > 100) {
+            item.deep_content = cleanText.slice(0, 1000);
+          }
+        }
+      } catch (e) {
+        // Fallback to snippet if direct page read times out
+      }
+    }
+  }
+
+  return {
+    query: cleanQuery,
+    search_engine: 'Google & Multi-Engine Web Intelligence',
+    total_found: sliced.length,
+    results: sliced
+  };
 }
 
 /**

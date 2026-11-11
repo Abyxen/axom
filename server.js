@@ -501,7 +501,19 @@ button:hover{background:#3f3f46}
         const webSearchEnabled = body.web_search === true || (body.web_mode !== 'offline' && autoSearchNeeded);
 
         const webDirective = webSearchEnabled
-          ? '\n\n# AUTONOMOUS REAL-TIME WEB SEARCH DIRECTIVE:\nYou have real-time access to the live internet via search_web, browse_page, and open_browser tools.\nCRITICAL RULES:\n1. When answering questions about current events, weather conditions, forecasts, temperatures, live sports scores, market prices, technical errors, releases, or documentation, YOU MUST ACTIVELY CALL search_web to retrieve accurate live data.\n2. NEVER apologize or state that you lack real-time access or cannot browse the web. You have functioning browsing tools. Use them proactively.\n3. Present findings clearly using structured Markdown and concise bullet points. Strictly avoid decorative emojis.'
+          ? `\n\n# AUTONOMOUS DEEP INTELLIGENCE & GOOGLE LIVE WEB DIRECTIVE:
+You have real-time autonomous access to Google and live internet intelligence via the search_web, browse_page, and open_browser tools.
+CRITICAL OPERATIONAL PRINCIPLES:
+1. DEEP REASONING & ACCURACY: When presented with current events, weather conditions, live forecasts, temperatures, technical errors, market prices, or complex research questions, ALWAYS actively retrieve live data via search_web.
+2. SYNTHESIS ARCHITECTURE:
+   - Provide direct, definitive answers first.
+   - Organize complex findings into high-density structured sections (e.g., Executive Summary, Current Conditions / Forecast, Technical Details, Key Sources).
+   - If multiple sources provide slight variations, state the consensus range clearly.
+3. CITATIONS & VERIFICATION:
+   - Reference key sources naturally using markdown links (e.g., [AccuWeather](url), [BBC](url), [Official Docs](url)).
+4. STRICT TONE & STYLE:
+   - Maintain a mature, highly intelligent technical tone (comparable to Claude 3.5 Sonnet or Cursor).
+   - Zero decorative emojis in all assistant responses.`
           : '';
 
         const formattedMessages = [];
@@ -540,7 +552,7 @@ button:hover{background:#3f3f46}
         if (webSearchEnabled) {
           let headersSent = false;
           let turn = 0;
-          const MAX_AGENT_TURNS = 4;
+          const MAX_AGENT_TURNS = 2;
           let finalReply = '';
 
           while (turn < MAX_AGENT_TURNS) {
@@ -549,7 +561,7 @@ button:hover{background:#3f3f46}
             const turnPayload = {
               model: requestedModel,
               messages: formattedMessages,
-              tools: browser.BROWSING_TOOLS,
+              tools: turn === 1 ? browser.BROWSING_TOOLS : undefined,
               stream: false,
               options: {
                 temperature: typeof params.temperature === 'number' ? params.temperature : 0.7,
@@ -601,7 +613,7 @@ button:hover{background:#3f3f46}
               }
             }
 
-            if (Array.isArray(toolCalls) && toolCalls.length > 0) {
+            if (turn < MAX_AGENT_TURNS && Array.isArray(toolCalls) && toolCalls.length > 0) {
               if (isStream && !headersSent) {
                 setCors(res);
                 res.writeHead(200, {
@@ -615,7 +627,7 @@ button:hover{background:#3f3f46}
               // Append assistant message with tool calls
               formattedMessages.push({
                 role: 'assistant',
-                content: turnData.message?.content || '',
+                content: turnData.message?.tool_calls?.length ? (turnData.message?.content || '') : '',
                 tool_calls: toolCalls
               });
 
@@ -656,6 +668,8 @@ button:hover{background:#3f3f46}
               }
               // Strip any leftover <tool_call> tags from final text if any
               finalReply = finalReply.replace(/<tool_call>[\s\S]*?<\/tool_call>/gi, '').trim();
+              // Strict zero-emoji compliance
+              finalReply = finalReply.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1FA00}-\u{1FAFF}\u{1F1E6}-\u{1F1FF}]/gu, '').replace(/[ \t]{2,}/g, ' ').trim();
               break;
             }
           }
@@ -727,6 +741,7 @@ button:hover{background:#3f3f46}
           if (!finalReply && data.message?.thinking) {
             finalReply = data.message.thinking;
           }
+          finalReply = finalReply.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1FA00}-\u{1FAFF}\u{1F1E6}-\u{1F1FF}]/gu, '').replace(/[ \t]{2,}/g, ' ').trim();
           if (data.message) {
             data.message.content = finalReply;
           }
