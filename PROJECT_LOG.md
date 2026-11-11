@@ -683,9 +683,42 @@
 
 ---
 
+### 31. Axom V2: Local Intelligence, RAG & Runtime Enhancement Wrapper
+- **Date:** November 11, 2026
+- **What Was Done:**
+  - Designed and deployed **Axom V2** (`Axom V2/`), a zero-retraining enhancement wrapper that upgrades the intelligence, accuracy, and tool capabilities of the local `axom:1.1` model.
+  - **Hardware Audit & Runtime Optimization**:
+    - Audited host hardware: NVIDIA GeForce RTX 5060 Laptop GPU (8,151 MiB GDDR7 VRAM, CUDA 13.5), AMD Ryzen 9 8940HX (16 Cores, 32 Threads), 32 GB DDR5 RAM.
+    - Expanded safe context window from standard 2,048 tokens to 16,384 tokens (`num_ctx = 16384`), utilizing ~1.2 GB of GPU VRAM for KV cache while keeping 100% of LLM operations in GPU memory with ~2.8 GB headroom.
+    - Tuned sampling parameters for disciplined factual generation: `temperature: 0.3`, `repeat_penalty: 1.10`, `top_p: 0.90`, `top_k: 40`.
+  - **Local RAG Pipeline with LanceDB & Dense Embeddings**:
+    - Embedded vector database powered by LanceDB (`lancedb==0.41.0`, `pyarrow==26.0.1`) storing Arrow-columnar vector embeddings in `Axom V2/data/lancedb/`.
+    - Local multi-format document ingestion engine (`Axom V2/ingest.py`) parsing PDFs, Markdown, TXT, and source code files in `Axom V2/docs/`.
+    - Recursive semantic boundary chunker (900 characters per chunk, 150 characters overlap).
+    - Local vector generation using `qwen3-embedding:0.6b` (1,024 dimensions, 32k context) via local Ollama API without any external network dependencies.
+    - Grounding retrieval engine (`Axom V2/rag_engine.py`) executing cosine distance nearest-neighbor queries and injecting ranked chunks into the prompt context.
+  - **Structured Reasoning & Anti-Hallucination Prompts**:
+    - Authored `Axom V2/system_prompt.txt` enforcing a two-phase reasoning protocol: internal Chain-of-Thought planning enclosed in `<think>...</think>` tags followed by verified, grounded answers.
+    - Mandatory verifiable citation contract: all factual assertions must be linked to source documents using `[doc:filename#chunk_id]`.
+    - Strict zero-emoji policy and anti-hallucination instructions to state "I do not have verified local information" when retrieved context is insufficient.
+    - Documented architectural blueprint in `Axom V2/agents.md`.
+  - **Connected Local Tools & Dispatch**:
+    - Implemented sandboxed local tools in `Axom V2/tools.py`: `read_file`, `write_file`, `list_directory`, `calculate` (AST-safe math evaluation), and `execute_python` (isolated subprocess with 8-second timeout).
+  - **Interactive CLI & Web Interfaces**:
+    - Built streaming CLI (`Axom V2/cli.py`) with real-time token streaming, citation badges, and `/docs`, `/ingest`, `/calc`, `/clear` commands.
+    - Built zero-framework standalone web interface (`Axom V2/app.py` running on `http://127.0.0.1:8088`) using Python's standard library `ThreadingHTTPServer`. Includes dark-mode single-page UI, document drag-and-drop uploader, collapsible `<think>` reasoning drawer, and citation badges.
+    - Created Windows batch launchers: `Axom V2/run_web.bat` and `Axom V2/run_cli.bat`.
+- **How It Was Implemented:**
+  - Python scripts organized under `Axom V2/` with `config.py` centralizing all paths and parameters.
+  - Verified end-to-end RAG retrieval, citation verification, and tool evaluation with automated tests.
+- **Why It Was Done:**
+  - User requested: *"I want to upgrade the intelligence, accuracy, and capabilities of my local AI model without doing any training or fine-tuning. Please inspect my current system environment and set up a complete local enhancement wrapper for me... make the folder name Axom V2"*.
+
+---
+
 ## 🔮 Active & Upcoming Work
 
-### 31. QLoRA Fine-Tuning Execution (`axom:1.2`)
+### 32. QLoRA Fine-Tuning Execution (`axom:1.2`)
 - **Goal:** Run the fine-tuning pipeline (`train/train_unsloth_lora.py`) using the generated 500,490-word synthetic training dataset.
 - **Deliverable:** Quantized GGUF weights for Ollama.
 

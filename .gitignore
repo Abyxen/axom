@@ -8,6 +8,8 @@ model_backup/
 *.db-journal
 *.sqlite
 data/*.db
+Axom V2/data/
+*.lance
 workspace/
 .research/
 .paper/
