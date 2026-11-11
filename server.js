@@ -15,7 +15,7 @@ const browser = require('./browser_service');
 const obsidianVault = require('./obsidian_vault');
 const fileService = require('./file_service');
 const researchSkills = require('./research_skills');
-const projectService = require('./project_service');
+const mcpClient = require('./mcp_client');
 
 const PORT = 8000;
 const HOST = '127.0.0.1';
@@ -63,6 +63,53 @@ async function pipeOllamaStream(ollamaRes, res, sessionId, requestedModel) {
   let gatheredThinking = '';
   let isFirstChunk = true;
   let fullAssistantReply = '';
+  let inThinkTag = false;
+
+  function processChunk(textChunk) {
+    if (!textChunk) return;
+
+    if (textChunk.includes('<think>')) {
+      inThinkTag = true;
+      const parts = textChunk.split('<think>');
+      if (parts[0]) {
+        hasContent = true;
+        fullAssistantReply += parts[0];
+        res.write(`data: ${JSON.stringify({ text: parts[0] })}\n\n`);
+      }
+      textChunk = parts.slice(1).join('<think>');
+    }
+
+    if (inThinkTag) {
+      if (textChunk.includes('</think>')) {
+        inThinkTag = false;
+        const parts = textChunk.split('</think>');
+        if (parts[0]) {
+          gatheredThinking += parts[0];
+          res.write(`data: ${JSON.stringify({ type: 'think', text: parts[0] })}\n\n`);
+        }
+        const rest = parts.slice(1).join('</think>');
+        if (rest) {
+          hasContent = true;
+          fullAssistantReply += rest;
+          res.write(`data: ${JSON.stringify({ text: rest })}\n\n`);
+        }
+      } else {
+        gatheredThinking += textChunk;
+        res.write(`data: ${JSON.stringify({ type: 'think', text: textChunk })}\n\n`);
+      }
+      return;
+    }
+
+    if (isFirstChunk && textChunk) {
+      textChunk = textChunk.replace(/^<\/think>\s*/i, '');
+      if (textChunk) isFirstChunk = false;
+    }
+    if (textChunk) {
+      hasContent = true;
+      fullAssistantReply += textChunk;
+      res.write(`data: ${JSON.stringify({ text: textChunk })}\n\n`);
+    }
+  }
 
   while (true) {
     const { done, value } = await reader.read();
@@ -79,16 +126,7 @@ async function pipeOllamaStream(ollamaRes, res, sessionId, requestedModel) {
           gatheredThinking += parsed.message.thinking;
           res.write(`data: ${JSON.stringify({ type: 'think', text: parsed.message.thinking })}\n\n`);
         }
-        let textChunk = parsed.message?.content || '';
-        if (isFirstChunk && textChunk) {
-          textChunk = textChunk.replace(/^<\/think>\s*/i, '');
-          if (textChunk) isFirstChunk = false;
-        }
-        if (textChunk) {
-          hasContent = true;
-          fullAssistantReply += textChunk;
-          res.write(`data: ${JSON.stringify({ text: textChunk })}\n\n`);
-        }
+        processChunk(parsed.message?.content || '');
         if (parsed.done) {
           if (!hasContent && gatheredThinking) {
             fullAssistantReply = gatheredThinking;
@@ -107,16 +145,7 @@ async function pipeOllamaStream(ollamaRes, res, sessionId, requestedModel) {
         gatheredThinking += parsed.message.thinking;
         res.write(`data: ${JSON.stringify({ type: 'think', text: parsed.message.thinking })}\n\n`);
       }
-      let textChunk = parsed.message?.content || '';
-      if (isFirstChunk && textChunk) {
-        textChunk = textChunk.replace(/^<\/think>\s*/i, '');
-        if (textChunk) isFirstChunk = false;
-      }
-      if (textChunk) {
-        hasContent = true;
-        fullAssistantReply += textChunk;
-        res.write(`data: ${JSON.stringify({ text: textChunk })}\n\n`);
-      }
+      processChunk(parsed.message?.content || '');
     } catch (e) {}
   }
 
@@ -317,11 +346,11 @@ const server = http.createServer(async (req, res) => {
     });
   }
 
-  // --- API: Projects ---
-  if (req.method === 'GET' && pathname === '/api/projects') {
+  // --- API: MCP Tools & Telemetry Status ---
+  if (req.method === 'GET' && pathname === '/api/mcp/status') {
     return sendJson(res, 200, {
-      projects: projectService.listProjects(),
-      activeProject: projectService.getActiveProject()
+      config: mcpClient.loadConfig(),
+      tools: mcpClient.MCP_TOOLS
     });
   }
 
@@ -510,143 +539,18 @@ button:hover{background:#3f3f46}
     return sendJson(res, 200, { files: list });
   }
 
-  // --- API: Project Workspace Endpoints ---
+  function isMcpTaskNeeded(prompt) {
+  if (!prompt || typeof prompt !== 'string') return false;
+  const p = prompt.toLowerCase();
+  const keywords = [
+    'calculate', 'compute', 'solve', 'equation', 'sqrt', 'integral', 'matrix', 'math',
+    'system info', 'hardware', 'specs', 'vram', 'ram', 'gpu', 'cpu', 'telemetry',
+    'recall', 'memory', 'what did i say', 'do you remember', 'second brain', 'obsidian'
+  ];
+  return keywords.some(k => p.includes(k));
+}
 
-  if (req.method === 'POST' && pathname === '/api/projects/select') {
-    let bodyText = '';
-    req.on('data', chunk => bodyText += chunk);
-    req.on('end', () => {
-      try {
-        const body = JSON.parse(bodyText || '{}');
-        const result = projectService.setActiveProject(body.name);
-        return sendJson(res, 200, result);
-      } catch (err) {
-        return sendJson(res, 400, { error: err.message });
-      }
-    });
-    return;
-  }
-
-  if (req.method === 'POST' && pathname === '/api/projects/create') {
-    let bodyText = '';
-    req.on('data', chunk => bodyText += chunk);
-    req.on('end', () => {
-      try {
-        const body = JSON.parse(bodyText || '{}');
-        const result = projectService.createProject(body.name);
-        return sendJson(res, 200, result);
-      } catch (err) {
-        return sendJson(res, 400, { error: err.message });
-      }
-    });
-    return;
-  }
-
-  if (req.method === 'GET' && pathname === '/api/project/files') {
-    const pName = parsedUrl.searchParams.get('name') || projectService.getActiveProject();
-    const files = projectService.listProjectFiles(pName);
-    return sendJson(res, 200, { project: pName, files });
-  }
-
-  if (req.method === 'GET' && pathname === '/api/project/file') {
-    const pName = parsedUrl.searchParams.get('name') || projectService.getActiveProject();
-    const filePath = parsedUrl.searchParams.get('path') || '';
-    const fileData = projectService.readProjectFile(pName, filePath);
-    return sendJson(res, fileData.error ? 404 : 200, fileData);
-  }
-
-  if (req.method === 'POST' && pathname === '/api/project/file') {
-    let bodyText = '';
-    req.on('data', chunk => {
-      bodyText += chunk;
-      if (bodyText.length > 25 * 1024 * 1024) req.destroy();
-    });
-    req.on('end', () => {
-      try {
-        const body = JSON.parse(bodyText || '{}');
-        const pName = body.project || projectService.getActiveProject();
-        const result = projectService.writeProjectFile(pName, body.path, body.content !== undefined ? body.content : '');
-        return sendJson(res, result.error ? 400 : 200, result);
-      } catch (err) {
-        return sendJson(res, 500, { error: err.message });
-      }
-    });
-    return;
-  }
-
-  if (req.method === 'POST' && pathname === '/api/project/modify') {
-    let bodyText = '';
-    req.on('data', chunk => bodyText += chunk);
-    req.on('end', () => {
-      try {
-        const body = JSON.parse(bodyText || '{}');
-        const pName = body.project || projectService.getActiveProject();
-        const result = projectService.modifyProjectFile(pName, body.path, body.search_target, body.replacement);
-        return sendJson(res, result.error ? 400 : 200, result);
-      } catch (err) {
-        return sendJson(res, 500, { error: err.message });
-      }
-    });
-    return;
-  }
-
-  if (req.method === 'POST' && pathname === '/api/project/delete') {
-    let bodyText = '';
-    req.on('data', chunk => bodyText += chunk);
-    req.on('end', () => {
-      try {
-        const body = JSON.parse(bodyText || '{}');
-        const pName = body.project || projectService.getActiveProject();
-        const result = projectService.deleteProjectFile(pName, body.path);
-        return sendJson(res, result.error ? 400 : 200, result);
-      } catch (err) {
-        return sendJson(res, 500, { error: err.message });
-      }
-    });
-    return;
-  }
-
-  if (req.method === 'POST' && pathname === '/api/project/upload') {
-    let bodyText = '';
-    req.on('data', chunk => {
-      bodyText += chunk;
-      if (bodyText.length > 50 * 1024 * 1024) req.destroy();
-    });
-    req.on('end', () => {
-      try {
-        const body = JSON.parse(bodyText || '{}');
-        const pName = body.project || projectService.getActiveProject();
-        const files = Array.isArray(body.files) ? body.files : [];
-        const saved = [];
-        for (const f of files) {
-          const resSave = projectService.saveUploadedProjectFile(pName, f.name, f.data || f.content);
-          saved.push(resSave);
-        }
-        return sendJson(res, 200, { success: true, saved });
-      } catch (err) {
-        return sendJson(res, 500, { error: err.message });
-      }
-    });
-    return;
-  }
-
-  if (req.method === 'POST' && pathname === '/api/project/execute') {
-    let bodyText = '';
-    req.on('data', chunk => bodyText += chunk);
-    req.on('end', async () => {
-      try {
-        const body = JSON.parse(bodyText || '{}');
-        const pName = body.project || projectService.getActiveProject();
-        const out = await projectService.executeProjectCommand(pName, body.command || '');
-        return sendJson(res, 200, out);
-      } catch (err) {
-        return sendJson(res, 500, { error: err.message });
-      }
-    });
-    return;
-  }
-
-  // --- API: Chat Completion (Streaming SSE & Non-Streaming JSON) ---
+// --- API: Chat Completion (Streaming SSE & Non-Streaming JSON) ---
   if (req.method === 'POST' && pathname === '/api/chat') {
     let bodyText = '';
     req.on('data', chunk => {
@@ -686,14 +590,24 @@ button:hover{background:#3f3f46}
         const lastUserPrompt = userMsgObj ? (typeof userMsgObj.content === 'string' ? userMsgObj.content : '') : '';
         const autoSearchNeeded = browser.isWebSearchNeeded(lastUserPrompt);
         const autoResearchNeeded = researchSkills.isResearchTask(lastUserPrompt);
-        const autoProjectNeeded = projectService.isProjectTask(lastUserPrompt);
-        const projectModeEnabled = body.project_mode === true || autoProjectNeeded;
-        const activeProject = body.project_name || projectService.getActiveProject();
+        const autoMcpNeeded = isMcpTaskNeeded(lastUserPrompt);
+
         const researchModeEnabled = body.research_mode === true || autoResearchNeeded;
         const webSearchEnabled = body.web_search === true || (body.web_mode !== 'offline' && autoSearchNeeded) || researchModeEnabled;
+        const agentModeEnabled = webSearchEnabled || researchModeEnabled || autoMcpNeeded || body.agent_mode === true;
+
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        const temporalDirective = `\n\n# REAL-TIME TEMPORAL GROUNDING & OPERATIONAL CONTEXT (YEAR 2026):
+Current Date: ${dateStr}. Current Year: ${now.getFullYear()}.
+Current Environment: Windows 11 (x64), Node.js ${process.version}, Python 3.15.1, NVIDIA GeForce RTX 5060 Laptop GPU.
+CRITICAL OPERATIONAL RULES:
+1. Temporal Awareness: The current year is 2026. For questions regarding recent events, current weather, active technologies, or real-time data, actively query using the available tools before finalizing your answer.
+2. Exact Precision: For mathematical proofs, statistical calculations, complex equations, or algorithmic evaluations, execute code via the calculate_or_eval tool to guarantee zero hallucination and mathematical precision.
+3. System & Memory: Use system_info for hardware status and search_living_memory for stored notes and user facts.
+4. Output Style: Zero decorative emojis. Direct, well-reasoned answers using GitHub-flavored Markdown.`;
 
         const researchDirective = researchModeEnabled ? researchSkills.getResearchDirective() : '';
-        const projectDirective = projectModeEnabled ? projectService.getProjectDirective(activeProject) : '';
         const webDirective = (webSearchEnabled || researchModeEnabled)
           ? `\n\n# AUTONOMOUS DEEP INTELLIGENCE & GOOGLE LIVE WEB DIRECTIVE:
 You have real-time autonomous access to Google and live internet intelligence via the search_web, browse_page, and open_browser tools.
@@ -710,7 +624,7 @@ CRITICAL OPERATIONAL PRINCIPLES:
    - Zero decorative emojis in all assistant responses.`
           : '';
 
-        const fullDirective = `${webDirective}${researchDirective}${projectDirective}`;
+        const fullDirective = `${temporalDirective}${webDirective}${researchDirective}`;
 
         const formattedMessages = [];
         let systemInjected = false;
@@ -734,38 +648,29 @@ CRITICAL OPERATIONAL PRINCIPLES:
           });
         }
 
-        const agentModeEnabled = webSearchEnabled || researchModeEnabled || projectModeEnabled;
-
-        // Fast response optimization: bypass slow reasoning monologue ONLY when NOT using tool calling (prevents Ollama Jinja 500 error)
-        if (!agentModeEnabled && formattedMessages.length > 0 && formattedMessages[formattedMessages.length - 1].role === 'user') {
-          formattedMessages.push({ role: 'assistant', content: '</think>' });
-        }
-
         const controller = new AbortController();
         res.on('close', () => {
           if (!res.writableEnded) controller.abort();
         });
 
-        // --- AGENTIC WORKFLOW: Autonomous Multi-Turn Web Search & Browsing ---
+        // --- AGENTIC WORKFLOW: Autonomous Multi-Turn Web Search, MCP & Tools ---
         if (agentModeEnabled) {
           let headersSent = false;
           let turn = 0;
-          const MAX_AGENT_TURNS = projectModeEnabled ? 4 : 2;
+          const MAX_AGENT_TURNS = 3;
           let finalReply = '';
 
           while (turn < MAX_AGENT_TURNS) {
             turn++;
 
             const availableTools = [];
-            if (projectModeEnabled) {
-              availableTools.push(...projectService.PROJECT_TOOLS);
-            }
             if (researchModeEnabled) {
               availableTools.push(...researchSkills.ACADEMIC_TOOLS);
             }
             if (webSearchEnabled) {
               availableTools.push(...browser.BROWSING_TOOLS);
             }
+            availableTools.push(...mcpClient.MCP_TOOLS);
 
             const turnPayload = {
               model: requestedModel,
@@ -773,9 +678,12 @@ CRITICAL OPERATIONAL PRINCIPLES:
               tools: turn < MAX_AGENT_TURNS ? availableTools : undefined,
               stream: false,
               options: {
-                temperature: typeof params.temperature === 'number' ? params.temperature : 0.7,
-                num_predict: Math.max(typeof params.max_tokens === 'number' ? params.max_tokens : 1024, 2048),
-                top_k: typeof params.top_k === 'number' ? params.top_k : 50,
+                num_ctx: 16384,
+                temperature: typeof params.temperature === 'number' ? params.temperature : 0.4,
+                repeat_penalty: 1.1,
+                top_p: 0.9,
+                top_k: 40,
+                num_predict: Math.max(typeof params.max_tokens === 'number' ? params.max_tokens : 2048, 2048),
                 stop: Array.isArray(params.stop) ? params.stop : []
               }
             };
@@ -851,8 +759,8 @@ CRITICAL OPERATIONAL PRINCIPLES:
 
                 let toolResult;
                 try {
-                  if (toolName.startsWith('project_')) {
-                    toolResult = await projectService.executeProjectTool(toolName, toolArgs, activeProject);
+                  if (mcpClient.isMcpTool(toolName)) {
+                    toolResult = await mcpClient.executeTool(toolName, toolArgs);
                   } else if (['academic_search', 'generate_bibtex', 'build_literature_matrix', 'evaluate_research_gap', 'create_design_brief', 'conduct_paper_review'].includes(toolName)) {
                     toolResult = await researchSkills.executeResearchTool(toolName, toolArgs, process.cwd());
                   } else {
@@ -931,9 +839,12 @@ CRITICAL OPERATIONAL PRINCIPLES:
           messages: formattedMessages,
           stream: isStream,
           options: {
-            temperature: typeof params.temperature === 'number' ? params.temperature : 0.7,
-            num_predict: Math.max(typeof params.max_tokens === 'number' ? params.max_tokens : 1024, 2048),
-            top_k: typeof params.top_k === 'number' ? params.top_k : 50,
+            num_ctx: 16384,
+            temperature: typeof params.temperature === 'number' ? params.temperature : 0.4,
+            repeat_penalty: 1.1,
+            top_p: 0.9,
+            top_k: 40,
+            num_predict: Math.max(typeof params.max_tokens === 'number' ? params.max_tokens : 2048, 2048),
             stop: Array.isArray(params.stop) ? params.stop : []
           }
         };

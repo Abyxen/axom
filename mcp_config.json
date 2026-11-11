@@ -1,0 +1,16 @@
+{
+  "version": "1.0",
+  "mcpServers": {
+    "local_tools": {
+      "enabled": true,
+      "description": "High-performance native tools (System telemetry, Python calculation, Memory retrieval)"
+    },
+    "firecrawl": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-firecrawl"],
+      "env": {},
+      "disabled": true,
+      "description": "Firecrawl MCP server for deep web crawling and scraping"
+    }
+  }
+}
