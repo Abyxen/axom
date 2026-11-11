@@ -8,6 +8,7 @@
 <meta name="theme-color" content="#111110">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="study.css">
 <style>
 :root,[data-theme=dark]{
   --bg:#09090b;--bg2:#111114;--surf:#18181b;--elev:#222226;--input:#141416;
@@ -463,6 +464,7 @@ details.think .think-body {
 </head>
 <body>
 <div class="app" id="app"></div>
+<script src="study.js"></script>
 <script>
 const $=(s,e=document)=>e.querySelector(s),$$=(s,e=document)=>[...e.querySelectorAll(s)];
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -524,10 +526,11 @@ const Axom={
 
 /* ---- state ---- */
 const D=864e5,MAXF=24000;
-let S={convs:[],cur:null,api:'',model:'axom:1.1',lang:'pt',web:true,theme:'dark',col:false,enterSends:true,effort:'fast',gen:{temperature:.7,top_k:50,max_tokens:512,seed:-1,stop:'',stream:true}};
+let S={convs:[],cur:null,api:'',model:'axom:1.1',lang:'pt',mode:'axom',web:true,theme:'dark',col:false,enterSends:true,effort:'fast',gen:{temperature:.7,top_k:50,max_tokens:512,seed:-1,stop:'',stream:true}};
 try{const j=JSON.parse(localStorage.getItem('axom-v2'));if(j)S={...S,...j,gen:{...S.gen,...j.gen}}}catch(e){}
 if(!S.lang) S.lang = 'pt';
 if(!S.effort) S.effort = 'fast';
+if(!S.mode) S.mode = 'axom';
 if(S.web===undefined) S.web = true;
 const save=()=>{try{localStorage.setItem('axom-v2',JSON.stringify(S))}catch(e){}};
 let models=[],query='',atts=[],run=null,pop=null,fresh=-1;
@@ -538,6 +541,15 @@ const I18N = {
   en: {
     appTitle: "AXOM — Independent Intelligence",
     edition: "INDEPENDENT<br>INTELLIGENCE",
+    workspaceAxom: "Axom",
+    workspaceAxomSub: "General AI assistant, web search, reasoning & browser",
+    workspaceStudy: "Axom Study",
+    workspaceStudySub: "NotebookLM workspace: Sources, Citations & Audio Overviews",
+    switchWorkspace: "Switch workspace",
+    studyNotebooks: "Study Notebooks",
+    newNotebook: "New Notebook",
+    allNotebooks: "All Notebooks",
+    noNotebooks: "No notebooks yet.",
     newChat: "New conversation",
     newChatTitle: "New conversation (Ctrl+N)",
     searchPlaceholder: "Find a conversation",
@@ -693,6 +705,15 @@ const I18N = {
   pt: {
     appTitle: "AXOM — Inteligência Independente",
     edition: "INTELIGÊNCIA<br>INDEPENDENTE",
+    workspaceAxom: "Axom",
+    workspaceAxomSub: "Assistente geral de IA, pesquisa web, raciocínio & navegador",
+    workspaceStudy: "Axom Study",
+    workspaceStudySub: "Ambiente NotebookLM: Fontes, Citações & Podcasts Áudio",
+    switchWorkspace: "Mudar de ambiente de trabalho",
+    studyNotebooks: "Cadernos de Estudo",
+    newNotebook: "Novo Caderno",
+    allNotebooks: "Todos os Cadernos",
+    noNotebooks: "Ainda sem cadernos criados.",
     newChat: "Nova conversa",
     newChatTitle: "Nova conversa (Ctrl+N)",
     searchPlaceholder: "Pesquisar conversas",
@@ -931,6 +952,76 @@ function sideHTML(){
   const h=Object.entries(g).filter(([,a])=>a.length).map(([k,a])=>`<div class="grp">${k}</div>`+a.map(([c,s])=>`<div class="item" style="--n:${Math.min(n++,12)}"><button class="row ${c.id===S.cur?'on':''}" data-act="open" data-id="${c.id}" ${c.id===S.cur?'aria-current="true"':''}><span class="lbl" style="min-width:0"><span class="t" style="display:block;overflow:hidden;text-overflow:ellipsis">${hl(c.title,q)}</span>${s?`<span class="snip">${hl(s,q)}</span>`:''}</span></button><button class="ib more" data-act="menu" data-id="${c.id}" aria-label="${t('rename')}">${ic('more')}</button></div>`).join('')).join('');
   return h||`<div style="padding:20px 10px;color:var(--tx3);font-family:'JetBrains Mono',monospace;font-size:11px">${q?t('noMatches'):t('noConvs')}</div>`}
 
+function studySideHTML(){
+  const isPt = S.lang === 'pt';
+  const nbs = (window.AxomStudy && AxomStudy.notebooks) || [];
+  if(!nbs.length){
+    return `<div style="padding:20px 10px;color:var(--tx3);font-family:'JetBrains Mono',monospace;font-size:11px">${t('noNotebooks')}</div>`;
+  }
+  return `<div class="grp">${isPt ? 'CADERNOS' : 'NOTEBOOKS'}</div>` + nbs.map(nb => {
+    const on = nb.id === AxomStudy.activeNotebookId ? 'on' : '';
+    return `<div class="item">
+      <button class="row ${on}" data-act="study-open-nb" data-id="${esc(nb.id)}" title="${esc(nb.name)}">
+        <span class="lbl" style="min-width:0;display:flex;align-items:center;gap:8px;">
+          ${ic('book')}
+          <span class="t" style="flex:1;overflow:hidden;text-overflow:ellipsis">${esc(nb.name)}</span>
+          <span style="font-size:10px;opacity:0.6;font-family:'JetBrains Mono',monospace;">${nb.sources_count || 0}</span>
+        </span>
+      </button>
+    </div>`;
+  }).join('');
+}
+
+function showWorkspaceSwitcher(anchorEl){
+  const existing = $('#workspacePopover');
+  if(existing){ existing.remove(); return; }
+
+  const popover = document.createElement('div');
+  popover.className = 'workspace-popover';
+  popover.id = 'workspacePopover';
+  popover.innerHTML = `
+    <button class="workspace-opt ${S.mode !== 'study' ? 'active' : ''}" data-act="set-workspace" data-mode="axom">
+      <div class="workspace-opt-icon">${ic('globe')}</div>
+      <div class="workspace-opt-info">
+        <div class="workspace-opt-title">
+          <span>${t('workspaceAxom')}</span>
+          <span class="workspace-pill">AI</span>
+        </div>
+        <div class="workspace-opt-desc">${t('workspaceAxomSub')}</div>
+      </div>
+      ${S.mode !== 'study' ? `<div class="workspace-opt-check">${ic('check')}</div>` : ''}
+    </button>
+    
+    <button class="workspace-opt study ${S.mode === 'study' ? 'active' : ''}" data-act="set-workspace" data-mode="study">
+      <div class="workspace-opt-icon">${ic('book')}</div>
+      <div class="workspace-opt-info">
+        <div class="workspace-opt-title">
+          <span>${t('workspaceStudy')}</span>
+          <span class="workspace-pill study">NOTEBOOKLM</span>
+        </div>
+        <div class="workspace-opt-desc">${t('workspaceStudySub')}</div>
+      </div>
+      ${S.mode === 'study' ? `<div class="workspace-opt-check">${ic('check')}</div>` : ''}
+    </button>
+  `;
+
+  document.body.appendChild(popover);
+  if(anchorEl){
+    const rect = anchorEl.getBoundingClientRect();
+    popover.style.position = 'fixed';
+    popover.style.top = `${rect.bottom + 6}px`;
+    popover.style.left = `${Math.max(10, Math.min(rect.left, window.innerWidth - 310))}px`;
+  }
+
+  const closeHandler = (e) => {
+    if(!e.target.closest('#workspacePopover') && !e.target.closest('[data-act="toggle-workspace"]')){
+      $('#workspacePopover')?.remove();
+      document.removeEventListener('click', closeHandler);
+    }
+  };
+  setTimeout(() => document.addEventListener('click', closeHandler), 10);
+}
+
 function defaultBrowserStartHTML(){
   const isPt = S.lang === 'pt';
   const title = isPt ? 'Navegador AXOM' : 'AXOM Browser';
@@ -1104,12 +1195,45 @@ const InsideBrowser = {
 };
 
 function shell(){
-  document.title = t('appTitle');
+  const isPt = S.lang === 'pt';
+  const isStudy = S.mode === 'study';
+  document.title = isStudy ? (isPt ? 'AXOM Study — Cadernos de Estudo' : 'AXOM Study — NotebookLM Workspace') : t('appTitle');
   document.documentElement.lang = S.lang || 'pt';
 
+  if(isStudy){
+    $('#app').innerHTML = `
+      <aside class="side ${S.col?'col':''}" id="side" aria-label="Study Navigation">
+        <button class="logo-btn" data-act="toggle-workspace" title="${t('switchWorkspace')}">
+          <div class="brand-line">
+            <span>AXOM</span><sup>®</sup>
+            <span class="workspace-pill study">STUDY</span>
+            <span class="switcher-chevron">${ic('chevron')}</span>
+          </div>
+          <div class="edition">${isPt ? 'CADERNOS DE ESTUDO' : 'NOTEBOOKLM WORKSPACE'}</div>
+        </button>
+        <button class="row new-chat" data-act="study-new-nb" title="${t('newNotebook')}">${ic('plus')}<span class="lbl">${t('newNotebook')}</span><kbd>Alt+N</kbd></button>
+        <button class="row ${!AxomStudy.activeNotebookId ? 'on' : ''}" data-act="study-go-hub" title="${t('allNotebooks')}">${ic('book')}<span class="lbl">${t('allNotebooks')}</span></button>
+        <nav class="list" id="studyNotebooksNav">${studySideHTML()}</nav>
+        <button class="row" data-act="settings" title="${t('settings')}">${ic('gear')}<span class="lbl">${t('settings')}</span></button>
+      </aside>
+      <div class="scrim" data-act="drawer"></div>
+      <div id="studyContainer" style="flex:1;min-width:0;display:flex;flex-direction:column;height:100dvh;overflow:hidden;"></div>
+    `;
+    AxomStudy.render($('#studyContainer')).then(() => {
+      const list = $('#studyNotebooksNav');
+      if(list) list.innerHTML = studySideHTML();
+    });
+    return;
+  }
+
   $('#app').innerHTML=`<aside class="side ${S.col?'col':''}" id="side" aria-label="Conversations">
-  <button class="logo-btn" data-act="gohome" title="AXOM Home">
-    <span>AXOM</span><sup>®</sup><div class="edition">${t('edition')}</div>
+  <button class="logo-btn" data-act="toggle-workspace" title="${t('switchWorkspace')}">
+    <div class="brand-line">
+      <span>AXOM</span><sup>®</sup>
+      <span class="workspace-pill">AI</span>
+      <span class="switcher-chevron">${ic('chevron')}</span>
+    </div>
+    <div class="edition">${t('edition')}</div>
   </button>
   <button class="row new-chat" data-act="new" title="${t('newChatTitle')}">${ic('plus')}<span class="lbl">${t('newChat')}</span><kbd>Ctrl+N</kbd></button>
   <div class="search">${ic('search')}<input id="q" placeholder="${t('searchPlaceholder')}" aria-label="${t('searchAria')}" value="${esc(query)}"><kbd>Ctrl+K</kbd></div>
@@ -1117,7 +1241,7 @@ function shell(){
   <button class="row" data-act="settings" title="${t('settings')}">${ic('gear')}<span class="lbl">${t('settings')}</span></button>
   </aside>
   <div class="scrim" data-act="drawer"></div>
-  <section class="main"><header class="hdr"><button class="ib" data-act="drawer" aria-label="${t('toggleSidebar')}" title="${t('toggleSidebar')}">${ic('panel')}</button><div class="ttl">${t('workspacePrefix')} <b>/ ${esc(cur()?.title||t('newConvHeader'))}</b></div><span class="sp"></span><button class="header-btn ${InsideBrowser.isOpen?'on':''}" id="browserHeaderBtn" data-act="togglebrowser" title="${t('insideBrowserTitle')}">${ic('globe')} <span>${t('insideBrowserBtn')}</span></button><div class="lang-switch" role="group" aria-label="Language / Idioma"><button class="lang-btn ${S.lang==='en'?'on':''}" data-act="setlang" data-l="en" title="English">EN</button><button class="lang-btn ${S.lang==='pt'?'on':''}" data-act="setlang" data-l="pt" title="Português">PT</button></div></header>
+  <section class="main"><header class="hdr"><button class="ib" data-act="drawer" aria-label="${t('toggleSidebar')}" title="${t('toggleSidebar')}">${ic('panel')}</button><div class="ttl" style="display:flex;align-items:center;gap:8px;"><button class="workspace-pill" data-act="toggle-workspace" style="cursor:pointer;" title="${t('switchWorkspace')}">AI ${ic('chevron')}</button><span>${t('workspacePrefix')} <b>/ ${esc(cur()?.title||t('newConvHeader'))}</b></span></div><span class="sp"></span><button class="header-btn ${InsideBrowser.isOpen?'on':''}" id="browserHeaderBtn" data-act="togglebrowser" title="${t('insideBrowserTitle')}">${ic('globe')} <span>${t('insideBrowserBtn')}</span></button><div class="lang-switch" role="group" aria-label="Language / Idioma"><button class="lang-btn ${S.lang==='en'?'on':''}" data-act="setlang" data-l="en" title="English">EN</button><button class="lang-btn ${S.lang==='pt'?'on':''}" data-act="setlang" data-l="pt" title="Português">PT</button></div></header>
   <main class="chat" id="chat" aria-label="Chat"><div class="col-in" id="msgs" aria-live="polite"></div></main>
   <div class="comp"><div class="cbox" id="cbox"><div class="chips" id="atts"></div><textarea id="inp" rows="1" placeholder="${t('inputPlaceholder')}" aria-label="Message" maxlength="32000"></textarea><div class="tools"><button class="ib" data-act="attach" aria-label="${t('attachTitle')}" title="${t('attachTitle')}">${ic('clip')}</button><button class="ib mic-btn" id="micBtn" data-act="voice" aria-label="${t('voiceTitle')}" title="${t('voiceTitle')}">${ic('mic')}</button><button class="web-btn ${S.web?'on':''}" id="webBtn" data-act="toggleweb" aria-label="${t('webTitle')}" title="${t('webTitle')}">${ic('globe')}<span>${t('webBadge')}</span></button><span class="sp"></span><button class="send" id="send" data-act="send" aria-label="${t('send')}" title="${t('send')}">${ic('up')}</button></div></div><div class="hint"><span>${t('disclaimer')}</span><span>${t('hintKeys')}</span></div></div><input type="file" id="file" multiple hidden></section>
   <aside class="inside-browser ${InsideBrowser.isMaximized?'maximized':''}" id="insideBrowser">
@@ -1802,7 +1926,31 @@ document.addEventListener('click',async e=>{
   const b=e.target.closest('[data-act]');if(!e.target.closest('.pop'))closePop();if(!b)return;
   const a=b.dataset.act,id=b.dataset.id,c=cur();
   if(run&&['new','open','rename','del','pinc','retry','fb','sug'].includes(a)){toast(t('stopGenFirst'));return}
-  if(a==='gohome'||a==='new')newChat();
+  if(a==='toggle-workspace'){
+    showWorkspaceSwitcher(b);
+  }
+  else if(a==='set-workspace'){
+    const targetMode = b.dataset.mode;
+    if(targetMode && targetMode !== S.mode){
+      S.mode = targetMode;
+      save();
+      $('#workspacePopover')?.remove();
+      shell();
+      toast(S.mode === 'study' ? (S.lang === 'pt' ? 'Ambiente: Axom Study (NotebookLM)' : 'Workspace: Axom Study (NotebookLM)') : (S.lang === 'pt' ? 'Ambiente: Axom (Assistente IA)' : 'Workspace: Axom (AI Assistant)'));
+    } else {
+      $('#workspacePopover')?.remove();
+    }
+  }
+  else if(a==='study-new-nb'){
+    AxomStudy.openCreateNotebookModal();
+  }
+  else if(a==='study-go-hub'){
+    AxomStudy.closeNotebook();
+  }
+  else if(a==='study-open-nb'){
+    AxomStudy.openNotebook(id);
+  }
+  else if(a==='gohome'||a==='new')newChat();
   else if(a==='setlang'){
     const targetLang=b.dataset.l;
     if(targetLang && targetLang !== S.lang){
@@ -1927,7 +2075,7 @@ document.addEventListener('keydown',e=>{
     return;
   }
   const k=e.key.toLowerCase(),mod=e.ctrlKey||e.metaKey;
-  if(mod&&k==='n'){e.preventDefault();run?toast(t('stopGenFirst')):newChat()}
+  if(mod&&k==='n'){e.preventDefault();if(S.mode==='study'){AxomStudy.openCreateNotebookModal()}else{run?toast(t('stopGenFirst')):newChat()}}
   else if(mod&&k==='k'){e.preventDefault();S.col=false;$('#side').classList.remove('col');$('#side').classList.add('open');$('#q').focus()}
   else if(mod&&k==='/'){e.preventDefault();$('#inp').focus()}else if(k==='escape'){closePop();closeDrawer()}
 });

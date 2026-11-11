@@ -648,9 +648,40 @@
 
 ---
 
+### 29. Axom Study Subsystem & Workspace Switcher (NotebookLM Integration)
+- **Date:** November 11, 2026
+- **What Was Done:**
+  - Integrated the complete NotebookLM / Open Notebook architecture into AXOM as a dedicated, decoupled workspace environment named **Axom Study**.
+  - **Interactive Workspace Switcher**:
+    - Clicking the AXOM logo or header pill displays a popover menu allowing the user to seamlessly switch between **Axom** (Main conversational assistant, live web search, browser, 17 research skills) and **Axom Study** (Document-grounded NotebookLM research workspace).
+    - Mode state is persisted in `S.mode` (`'axom'` | `'study'`) in SQLite and localStorage.
+  - **Study Subsystem Backend (`study_service.js`)**:
+    - Pure Node.js SQLite schema (`node:sqlite` `DatabaseSync`): `study_notebooks`, `study_sources`, `study_source_links`, `study_insights`, `study_notes`, `study_podcasts`.
+    - Multi-modal document parser supporting PDF (`file_service.parsePdf`), Word DOCX (`file_service.parseDocx`), web page extraction (`browserService.extractReadableText`), and pasted text.
+    - Six document transformations / insights: Summary, Key Points, Study Guide, FAQ, Timeline, and Critique.
+    - Grounded Study Chat engine with inline citation instructions enforcing verifiable citations `[source:id]` and `[note:id]`.
+    - Two-speaker Deep Dive Audio Overview dialogue generator featuring Alex (host) and Jordan (expert).
+    - Obsidian Second Brain mirror: automatically saves notebooks, sources, and notes to `C:\Users\abira\Documents\Axom_Brain\Study\<NotebookName>\`.
+  - **REST API Endpoints (`server.js`)**:
+    - Added 15 REST endpoints under `/api/study/` for notebook CRUD, source ingestion, context toggles, transformation execution, notes management, grounded chat, and podcast generation.
+  - **Frontend Architecture (`study.css` and `study.js`)**:
+    - Notebooks Hub: responsive card grid displaying notebooks, metrics, and creation modal.
+    - 3-Column Studio Workspace:
+      - Column 1 (Left): Sources library with checkboxes to toggle inclusion in active study context, word counts, and details viewer.
+      - Column 2 (Center): Grounded chat panel with interactive citation badges (`.citation-chip`) that highlight and jump to referenced sources.
+      - Column 3 (Right): Dual tabs for Notes (human and AI notes) and Studio (Audio Overviews with Web Speech API dual-voice synthesis player and karaoke transcript line tracking).
+- **How It Was Implemented:**
+  - Pure Node.js standard libraries and browser Web APIs without external npm dependencies.
+  - Connected `study.css` and `study.js` to `index.html`.
+  - Wired workspace switcher popover and state transitions in `shell()`.
+- **Why It Was Done:**
+  - User requested: *"i have this notebool lm file implement this into my and and make it so my axom icon when i click on it it shows Axom and Axom Study and all just implement everything thats in here but seperated yk what i mean"*.
+
+---
+
 ## 🔮 Active & Upcoming Work
 
-### 29. QLoRA Fine-Tuning Execution (`axom:1.2`)
+### 30. QLoRA Fine-Tuning Execution (`axom:1.2`)
 - **Goal:** Run the fine-tuning pipeline (`train/train_unsloth_lora.py`) using the generated 500,490-word synthetic training dataset.
 - **Deliverable:** Quantized GGUF weights for Ollama.
 
