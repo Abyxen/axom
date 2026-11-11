@@ -716,9 +716,44 @@
 
 ---
 
+### 32. Project Sandbox Mode & Autonomous In-Project File Modification
+- **Date:** November 11, 2026
+- **What Was Done:**
+  - Implemented **Project Workspace Mode**, a fully sandboxed development mode where files are placed in an isolated project directory and the AI has direct autonomous read, create, and modify permissions strictly bounded to that project.
+  - **Project Service & Sandbox Security (`project_service.js`)**:
+    - Created isolated project repository directory `workspace/projects/` with default starter workspace `workspace/projects/default-project/`.
+    - Enforced strict path resolution (`resolveProjectPath`): any path traversal (`../`, absolute paths outside the project directory) is caught and denied with a security exception.
+    - Built 6 project-scoped developer tools:
+      1. `project_list_files`: Inspects files, directories, sizes, and timestamps within the active project.
+      2. `project_read_file`: Reads file content safely up to 2MB with line counts.
+      3. `project_write_file`: Creates new files or completely updates existing files on disk.
+      4. `project_modify_file`: Performs surgical search-and-replace modifications on existing project files.
+      5. `project_delete_file`: Safely deletes files inside the active project.
+      6. `project_run_code`: Executes local scripts (`node`, `python`, `npm`) inside the project root with a 10-second timeout.
+  - **Server Endpoints & Agentic Loop (`server.js`)**:
+    - Added REST endpoints: `GET /api/projects`, `POST /api/projects/select`, `POST /api/projects/create`, `GET /api/project/files`, `GET /api/project/file`, `POST /api/project/file`, `POST /api/project/modify`, `POST /api/project/delete`, `POST /api/project/upload`, `POST /api/project/execute`.
+    - Injected `getProjectDirective(activeProject)` into `/api/chat` informing the model of its active project boundary and providing full write/edit permissions.
+    - Expanded agent turns up to 4 turns in project mode so the model can inspect, read, modify, and verify files on disk in a single user turn.
+  - **User Interface & In-App Code Editor (`index.html`)**:
+    - Added Project Mode toggle button (`#projectBtn`) in composer tools and top header (`.project-hdr-btn`) with green active glow.
+    - Built sliding Project Workspace Drawer (`#projectDrawer`) featuring:
+      - Project selector dropdown + `+ New Project` creation.
+      - Live file tree with language-specific icons (`.html`, `.css`, `.js`, `.py`, `.md`, `.json`), file size badges, and delete actions.
+      - Drag-and-drop file upload zone and file creation dialog.
+      - In-app monospaced code viewer/editor with live save functionality.
+    - Updated message trace rendering (`toolsTraceHTML`) to display real-time sandbox action chips (`[Read]`, `[Created]`, `[Modified]`, `[Deleted]`, `[Ran]`).
+    - Added full bilingual support in English and Portuguese.
+- **How It Was Implemented:**
+  - Zero external npm packages required; built using standard Node.js APIs (`node:fs`, `node:path`, `node:child_process`).
+  - Tested end-to-end file creation and surgical modification via streaming SSE requests.
+- **Why It Was Done:**
+  - User requested: *"well for now can you mmake it so i have an mode in my web that i put files in my project and it only works inside it like it has acess to change and modify the files inside that project"*.
+
+---
+
 ## 🔮 Active & Upcoming Work
 
-### 32. QLoRA Fine-Tuning Execution (`axom:1.2`)
+### 33. QLoRA Fine-Tuning Execution (`axom:1.2`)
 - **Goal:** Run the fine-tuning pipeline (`train/train_unsloth_lora.py`) using the generated 500,490-word synthetic training dataset.
 - **Deliverable:** Quantized GGUF weights for Ollama.
 

@@ -15,6 +15,7 @@ const browser = require('./browser_service');
 const obsidianVault = require('./obsidian_vault');
 const fileService = require('./file_service');
 const researchSkills = require('./research_skills');
+const projectService = require('./project_service');
 
 const PORT = 8000;
 const HOST = '127.0.0.1';
@@ -318,9 +319,10 @@ const server = http.createServer(async (req, res) => {
 
   // --- API: Projects ---
   if (req.method === 'GET' && pathname === '/api/projects') {
-    return sendJson(res, 200, [
-      { id: '1', name: 'AXOM Core Engine', status: 'Active', model: 'axom:1.1' }
-    ]);
+    return sendJson(res, 200, {
+      projects: projectService.listProjects(),
+      activeProject: projectService.getActiveProject()
+    });
   }
 
   // --- API: Live Web Browser Proxy (Embed and browse real internet websites) ---
@@ -508,6 +510,142 @@ button:hover{background:#3f3f46}
     return sendJson(res, 200, { files: list });
   }
 
+  // --- API: Project Workspace Endpoints ---
+
+  if (req.method === 'POST' && pathname === '/api/projects/select') {
+    let bodyText = '';
+    req.on('data', chunk => bodyText += chunk);
+    req.on('end', () => {
+      try {
+        const body = JSON.parse(bodyText || '{}');
+        const result = projectService.setActiveProject(body.name);
+        return sendJson(res, 200, result);
+      } catch (err) {
+        return sendJson(res, 400, { error: err.message });
+      }
+    });
+    return;
+  }
+
+  if (req.method === 'POST' && pathname === '/api/projects/create') {
+    let bodyText = '';
+    req.on('data', chunk => bodyText += chunk);
+    req.on('end', () => {
+      try {
+        const body = JSON.parse(bodyText || '{}');
+        const result = projectService.createProject(body.name);
+        return sendJson(res, 200, result);
+      } catch (err) {
+        return sendJson(res, 400, { error: err.message });
+      }
+    });
+    return;
+  }
+
+  if (req.method === 'GET' && pathname === '/api/project/files') {
+    const pName = parsedUrl.searchParams.get('name') || projectService.getActiveProject();
+    const files = projectService.listProjectFiles(pName);
+    return sendJson(res, 200, { project: pName, files });
+  }
+
+  if (req.method === 'GET' && pathname === '/api/project/file') {
+    const pName = parsedUrl.searchParams.get('name') || projectService.getActiveProject();
+    const filePath = parsedUrl.searchParams.get('path') || '';
+    const fileData = projectService.readProjectFile(pName, filePath);
+    return sendJson(res, fileData.error ? 404 : 200, fileData);
+  }
+
+  if (req.method === 'POST' && pathname === '/api/project/file') {
+    let bodyText = '';
+    req.on('data', chunk => {
+      bodyText += chunk;
+      if (bodyText.length > 25 * 1024 * 1024) req.destroy();
+    });
+    req.on('end', () => {
+      try {
+        const body = JSON.parse(bodyText || '{}');
+        const pName = body.project || projectService.getActiveProject();
+        const result = projectService.writeProjectFile(pName, body.path, body.content !== undefined ? body.content : '');
+        return sendJson(res, result.error ? 400 : 200, result);
+      } catch (err) {
+        return sendJson(res, 500, { error: err.message });
+      }
+    });
+    return;
+  }
+
+  if (req.method === 'POST' && pathname === '/api/project/modify') {
+    let bodyText = '';
+    req.on('data', chunk => bodyText += chunk);
+    req.on('end', () => {
+      try {
+        const body = JSON.parse(bodyText || '{}');
+        const pName = body.project || projectService.getActiveProject();
+        const result = projectService.modifyProjectFile(pName, body.path, body.search_target, body.replacement);
+        return sendJson(res, result.error ? 400 : 200, result);
+      } catch (err) {
+        return sendJson(res, 500, { error: err.message });
+      }
+    });
+    return;
+  }
+
+  if (req.method === 'POST' && pathname === '/api/project/delete') {
+    let bodyText = '';
+    req.on('data', chunk => bodyText += chunk);
+    req.on('end', () => {
+      try {
+        const body = JSON.parse(bodyText || '{}');
+        const pName = body.project || projectService.getActiveProject();
+        const result = projectService.deleteProjectFile(pName, body.path);
+        return sendJson(res, result.error ? 400 : 200, result);
+      } catch (err) {
+        return sendJson(res, 500, { error: err.message });
+      }
+    });
+    return;
+  }
+
+  if (req.method === 'POST' && pathname === '/api/project/upload') {
+    let bodyText = '';
+    req.on('data', chunk => {
+      bodyText += chunk;
+      if (bodyText.length > 50 * 1024 * 1024) req.destroy();
+    });
+    req.on('end', () => {
+      try {
+        const body = JSON.parse(bodyText || '{}');
+        const pName = body.project || projectService.getActiveProject();
+        const files = Array.isArray(body.files) ? body.files : [];
+        const saved = [];
+        for (const f of files) {
+          const resSave = projectService.saveUploadedProjectFile(pName, f.name, f.data || f.content);
+          saved.push(resSave);
+        }
+        return sendJson(res, 200, { success: true, saved });
+      } catch (err) {
+        return sendJson(res, 500, { error: err.message });
+      }
+    });
+    return;
+  }
+
+  if (req.method === 'POST' && pathname === '/api/project/execute') {
+    let bodyText = '';
+    req.on('data', chunk => bodyText += chunk);
+    req.on('end', async () => {
+      try {
+        const body = JSON.parse(bodyText || '{}');
+        const pName = body.project || projectService.getActiveProject();
+        const out = await projectService.executeProjectCommand(pName, body.command || '');
+        return sendJson(res, 200, out);
+      } catch (err) {
+        return sendJson(res, 500, { error: err.message });
+      }
+    });
+    return;
+  }
+
   // --- API: Chat Completion (Streaming SSE & Non-Streaming JSON) ---
   if (req.method === 'POST' && pathname === '/api/chat') {
     let bodyText = '';
@@ -548,10 +686,14 @@ button:hover{background:#3f3f46}
         const lastUserPrompt = userMsgObj ? (typeof userMsgObj.content === 'string' ? userMsgObj.content : '') : '';
         const autoSearchNeeded = browser.isWebSearchNeeded(lastUserPrompt);
         const autoResearchNeeded = researchSkills.isResearchTask(lastUserPrompt);
+        const autoProjectNeeded = projectService.isProjectTask(lastUserPrompt);
+        const projectModeEnabled = body.project_mode === true || autoProjectNeeded;
+        const activeProject = body.project_name || projectService.getActiveProject();
         const researchModeEnabled = body.research_mode === true || autoResearchNeeded;
         const webSearchEnabled = body.web_search === true || (body.web_mode !== 'offline' && autoSearchNeeded) || researchModeEnabled;
 
         const researchDirective = researchModeEnabled ? researchSkills.getResearchDirective() : '';
+        const projectDirective = projectModeEnabled ? projectService.getProjectDirective(activeProject) : '';
         const webDirective = (webSearchEnabled || researchModeEnabled)
           ? `\n\n# AUTONOMOUS DEEP INTELLIGENCE & GOOGLE LIVE WEB DIRECTIVE:
 You have real-time autonomous access to Google and live internet intelligence via the search_web, browse_page, and open_browser tools.
@@ -565,8 +707,10 @@ CRITICAL OPERATIONAL PRINCIPLES:
    - Reference key sources naturally using markdown links (e.g., [AccuWeather](url), [arXiv](url), [Official Docs](url)).
 4. STRICT TONE & STYLE:
    - Maintain a mature, highly intelligent technical tone (comparable to Claude 3.5 Sonnet or Cursor).
-   - Zero decorative emojis in all assistant responses.${researchDirective}`
-          : (researchDirective || '');
+   - Zero decorative emojis in all assistant responses.`
+          : '';
+
+        const fullDirective = `${webDirective}${researchDirective}${projectDirective}`;
 
         const formattedMessages = [];
         let systemInjected = false;
@@ -575,7 +719,7 @@ CRITICAL OPERATIONAL PRINCIPLES:
           if (msg.role === 'system') {
             formattedMessages.push({
               role: 'system',
-              content: `${fullMemoryContext}${webDirective}\n\n${msg.content}`
+              content: `${fullMemoryContext}${fullDirective}\n\n${msg.content}`
             });
             systemInjected = true;
           } else {
@@ -583,15 +727,17 @@ CRITICAL OPERATIONAL PRINCIPLES:
           }
         }
 
-        if (!systemInjected && (fullMemoryContext || webDirective)) {
+        if (!systemInjected && (fullMemoryContext || fullDirective)) {
           formattedMessages.unshift({
             role: 'system',
-            content: `${fullMemoryContext}${webDirective}`
+            content: `${fullMemoryContext}${fullDirective}`
           });
         }
 
+        const agentModeEnabled = webSearchEnabled || researchModeEnabled || projectModeEnabled;
+
         // Fast response optimization: bypass slow reasoning monologue ONLY when NOT using tool calling (prevents Ollama Jinja 500 error)
-        if (!webSearchEnabled && formattedMessages.length > 0 && formattedMessages[formattedMessages.length - 1].role === 'user') {
+        if (!agentModeEnabled && formattedMessages.length > 0 && formattedMessages[formattedMessages.length - 1].role === 'user') {
           formattedMessages.push({ role: 'assistant', content: '</think>' });
         }
 
@@ -601,23 +747,30 @@ CRITICAL OPERATIONAL PRINCIPLES:
         });
 
         // --- AGENTIC WORKFLOW: Autonomous Multi-Turn Web Search & Browsing ---
-        if (webSearchEnabled) {
+        if (agentModeEnabled) {
           let headersSent = false;
           let turn = 0;
-          const MAX_AGENT_TURNS = 2;
+          const MAX_AGENT_TURNS = projectModeEnabled ? 4 : 2;
           let finalReply = '';
 
           while (turn < MAX_AGENT_TURNS) {
             turn++;
 
-            const availableTools = researchModeEnabled
-              ? [...browser.BROWSING_TOOLS, ...researchSkills.ACADEMIC_TOOLS]
-              : browser.BROWSING_TOOLS;
+            const availableTools = [];
+            if (projectModeEnabled) {
+              availableTools.push(...projectService.PROJECT_TOOLS);
+            }
+            if (researchModeEnabled) {
+              availableTools.push(...researchSkills.ACADEMIC_TOOLS);
+            }
+            if (webSearchEnabled) {
+              availableTools.push(...browser.BROWSING_TOOLS);
+            }
 
             const turnPayload = {
               model: requestedModel,
               messages: formattedMessages,
-              tools: turn === 1 ? availableTools : undefined,
+              tools: turn < MAX_AGENT_TURNS ? availableTools : undefined,
               stream: false,
               options: {
                 temperature: typeof params.temperature === 'number' ? params.temperature : 0.7,
@@ -698,7 +851,9 @@ CRITICAL OPERATIONAL PRINCIPLES:
 
                 let toolResult;
                 try {
-                  if (['academic_search', 'generate_bibtex', 'build_literature_matrix', 'evaluate_research_gap', 'create_design_brief', 'conduct_paper_review'].includes(toolName)) {
+                  if (toolName.startsWith('project_')) {
+                    toolResult = await projectService.executeProjectTool(toolName, toolArgs, activeProject);
+                  } else if (['academic_search', 'generate_bibtex', 'build_literature_matrix', 'evaluate_research_gap', 'create_design_brief', 'conduct_paper_review'].includes(toolName)) {
                     toolResult = await researchSkills.executeResearchTool(toolName, toolArgs, process.cwd());
                   } else {
                     toolResult = await browser.executeTool(toolName, toolArgs);

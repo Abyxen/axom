@@ -456,6 +456,57 @@ details.think .think-body {
 .header-btn.on{background:rgba(255,81,47,.12);color:var(--ac);border-color:var(--ac)}
 .header-btn.on svg{color:var(--ac)}
 
+/* project workspace drawer & project button */
+.project-btn{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border:1px solid var(--bd);border-radius:15px;color:var(--tx2);background:var(--surf);font:500 12px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif;letter-spacing:-.01em;transition:all .18s var(--ease);cursor:pointer;user-select:none;white-space:nowrap}
+.project-btn svg{width:14px;height:14px;color:var(--tx3);transition:color .18s,transform .18s;flex-shrink:0}
+.project-btn:hover{background:var(--elev);color:var(--tx);border-color:#3f3f46}
+.project-btn:hover svg{color:var(--tx)}
+.project-btn.on{background:rgba(69,212,131,.12);color:var(--ok);border-color:var(--ok);box-shadow:0 0 10px rgba(69,212,131,.2)}
+.project-btn.on svg{color:var(--ok)}
+.project-btn:active{transform:scale(.96)}
+
+.project-hdr-btn{color:var(--tx2);position:relative}
+.project-hdr-btn.on{color:var(--ok)}
+.project-hdr-btn.on::after{content:'';position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--ok);box-shadow:0 0 6px rgba(69,212,131,.8)}
+
+.project-drawer{display:flex;flex-direction:column;width:0;overflow:hidden;background:var(--bg2);border-left:1px solid var(--bd);transition:width .28s var(--ease),transform .28s var(--ease);position:relative;z-index:21;flex-shrink:0}
+.app.project-open .project-drawer{width:min(540px,48vw)}
+.project-drawer.maximized{position:absolute;inset:0;width:100%!important;z-index:50}
+.pj-header{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:#141416;border-bottom:1px solid var(--bd);gap:10px;min-height:44px}
+.pj-tab{display:inline-flex;align-items:center;gap:8px;background:#1c1c20;border:1px solid #2e2e34;border-radius:6px;padding:4px 10px;font:500 12px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif;color:#f4f4f5}
+.pj-tab-dot{width:7px;height:7px;border-radius:50%;background:#45D483;box-shadow:0 0 6px rgba(69,212,131,.6);flex-shrink:0}
+.pj-tab-badge{font-size:9px;font-family:'JetBrains Mono',monospace;background:rgba(69,212,131,.15);color:#45D483;padding:2px 4px;border-radius:3px;font-weight:600;letter-spacing:.04em}
+.pj-actions{display:flex;align-items:center;gap:4px}
+.pj-btn{display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border-radius:5px;color:#a1a1aa;font:500 11px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif;transition:all .15s ease;cursor:pointer;background:transparent;border:1px solid transparent}
+.pj-btn:hover{background:#27272a;color:#ffffff;border-color:#3f3f46}
+.pj-btn svg{width:13px;height:13px}
+.pj-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;background:#0d0d0f;border-bottom:1px solid var(--bd);flex-wrap:wrap}
+.pj-select{background:#18181b;border:1px solid #27272a;border-radius:6px;padding:5px 8px;color:#f4f4f5;font:500 12px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif;outline:none;min-width:140px;max-width:200px}
+.pj-tools{display:flex;align-items:center;gap:6px}
+.pj-tool-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;background:#1c1c20;border:1px solid #2e2e34;border-radius:5px;font:500 11px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif;color:var(--tx2);cursor:pointer;transition:all .15s}
+.pj-tool-btn:hover{background:#27272a;color:#fff;border-color:#3f3f46}
+.pj-tool-btn svg{width:12px;height:12px}
+.pj-body{flex:1;min-height:0;overflow:auto;padding:12px;display:flex;flex-direction:column}
+.pj-file-list{display:flex;flex-direction:column;gap:5px}
+.pj-file-item{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:#18181c;border:1px solid #222228;border-radius:6px;cursor:pointer;transition:all .15s}
+.pj-file-item:hover{background:#222228;border-color:#33333d}
+.pj-file-item.active{background:rgba(69,212,131,.08);border-color:rgba(69,212,131,.4)}
+.pj-file-info{display:flex;align-items:center;gap:8px;min-width:0;flex:1}
+.pj-file-icon{width:14px;height:14px;color:var(--tx3);flex-shrink:0}
+.pj-file-name{font:500 12px 'JetBrains Mono',monospace;color:#f4f4f5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pj-file-meta{display:flex;align-items:center;gap:8px;font:11px 'JetBrains Mono',monospace;color:var(--tx3);flex-shrink:0}
+.pj-file-del{opacity:0;transition:opacity .15s;padding:3px;color:var(--err);background:none;border:0;cursor:pointer;display:grid;place-items:center}
+.pj-file-item:hover .pj-file-del{opacity:1}
+.pj-file-del svg{width:12px;height:12px}
+.pj-editor-view{display:flex;flex-direction:column;flex:1;min-height:0;gap:8px}
+.pj-editor-hdr{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-bottom:6px;border-bottom:1px solid var(--bd)}
+.pj-editor-hdr .pj-editor-title{font:600 12px 'JetBrains Mono',monospace;color:#f4f4f5;display:flex;align-items:center;gap:6px}
+.pj-editor-textarea{flex:1;min-height:300px;background:#09090b;border:1px solid var(--bd);border-radius:6px;padding:12px;color:#f4f4f5;font:12px/1.55 'JetBrains Mono',monospace;resize:none;outline:none;tab-size:2}
+.pj-editor-textarea:focus{border-color:var(--ok)}
+.pj-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:50px 20px;text-align:center;color:var(--tx3);gap:10px}
+.pj-empty svg{width:36px;height:36px;color:var(--tx3);opacity:.4}
+.trace-project-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--ok);background:rgba(69,212,131,.1);border:1px solid rgba(69,212,131,.25);padding:2px 6px;border-radius:4px;margin-right:6px}
+
 @media(max-width:1100px){.side{width:225px;padding-inline:15px}.col-in{padding-inline:35px}.comp{padding-inline:35px}.hero-side{right:0;top:14px}.seal{width:85px;height:85px;font-size:10px}.seal b{font-size:22px}.sug button{padding:15px 12px}.sug button strong{font-size:18px}.empty h1{font-size:83px}}
 @media(max-width:800px){.side{position:fixed;width:270px!important;padding:25px 20px;z-index:40;transform:translateX(-100%);transition:transform .25s var(--ease)}.side.open{transform:none}.side.col{padding:25px 20px}.side.col .logo-btn,.side.col .edition,.side.col .sidebar-note,.side.col .profile{display:flex}.side.col .list{visibility:visible}.side.col .row{justify-content:flex-start}.side.col .colonly{display:none}.hdr{height:64px;min-height:64px;padding-inline:20px}.top-version{display:none}.col-in{padding-inline:24px}.intro-meta{margin-top:27px;margin-bottom:27px;font-size:8px}.empty h1{font-size:clamp(64px,12vw,92px);letter-spacing:-1.5px}.hero-side{top:11px;right:5px}.empty .intro-copy{font-size:12px;max-width:350px;margin:22px 0 29px}.sug{grid-template-columns:repeat(3,1fr);gap:9px}.sug button{min-height:119px;padding:13px}.comp{padding:13px 24px 18px}.side.open~.scrim{display:block;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:35;animation:fade .2s}}
 @media(max-width:480px){.hero-side{right:0;top:5px}.seal{width:68px;height:68px;font-size:8px}.seal b{font-size:18px}.hero-side .seal-note{display:none}.empty h1{font-size:66px}.sug{grid-template-columns:1fr}.empty .foot{margin-top:20px;padding-bottom:18px;font-size:7px}.cbox{padding:14px}.comp{padding-inline:20px}.attach-label{display:none}}
@@ -466,7 +517,7 @@ details.think .think-body {
 <script>
 const $=(s,e=document)=>e.querySelector(s),$$=(s,e=document)=>[...e.querySelectorAll(s)];
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const P={plus:'M12 5v14M5 12h14',search:'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-5-5',panel:'M3 5h18v14H3zM9 5v14',gear:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19 12l2-1-2-4-2 1-2-1V5h-4v2l-2 1-2-1-2 4 2 1v2l-2 1 2 4 2-1 2 1v2h4v-2l2-1 2 1 2-4-2-1z',more:'M5 12h.01M12 12h.01M19 12h.01',clip:'M20 12l-8 8a5 5 0 0 1-7-7l9-9a3.5 3.5 0 0 1 5 5l-9 9a2 2 0 0 1-3-3l8-8',up:'M12 19V5M5 12l7-7 7 7',stop:'M7 7h10v10H7z',copy:'M9 9h11v11H9zM5 15V4h11',redo:'M20 11a8 8 0 1 0-2 6M20 4v7h-7',up2:'M7 11l4-8 2 1-1 5h7l-1 8H7zM3 11h4v10H3z',dn:'M17 13l-4 8-2-1 1-5H5l1-8h11zM21 13h-4V3h4',x:'M6 6l12 12M18 6L6 18',file:'M6 3h8l4 4v14H6zM14 3v4h4',mic:'M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3zm7 8v2a7 7 0 0 1-14 0v-2M12 19v3m-4 0h8',globe:'M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 0c2.5 2.7 4 6.2 4 10s-1.5 7.3-4 10c-2.5-2.7-4-6.2-4-10s1.5-7.3 4-10zm-8 10h16M4.9 6.5h14.2M4.9 17.5h14.2',code:'M16 18l6-6-6-6M8 6l-6 6 6 6',check:'M20 6L9 17l-5-5',chevron:'M6 9l6 6 6-6',ext:'M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3',lock:'M7 11V7a5 5 0 0 1 10 0v4m-12 0h14v10H5z',expand:'M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7',shrink:'M4 14h6v6M20 10h-6V4M14 10l7-7M10 14l-7 7',leftArrow:'M15 19l-7-7 7-7',rightArrow:'M9 5l7 7-7 7',save:'M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2zM17 21v-8H7v8M7 3v5h8',download:'M12 3v13m0 0l-4-4m4 4l4-4M4 21h16',book:'M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z',clipboard:'M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2M9 2h6a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z'};
+const P={plus:'M12 5v14M5 12h14',search:'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-5-5',panel:'M3 5h18v14H3zM9 5v14',gear:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19 12l2-1-2-4-2 1-2-1V5h-4v2l-2 1-2-1-2 4 2 1v2l-2 1 2 4 2-1 2 1v2h4v-2l2-1 2 1 2-4-2-1z',more:'M5 12h.01M12 12h.01M19 12h.01',clip:'M20 12l-8 8a5 5 0 0 1-7-7l9-9a3.5 3.5 0 0 1 5 5l-9 9a2 2 0 0 1-3-3l8-8',up:'M12 19V5M5 12l7-7 7 7',stop:'M7 7h10v10H7z',copy:'M9 9h11v11H9zM5 15V4h11',redo:'M20 11a8 8 0 1 0-2 6M20 4v7h-7',up2:'M7 11l4-8 2 1-1 5h7l-1 8H7zM3 11h4v10H3z',dn:'M17 13l-4 8-2-1 1-5H5l1-8h11zM21 13h-4V3h4',x:'M6 6l12 12M18 6L6 18',file:'M6 3h8l4 4v14H6zM14 3v4h4',mic:'M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3zm7 8v2a7 7 0 0 1-14 0v-2M12 19v3m-4 0h8',globe:'M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 0c2.5 2.7 4 6.2 4 10s-1.5 7.3-4 10c-2.5-2.7-4-6.2-4-10s1.5-7.3 4-10zm-8 10h16M4.9 6.5h14.2M4.9 17.5h14.2',code:'M16 18l6-6-6-6M8 6l-6 6 6 6',check:'M20 6L9 17l-5-5',chevron:'M6 9l6 6 6-6',ext:'M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3',lock:'M7 11V7a5 5 0 0 1 10 0v4m-12 0h14v10H5z',expand:'M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7',shrink:'M4 14h6v6M20 10h-6V4M14 10l7-7M10 14l-7 7',leftArrow:'M15 19l-7-7 7-7',rightArrow:'M9 5l7 7-7 7',save:'M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2zM17 21v-8H7v8M7 3v5h8',download:'M12 3v13m0 0l-4-4m4 4l4-4M4 21h16',book:'M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z',clipboard:'M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2M9 2h6a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z',folder:'M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z',trash:'M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2'};
 const ic=n=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${P[n]}"/></svg>`;
 
 /* ---- API layer ---- */
@@ -504,6 +555,8 @@ const Axom={
           session_id:S.cur||'default_session',
           web_search: S.web !== false,
           web_mode: S.web === false ? 'offline' : 'auto',
+          project_mode: S.projectMode === true || (typeof ProjectManager !== 'undefined' && ProjectManager.isOpen),
+          project_name: (typeof ProjectManager !== 'undefined' && ProjectManager.activeProject) || S.activeProject || 'default-project',
           messages:messages.map(m=>({role:m.role,content:m.ctx?m.ctx+'\n\n'+m.text:m.text})),
           params:{...S.gen, ...effortParams, stop:String(S.gen.stop||'').split(',').map(x=>x.trim()).filter(Boolean), stream: true}
         })
@@ -524,7 +577,7 @@ const Axom={
 
 /* ---- state ---- */
 const D=864e5,MAXF=24000;
-let S={convs:[],cur:null,api:'',model:'axom:1.1',lang:'pt',web:true,theme:'dark',col:false,enterSends:true,effort:'fast',gen:{temperature:.7,top_k:50,max_tokens:512,seed:-1,stop:'',stream:true}};
+let S={convs:[],cur:null,api:'',model:'axom:1.1',lang:'pt',web:true,projectMode:false,activeProject:'default-project',theme:'dark',col:false,enterSends:true,effort:'fast',gen:{temperature:.7,top_k:50,max_tokens:512,seed:-1,stop:'',stream:true}};
 try{const j=JSON.parse(localStorage.getItem('axom-v2'));if(j)S={...S,...j,gen:{...S.gen,...j.gen}}}catch(e){}
 if(!S.lang) S.lang = 'pt';
 if(!S.effort) S.effort = 'fast';
@@ -608,6 +661,22 @@ const I18N = {
     ibClose: "Close Browser",
     ibUrlPlaceholder: "Search the web or enter URL...",
     ibGo: "Go",
+    projectTitle: "Project Workspace Mode (Strict sandbox, read/write/modify files)",
+    projectBadge: "Project",
+    projectEnabled: "Project Sandbox active (Modifications locked to project files)",
+    projectDisabled: "Project Sandbox inactive",
+    projectFiles: "Project Files",
+    projectNew: "New Project",
+    projectUpload: "Upload to Project",
+    projectNewFile: "New File",
+    projectActive: "Active Project",
+    projectEmpty: "No files in project yet. Drop files or ask Axom to create code.",
+    toolProjectReading: "Reading project file",
+    toolProjectWriting: "Writing project file",
+    toolProjectModifying: "Modifying project file",
+    toolProjectDeleting: "Deleting project file",
+    toolProjectListing: "Inspecting project files",
+    toolProjectRunning: "Executing script in project",
     attachTitle: "Attach text, code or folder files",
     voiceTitle: "Voice input (dictate with mic)",
     voiceListening: "Listening... Speak now",
@@ -763,6 +832,22 @@ const I18N = {
     ibClose: "Fechar Navegador",
     ibUrlPlaceholder: "Pesquise na web ou digite um endereço URL...",
     ibGo: "Ir",
+    projectTitle: "Modo Projeto (Sandbox estrito, lê/escreve/modifica arquivos)",
+    projectBadge: "Projeto",
+    projectEnabled: "Sandbox de Projeto ativo (Modificações restritas aos arquivos do projeto)",
+    projectDisabled: "Modo Projeto inativo",
+    projectFiles: "Arquivos do Projeto",
+    projectNew: "Novo Projeto",
+    projectUpload: "Carregar no Projeto",
+    projectNewFile: "Novo Arquivo",
+    projectActive: "Projeto Ativo",
+    projectEmpty: "Nenhum arquivo no projeto. Arraste arquivos ou peça ao Axom para criar código.",
+    toolProjectReading: "Lendo arquivo do projeto",
+    toolProjectWriting: "Escrevendo arquivo do projeto",
+    toolProjectModifying: "Modificando arquivo do projeto",
+    toolProjectDeleting: "Excluindo arquivo do projeto",
+    toolProjectListing: "Inspecionando arquivos do projeto",
+    toolProjectRunning: "Executando script no projeto",
     attachTitle: "Anexar texto, código ou pastas",
     voiceTitle: "Entrada por voz (ditar com microfone)",
     voiceListening: "A escutar... Fale agora",
@@ -1099,6 +1184,324 @@ const InsideBrowser = {
   }
 };
 
+/* ---- project workspace sandbox manager ---- */
+const ProjectManager = {
+  isOpen: false,
+  isMaximized: false,
+  projects: [],
+  activeProject: 'default-project',
+  files: [],
+  currentFile: null,
+
+  async init() {
+    await this.fetchProjects();
+    await this.fetchFiles();
+  },
+
+  async fetchProjects() {
+    try {
+      const res = await fetch(Axom.url('/api/projects'));
+      if (res.ok) {
+        const data = await res.json();
+        this.projects = data.projects || [];
+        if (data.activeProject) this.activeProject = data.activeProject;
+        S.activeProject = this.activeProject;
+      }
+    } catch (e) {}
+  },
+
+  async fetchFiles(projectName = this.activeProject) {
+    try {
+      const res = await fetch(Axom.url(`/api/project/files?name=${encodeURIComponent(projectName)}`));
+      if (res.ok) {
+        const data = await res.json();
+        this.files = data.files || [];
+        this.render();
+      }
+    } catch (e) {}
+  },
+
+  async selectProject(name) {
+    if (name === '__new__') {
+      const pName = prompt('Enter new project name:');
+      if (!pName) return;
+      try {
+        const res = await fetch(Axom.url('/api/projects/create'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: pName })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          this.activeProject = data.name;
+          S.activeProject = data.name;
+          save();
+          toast('Project created: ' + data.name);
+          await this.fetchProjects();
+          await this.fetchFiles();
+          const btn = $('#projectBtn');
+          if (btn) btn.querySelector('span').textContent = data.name;
+        }
+      } catch (e) {}
+      return;
+    }
+
+    try {
+      const res = await fetch(Axom.url('/api/projects/select'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+      });
+      if (res.ok) {
+        this.activeProject = name;
+        S.activeProject = name;
+        this.currentFile = null;
+        save();
+        await this.fetchProjects();
+        await this.fetchFiles();
+        const btn = $('#projectBtn');
+        if (btn) btn.querySelector('span').textContent = name;
+        toast('Active project: ' + name);
+      }
+    } catch (e) {}
+  },
+
+  async openFile(filePath) {
+    try {
+      const res = await fetch(Axom.url(`/api/project/file?name=${encodeURIComponent(this.activeProject)}&path=${encodeURIComponent(filePath)}`));
+      if (res.ok) {
+        const data = await res.json();
+        this.currentFile = data;
+        this.render();
+      }
+    } catch (e) {}
+  },
+
+  async saveCurrentFile() {
+    if (!this.currentFile) return;
+    const editor = document.getElementById('pjEditorTextarea');
+    if (!editor) return;
+    const newContent = editor.value;
+
+    try {
+      const res = await fetch(Axom.url('/api/project/file'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          project: this.activeProject,
+          path: this.currentFile.path,
+          content: newContent
+        })
+      });
+      if (res.ok) {
+        toast('Saved ' + this.currentFile.path);
+        this.currentFile.content = newContent;
+        await this.fetchFiles();
+      }
+    } catch (e) {}
+  },
+
+  async deleteFile(filePath) {
+    if (!confirm(`Delete ${filePath}?`)) return;
+    try {
+      const res = await fetch(Axom.url('/api/project/delete'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ project: this.activeProject, path: filePath })
+      });
+      if (res.ok) {
+        toast('Deleted ' + filePath);
+        if (this.currentFile && this.currentFile.path === filePath) {
+          this.currentFile = null;
+        }
+        await this.fetchFiles();
+      }
+    } catch (e) {}
+  },
+
+  async createNewFile() {
+    const fPath = prompt('Enter new file name (e.g. app.js, index.html):');
+    if (!fPath) return;
+    try {
+      const res = await fetch(Axom.url('/api/project/file'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ project: this.activeProject, path: fPath, content: '' })
+      });
+      if (res.ok) {
+        toast('Created ' + fPath);
+        await this.fetchFiles();
+        await this.openFile(fPath);
+      }
+    } catch (e) {}
+  },
+
+  async uploadFiles(fileList) {
+    if (!fileList || !fileList.length) return;
+    const filesToUpload = [];
+    for (const f of fileList) {
+      const text = await f.text();
+      filesToUpload.push({ name: f.name, data: text });
+    }
+
+    try {
+      const res = await fetch(Axom.url('/api/project/upload'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ project: this.activeProject, files: filesToUpload })
+      });
+      if (res.ok) {
+        toast(`Uploaded ${filesToUpload.length} file(s)`);
+        await this.fetchFiles();
+      }
+    } catch (e) {}
+  },
+
+  toggle(forceOpen) {
+    this.isOpen = typeof forceOpen === 'boolean' ? forceOpen : !this.isOpen;
+    const app = $('#app');
+    if (app) app.classList.toggle('project-open', this.isOpen);
+    const btn = $('#projectBtn');
+    if (btn) btn.classList.toggle('on', this.isOpen);
+    const hdrBtn = $('.project-hdr-btn');
+    if (hdrBtn) hdrBtn.classList.toggle('on', this.isOpen);
+
+    if (this.isOpen) {
+      this.fetchFiles();
+    }
+  },
+
+  toggleMaximize() {
+    this.isMaximized = !this.isMaximized;
+    const panel = $('#projectDrawer');
+    if (panel) panel.classList.toggle('maximized', this.isMaximized);
+    const maxBtn = $('#pjMaxBtn');
+    if (maxBtn) maxBtn.innerHTML = ic(this.isMaximized ? 'shrink' : 'expand');
+  },
+
+  getFileIcon(ext) {
+    switch (ext) {
+      case '.js': case '.ts': case '.py': case '.rs': case '.c': case '.cpp': case '.java':
+        return ic('code');
+      case '.html': case '.svg':
+        return ic('globe');
+      case '.css':
+        return ic('panel');
+      case '.md': case '.txt':
+        return ic('book');
+      case '.json': case '.yml': case '.yaml':
+        return ic('clipboard');
+      default:
+        return ic('file');
+    }
+  },
+
+  render() {
+    const el = document.getElementById('projectDrawer');
+    if (!el) return;
+    el.innerHTML = this.html();
+    this.bindEvents();
+  },
+
+  bindEvents() {
+    const el = document.getElementById('projectDrawer');
+    if (!el) return;
+
+    el.ondragover = e => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; };
+    el.ondrop = async e => {
+      e.preventDefault();
+      if (e.dataTransfer.files?.length) {
+        await this.uploadFiles(e.dataTransfer.files);
+      }
+    };
+
+    const sel = el.querySelector('#pjProjectSelect');
+    if (sel) {
+      sel.onchange = e => this.selectProject(e.target.value);
+    }
+
+    const upInp = el.querySelector('#pjUploadInput');
+    if (upInp) {
+      upInp.onchange = e => {
+        if (e.target.files?.length) this.uploadFiles(e.target.files);
+      };
+    }
+  },
+
+  html() {
+    const options = (this.projects.length ? this.projects : [{ name: 'default-project' }])
+      .map(p => `<option value="${esc(p.name)}" ${p.name === this.activeProject ? 'selected' : ''}>${esc(p.name)} (${p.fileCount || 0})</option>`)
+      .join('') + `<option value="__new__">+ ${t('projectNew')}...</option>`;
+
+    let bodyContent = '';
+    if (this.currentFile) {
+      bodyContent = `
+        <div class="pj-editor-view">
+          <div class="pj-editor-hdr">
+            <div class="pj-editor-title">
+              <button class="pj-btn" data-act="closeprojectfile" title="Back to file list">${ic('leftArrow')}</button>
+              <span>${esc(this.currentFile.path)}</span>
+              <small style="color:var(--tx3); font-size:10px;">(${this.currentFile.lineCount || 0} lines)</small>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn pri" data-act="saveprojectfile" style="padding:4px 9px;">${ic('save')} <span>${t('saveBtn')}</span></button>
+            </div>
+          </div>
+          <textarea class="pj-editor-textarea" id="pjEditorTextarea" spellcheck="false">${esc(this.currentFile.content || '')}</textarea>
+        </div>
+      `;
+    } else if (!this.files.length) {
+      bodyContent = `
+        <div class="pj-empty">
+          ${ic('folder')}
+          <div><b>${t('projectFiles')}</b></div>
+          <div style="font-size:12px;max-width:280px;">${t('projectEmpty')}</div>
+          <button class="btn pri" data-act="newprojectfile" style="margin-top:10px;">${ic('plus')} <span>${t('projectNewFile')}</span></button>
+        </div>
+      `;
+    } else {
+      const items = this.files.map(f => `
+        <div class="pj-file-item" data-act="openprojectfile" data-path="${esc(f.path)}">
+          <div class="pj-file-info">
+            <span class="pj-file-icon">${this.getFileIcon(f.ext)}</span>
+            <span class="pj-file-name" title="${esc(f.path)}">${esc(f.path)}</span>
+          </div>
+          <div class="pj-file-meta">
+            <span>${(f.size / 1024).toFixed(1)} KB</span>
+            <button class="pj-file-del" data-act="delprojectfile" data-path="${esc(f.path)}" title="Delete file">${ic('trash')}</button>
+          </div>
+        </div>
+      `).join('');
+
+      bodyContent = `<div class="pj-file-list">${items}</div>`;
+    }
+
+    return `
+      <div class="pj-header">
+        <div class="pj-tab">
+          <span class="pj-tab-dot"></span>
+          <span style="font-weight:600;">PROJECT SANDBOX</span>
+          <span class="pj-tab-badge">LOCKED</span>
+        </div>
+        <div class="pj-actions">
+          <button class="pj-btn" data-act="refreshproject" title="Refresh files">${ic('redo')}</button>
+          <button class="pj-btn" data-act="maximizeproject" id="pjMaxBtn" title="Maximize">${ic(this.isMaximized ? 'shrink' : 'expand')}</button>
+          <button class="pj-btn" data-act="closeproject" title="Close">${ic('x')}</button>
+        </div>
+      </div>
+      <div class="pj-bar">
+        <select class="pj-select" id="pjProjectSelect">${options}</select>
+        <div class="pj-tools">
+          <button class="pj-tool-btn" data-act="newprojectfile" title="${t('projectNewFile')}">${ic('plus')} <span>File</span></button>
+          <button class="pj-tool-btn" data-act="uploadtoproject" title="${t('projectUpload')}">${ic('clip')} <span>Upload</span></button>
+          <input type="file" id="pjUploadInput" multiple hidden>
+        </div>
+      </div>
+      <div class="pj-body">${bodyContent}</div>
+    `;
+  }
+};
+
 function shell(){
   document.title = t('appTitle');
   document.documentElement.lang = S.lang || 'pt';
@@ -1113,9 +1516,9 @@ function shell(){
   <button class="row" data-act="settings" title="${t('settings')}">${ic('gear')}<span class="lbl">${t('settings')}</span></button>
   </aside>
   <div class="scrim" data-act="drawer"></div>
-  <section class="main"><header class="hdr"><button class="ib" data-act="drawer" aria-label="${t('toggleSidebar')}" title="${t('toggleSidebar')}">${ic('panel')}</button><div class="ttl">${t('workspacePrefix')} <b>/ ${esc(cur()?.title||t('newConvHeader'))}</b></div><span class="sp"></span><div class="lang-switch" role="group" aria-label="Language / Idioma"><button class="lang-btn ${S.lang==='en'?'on':''}" data-act="setlang" data-l="en" title="English">EN</button><button class="lang-btn ${S.lang==='pt'?'on':''}" data-act="setlang" data-l="pt" title="Português">PT</button></div></header>
+  <section class="main"><header class="hdr"><button class="ib" data-act="drawer" aria-label="${t('toggleSidebar')}" title="${t('toggleSidebar')}">${ic('panel')}</button><div class="ttl">${t('workspacePrefix')} <b>/ ${esc(cur()?.title||t('newConvHeader'))}</b></div><span class="sp"></span><button class="ib project-hdr-btn ${S.projectMode?'on':''}" data-act="toggleproject" title="${t('projectTitle')}">${ic('folder')}</button><div class="lang-switch" role="group" aria-label="Language / Idioma"><button class="lang-btn ${S.lang==='en'?'on':''}" data-act="setlang" data-l="en" title="English">EN</button><button class="lang-btn ${S.lang==='pt'?'on':''}" data-act="setlang" data-l="pt" title="Português">PT</button></div></header>
   <main class="chat" id="chat" aria-label="Chat"><div class="col-in" id="msgs" aria-live="polite"></div></main>
-  <div class="comp"><div class="cbox" id="cbox"><div class="chips" id="atts"></div><textarea id="inp" rows="1" placeholder="${t('inputPlaceholder')}" aria-label="Message" maxlength="32000"></textarea><div class="tools"><button class="ib" data-act="attach" aria-label="${t('attachTitle')}" title="${t('attachTitle')}">${ic('clip')}</button><button class="ib mic-btn" id="micBtn" data-act="voice" aria-label="${t('voiceTitle')}" title="${t('voiceTitle')}">${ic('mic')}</button><button class="web-btn ${S.web?'on':''}" id="webBtn" data-act="toggleweb" aria-label="${t('webTitle')}" title="${t('webTitle')}">${ic('globe')}<span>${t('webBadge')}</span></button><span class="sp"></span><button class="send" id="send" data-act="send" aria-label="${t('send')}" title="${t('send')}">${ic('up')}</button></div></div><div class="hint"><span>${t('disclaimer')}</span><span>${t('hintKeys')}</span></div></div><input type="file" id="file" multiple hidden></section>
+  <div class="comp"><div class="cbox" id="cbox"><div class="chips" id="atts"></div><textarea id="inp" rows="1" placeholder="${t('inputPlaceholder')}" aria-label="Message" maxlength="32000"></textarea><div class="tools"><button class="ib" data-act="attach" aria-label="${t('attachTitle')}" title="${t('attachTitle')}">${ic('clip')}</button><button class="ib mic-btn" id="micBtn" data-act="voice" aria-label="${t('voiceTitle')}" title="${t('voiceTitle')}">${ic('mic')}</button><button class="web-btn ${S.web?'on':''}" id="webBtn" data-act="toggleweb" aria-label="${t('webTitle')}" title="${t('webTitle')}">${ic('globe')}<span>${t('webBadge')}</span></button><button class="project-btn ${S.projectMode?'on':''}" id="projectBtn" data-act="toggleproject" aria-label="${t('projectTitle')}" title="${t('projectTitle')}">${ic('folder')}<span>${esc(ProjectManager.activeProject||'Project')}</span></button><span class="sp"></span><button class="send" id="send" data-act="send" aria-label="${t('send')}" title="${t('send')}">${ic('up')}</button></div></div><div class="hint"><span>${t('disclaimer')}</span><span>${t('hintKeys')}</span></div></div><input type="file" id="file" multiple hidden></section>
   <aside class="inside-browser ${InsideBrowser.isMaximized?'maximized':''}" id="insideBrowser">
     <div class="ib-header">
       <div class="ib-tab">
@@ -1143,8 +1546,9 @@ function shell(){
     <div class="ib-viewport">
       <iframe id="ibFrame" class="ib-frame" sandbox="allow-scripts allow-forms allow-modals allow-popups allow-same-origin"></iframe>
     </div>
-  </aside>`;
-  drawMsgs();drawAtts();bindInput();updSend();updateThemeLabel();if(InsideBrowser.isOpen){$('#app').classList.add('browser-open');InsideBrowser.render();}}
+  </aside>
+  <aside class="project-drawer ${ProjectManager.isMaximized?'maximized':''}" id="projectDrawer"></aside>`;
+  drawMsgs();drawAtts();bindInput();updSend();updateThemeLabel();if(InsideBrowser.isOpen){$('#app').classList.add('browser-open');InsideBrowser.render();}if(ProjectManager.isOpen||S.projectMode){$('#app').classList.add('project-open');ProjectManager.isOpen=true;ProjectManager.render();}}
 
 function welcome(){
   const isPt = S.lang === 'pt';
@@ -1206,6 +1610,18 @@ function toolsTraceHTML(tools, isOpen=false){
       searches.push({ type: 'browse', text: tObj.args?.url || '', isRunning: tObj.status==='running' });
     }else if(tObj.name==='open_browser'){
       searches.push({ type: 'browser', text: tObj.args?.url || '', isRunning: tObj.status==='running' });
+    }else if(tObj.name==='project_read_file'){
+      searches.push({ type: 'project_read', text: `Read: ${tObj.args?.file_path||tObj.args?.path||''}`, isRunning: tObj.status==='running' });
+    }else if(tObj.name==='project_write_file'){
+      searches.push({ type: 'project_write', text: `Created/Updated: ${tObj.args?.file_path||tObj.args?.path||''}`, isRunning: tObj.status==='running' });
+    }else if(tObj.name==='project_modify_file'){
+      searches.push({ type: 'project_modify', text: `Modified: ${tObj.args?.file_path||tObj.args?.path||''}`, isRunning: tObj.status==='running' });
+    }else if(tObj.name==='project_delete_file'){
+      searches.push({ type: 'project_delete', text: `Deleted: ${tObj.args?.file_path||tObj.args?.path||''}`, isRunning: tObj.status==='running' });
+    }else if(tObj.name==='project_list_files'){
+      searches.push({ type: 'project_list', text: 'Inspected Project Files', isRunning: tObj.status==='running' });
+    }else if(tObj.name==='project_run_code'){
+      searches.push({ type: 'project_run', text: `Ran: ${tObj.args?.command||''}`, isRunning: tObj.status==='running' });
     }else{
       searches.push({ type: 'tool', text: tObj.name, isRunning: tObj.status==='running' });
     }
@@ -1231,11 +1647,26 @@ function toolsTraceHTML(tools, isOpen=false){
       summaryTitle = t('toolReadingPage');
     }else if(runningTool.name==='open_browser'){
       summaryTitle = t('toolOpeningBrowser');
+    }else if(runningTool.name==='project_read_file'){
+      summaryTitle = `${t('toolProjectReading')}: ${runningTool.args?.file_path||runningTool.args?.path||''}`;
+    }else if(runningTool.name==='project_write_file'){
+      summaryTitle = `${t('toolProjectWriting')}: ${runningTool.args?.file_path||runningTool.args?.path||''}`;
+    }else if(runningTool.name==='project_modify_file'){
+      summaryTitle = `${t('toolProjectModifying')}: ${runningTool.args?.file_path||runningTool.args?.path||''}`;
+    }else if(runningTool.name==='project_delete_file'){
+      summaryTitle = `${t('toolProjectDeleting')}: ${runningTool.args?.file_path||runningTool.args?.path||''}`;
+    }else if(runningTool.name==='project_list_files'){
+      summaryTitle = t('toolProjectListing');
+    }else if(runningTool.name==='project_run_code'){
+      summaryTitle = `${t('toolProjectRunning')}: ${runningTool.args?.command||''}`;
     }else{
       summaryTitle = t('thinking');
     }
   }else{
-    if(uniqueSources.length === 1){
+    if(tools.some(x=>x.name && x.name.startsWith('project_'))){
+      const writes = tools.filter(x=>['project_write_file','project_modify_file'].includes(x.name)).length;
+      summaryTitle = writes > 0 ? `Updated ${writes} Project File${writes>1?'s':''}` : 'Project Sandbox Operations';
+    }else if(uniqueSources.length === 1){
       summaryTitle = t('searchedSourceSingle');
     }else if(uniqueSources.length > 1){
       summaryTitle = t('searchedSources').replace('{n}', uniqueSources.length);
@@ -1258,6 +1689,8 @@ function toolsTraceHTML(tools, isOpen=false){
           return `<div class="trace-item">${ic('file')}<span>${t('readPageLabel')} <span class="trace-query">${esc(s.text)}</span></span></div>`;
         }else if(s.type==='browser'){
           return `<div class="trace-item">${ic('globe')}<span>${t('openedBrowserLabel')} <span class="trace-query">${esc(s.text)}</span></span></div>`;
+        }else if(s.type.startsWith('project_')){
+          return `<div class="trace-item"><span class="trace-project-badge">SANDBOX</span><span>${esc(s.text)}</span></div>`;
         }else{
           return `<div class="trace-item">${ic('code')}<span>${esc(s.text)}</span></div>`;
         }
@@ -1527,6 +1960,9 @@ async function generate(c){
       }else if(ev.type==='tool_end'){
         const tObj=m.tools.find(x=>x.id===ev.id)||m.tools.find(x=>x.status==='running')||m.tools.at(-1);
         if(tObj){tObj.status='done';tObj.result=ev.result;}
+        if(ev.name && ev.name.startsWith('project_') && typeof ProjectManager !== 'undefined'){
+          ProjectManager.fetchFiles();
+        }
         if(!raf)raf=requestAnimationFrame(paint);
       }else if(ev.type==='think'){
         m.think+=(ev.text||'');m.thinkMs=Date.now()-t0;
@@ -1815,6 +2251,46 @@ document.addEventListener('click',async e=>{
     if(btn) btn.classList.toggle('on', !!S.web);
     toast(S.web ? t('webAuto') : t('webDisabled'));
   }
+  else if(a==='toggleproject'){
+    S.projectMode = !S.projectMode;
+    save();
+    ProjectManager.toggle(S.projectMode);
+    toast(S.projectMode ? t('projectEnabled') : t('projectDisabled'));
+  }
+  else if(a==='closeproject'){
+    ProjectManager.toggle(false);
+    S.projectMode = false;
+    save();
+  }
+  else if(a==='maximizeproject'){
+    ProjectManager.toggleMaximize();
+  }
+  else if(a==='refreshproject'){
+    ProjectManager.fetchFiles();
+    toast('Project refreshed');
+  }
+  else if(a==='newprojectfile'){
+    ProjectManager.createNewFile();
+  }
+  else if(a==='uploadtoproject'){
+    $('#pjUploadInput')?.click();
+  }
+  else if(a==='openprojectfile'){
+    const fPath = b.dataset.path;
+    if(fPath) ProjectManager.openFile(fPath);
+  }
+  else if(a==='saveprojectfile'){
+    ProjectManager.saveCurrentFile();
+  }
+  else if(a==='closeprojectfile'){
+    ProjectManager.currentFile = null;
+    ProjectManager.render();
+  }
+  else if(a==='delprojectfile'){
+    e.stopPropagation();
+    const fPath = b.dataset.path;
+    if(fPath) ProjectManager.deleteFile(fPath);
+  }
   else if(a==='theme'){S.theme=document.documentElement.dataset.theme==='dark'?'light':'dark';applyTheme();updateThemeLabel();save();}
   else if(a==='open'){S.cur=id;save();shell();closeDrawer()}
   else if(a==='collapse'){S.col=!S.col;save();$('#side').classList.toggle('col',S.col)}
@@ -1929,7 +2405,7 @@ document.addEventListener('keydown',e=>{
 });
 matchMedia('(prefers-color-scheme:light)').addEventListener('change',()=>S.theme==='system'&&applyTheme());
 
-applyTheme();shell();InsideBrowser.init();
+applyTheme();shell();InsideBrowser.init();ProjectManager.init();
 Axom.models().then(m=>{
   models=m;
   if(m.length&&!m.some(x=>x.id===S.model))S.model=m[0].id;
