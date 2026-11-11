@@ -1036,8 +1036,6 @@ const InsideBrowser = {
     this.isOpen = true;
     const app = $('#app');
     if(app) app.classList.add('browser-open');
-    const headerBtn = $('#browserHeaderBtn');
-    if(headerBtn) headerBtn.classList.add('on');
     this.navigate(url || this.currentUrl || 'https://www.google.com');
   },
 
@@ -1048,8 +1046,6 @@ const InsideBrowser = {
     if(app) app.classList.remove('browser-open');
     const panel = $('#insideBrowser');
     if(panel) panel.classList.remove('maximized');
-    const headerBtn = $('#browserHeaderBtn');
-    if(headerBtn) headerBtn.classList.remove('on');
   },
 
   toggle(){
