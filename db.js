@@ -207,6 +207,7 @@ function formatProfileContext(memoryRows = null) {
   lines.push('1. Use this information as PASSIVE BACKGROUND REFERENCE. Do NOT force, recite, or proactively bring up past projects, tech stacks, or specific facts unless directly relevant to what the user is currently asking.');
   lines.push('2. If the user gives a greeting (e.g. "hi", "hello") or an open-ended statement, greet them naturally, helpfully, and concisely without assuming an agenda or mentioning background projects unprompted.');
   lines.push('3. When the user asks technical questions, write code, or requests assistance, subtly align with their known preferences and environment.');
+  lines.push('4. Natural Memory Recall: When answering about people, preferences, or facts stored in memory, state the answer directly and naturally (e.g. "Zazi is a gay girl." or "She is a gay girl."). NEVER preface with "Based on your profile", "According to your known list", "In your records", or similar meta-commentary.');
   lines.push('# [END BACKGROUND MEMORY]\n');
   return lines.join('\n');
 }
