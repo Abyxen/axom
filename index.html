@@ -524,11 +524,12 @@ const Axom={
 
 /* ---- state ---- */
 const D=864e5,MAXF=24000;
-let S={convs:[],cur:null,api:'',model:'axom:1.1',lang:'pt',web:true,theme:'dark',col:false,enterSends:true,effort:'fast',gen:{temperature:.7,top_k:50,max_tokens:512,seed:-1,stop:'',stream:true}};
+let S={convs:[],cur:null,api:'',model:'axom:1.1',lang:'pt',web:true,theme:'dark',col:false,enterSends:true,showThinking:false,effort:'fast',gen:{temperature:.7,top_k:50,max_tokens:512,seed:-1,stop:'',stream:true}};
 try{const j=JSON.parse(localStorage.getItem('axom-v2'));if(j)S={...S,...j,gen:{...S.gen,...j.gen}}}catch(e){}
 if(!S.lang) S.lang = 'pt';
 if(!S.effort) S.effort = 'fast';
 if(S.web===undefined) S.web = true;
+if(S.showThinking===undefined) S.showThinking = false;
 const save=()=>{try{localStorage.setItem('axom-v2',JSON.stringify(S))}catch(e){}};
 let models=[],query='',atts=[],run=null,pop=null,fresh=-1;
 const cur=()=>S.convs.find(c=>c.id===S.cur);
@@ -674,6 +675,8 @@ const I18N = {
     enterSendsSub: "When off, press Ctrl+Enter to send.",
     modelLabel: "Inference Model",
     modelSub: "Select the primary neural weights model.",
+    showThinkingLabel: "Show Reasoning Process",
+    showThinkingSub: "Display internal thinking and step-by-step reasoning above answers.",
     tempLabel: "Temperature",
     topKLabel: "Top K (0 = unrestricted)",
     maxTokensLabel: "Maximum reply tokens",
@@ -829,6 +832,8 @@ const I18N = {
     enterSendsSub: "Quando desativado, prima Ctrl+Enter para enviar.",
     modelLabel: "Modelo de Inferência",
     modelSub: "Selecione o modelo principal de pesos neurais.",
+    showThinkingLabel: "Mostrar Processo de Raciocínio",
+    showThinkingSub: "Exibir pensamento interno e passos de raciocínio acima da resposta.",
     tempLabel: "Temperatura",
     topKLabel: "Top K (0 = sem restrição)",
     maxTokensLabel: "Máximo de tokens por resposta",
@@ -1297,7 +1302,7 @@ function msgHTML(m,i,last){
   const isLive = run && last;
   const isComputing = isLive && !m.text;
   const toolsRender=(m.tools&&m.tools.length)?toolsTraceHTML(m.tools,false):'';
-  const thinkRender=m.think?`<details class="think think-trace"><summary class="think-summary"><span class="think-icon">${ic('code')}</span><span class="think-title">${t('thinking')} · ${(m.thinkMs/1e3).toFixed(1)}s</span><span class="think-chevron">${ic('chevron')}</span></summary><div class="think-body">${esc(m.think)}</div></details>`:'';
+  const thinkRender=(S.showThinking && m.think)?`<details class="think think-trace"><summary class="think-summary"><span class="think-icon">${ic('code')}</span><span class="think-title">${t('thinking')} · ${(m.thinkMs/1e3).toFixed(1)}s</span><span class="think-chevron">${ic('chevron')}</span></summary><div class="think-body">${esc(m.think)}</div></details>`:'';
   const loadingIndicator = isComputing ? `<div class="compute-loading"><svg class="spin-circle" viewBox="0 0 24 24" width="15" height="15"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.5" stroke-opacity="0.25" fill="none"/><path d="M12 3a9 9 0 0 1 9 9" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg><span>${t('thinking')}...</span></div>` : '';
 
   return`<div class="msg${cls}" data-i="${i}"><div class="who">${t('axom')}</div>${thinkRender}${toolsRender}${loadingIndicator}<div class="bd">${md(m.text)}</div>
@@ -1482,7 +1487,7 @@ async function generate(c){
   let raf=0;
   const paint=()=>{
     raf=0;
-    if(m.think){
+    if(S.showThinking && m.think){
       let thinkEl=$('.think',msgEl);
       if(!thinkEl){
         thinkEl=document.createElement('details');
@@ -1712,6 +1717,7 @@ async function settings(tab='account'){
    </div>`,
    appearance:`<div class="set"><label for="th">${t('themeLabel')}<small>${t('themeSub')}</small></label><div class="ctl"><select id="th"><option value="dark">${t('themeDark')}</option><option value="light">${t('themeLight')}</option><option value="system">${t('themeSystem')}</option></select></div></div><div class="set"><label><span>${t('enterSendsLabel')}<small>${t('enterSendsSub')}</small></span><input type="checkbox" id="ent" ${S.enterSends?'checked':''}></label></div>`,
    generation:`<div class="set"><label for="m-sel">${t('modelLabel')}<small>${t('modelSub')}</small></label><div class="ctl"><select id="modelSelect" style="font-family:'JetBrains Mono',monospace">${modelOptions}</select></div></div>` +
+     `<div class="set"><label><span>${t('showThinkingLabel')}<small>${t('showThinkingSub')}</small></span><input type="checkbox" id="showThinking" ${S.showThinking?'checked':''}></label></div>` +
      `<div class="set"><label for="r-temperature">${t('tempLabel')}</label><div class="ctl"><input type="range" id="r-temperature" data-g="temperature" min="0.05" max="2" step="0.05" value="${S.gen.temperature}"><input type="number" data-g="temperature" min="0.05" max="2" step="0.05" value="${S.gen.temperature}"></div></div>` +
      `<div class="set"><label for="r-top_k">${t('topKLabel')}</label><div class="ctl"><input type="range" id="r-top_k" data-g="top_k" min="0" max="100" step="1" value="${S.gen.top_k}"><input type="number" data-g="top_k" min="0" max="100" step="1" value="${S.gen.top_k}"></div></div>` +
      `<div class="set"><label for="r-max_tokens">${t('maxTokensLabel')}</label><div class="ctl"><input type="range" id="r-max_tokens" data-g="max_tokens" min="64" max="1024" step="64" value="${S.gen.max_tokens}"><input type="number" data-g="max_tokens" min="64" max="1024" step="64" value="${S.gen.max_tokens}"></div></div>` +
@@ -1789,6 +1795,11 @@ document.addEventListener('change',e=>{
     S.model=e.target.value;
     save();
     toast(e.target.options[e.target.selectedIndex].text);
+  }
+  if(e.target.id==='showThinking'){
+    S.showThinking=e.target.checked;
+    save();
+    drawMsgs();
   }
 });
 
