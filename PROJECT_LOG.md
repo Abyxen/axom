@@ -828,9 +828,34 @@
 
 ---
 
+### 35. Option Pills Removal, Global Direct Typing Focus & Non-Blocking Multitasking (2026-11-14)
+- **What Was Done:**
+  - **Removed Suggestion Option Pills**:
+    - Completely removed the 4 prompt option chips (`[Discover arXiv Papers]`, `[3-Gate Gap Dossier]`, `[Literature Triage Matrix]`, `[Socratic Design Brief]`) from the home welcome screen (`welcome()`).
+    - Removed sample question grid cards from the RAG empty screen (`ragEmptyHTML()`).
+    - Achieved a minimalist, distraction-free interface focusing solely on the brand, header, and active input composer.
+  - **Global Direct-Typing Focus & Continuous Text Composition**:
+    - Automatic input focus on page load (`shell()` and startup) so users can immediately begin typing without having to click the mouse.
+    - Continuous composition: input textarea (`#inp` / `#ragInp`) is never disabled during generation, allowing users to type thoughts or follow-up questions while AXOM is generating.
+    - Focus retention: sending a message keeps focus directly inside the textarea without blurring.
+    - Global keyboard capture: typing any printable alphanumeric or symbol key while not already inside an interactive element automatically transfers focus to the composer without dropping characters.
+    - Respects mouse clicks: clicking on message text, buttons, modals, or sidebar search will not aggressively steal focus until the user resumes typing.
+  - **Non-Blocking Background Multitasking**:
+    - Replaced the single blocking global `run` lock with a multi-session `activeRuns = new Map()` tracking active generations per conversation ID.
+    - Eliminated all blocking `stopGenFirst` checks on conversation switching (`open`), new chat creation (`newChat`), sidebar navigation, view switching, and settings dialogs.
+    - Users can freely navigate to other conversations, create new chats, open the browser, or switch between `[AI Companion]` and `[Knowledge Vault]` while an ongoing generation continues streaming in the background.
+    - Added real-time visual indicator: conversations actively generating in the background display an animated pulsing dot (`.live-dot`) in the sidebar list.
+    - Submitting a new message in an actively generating conversation cleanly cancels the previous generation and immediately initiates the new turn.
+- **How It Was Implemented:**
+  - Files modified: [`index.html`](file:///c:/Users/abira/Documents/axom/index.html).
+- **Why It Was Done:**
+  - The user requested: *"remove these opttions from here and also make it so whenever i enter the site i can type directly and dont have o click with mmouse and smme while i amm talking to it i should be always be able to write unless i click sommehwre else and also mmake itt so i can do other things while itts working and generating like change the chat and all basically everything"* and attached an image showing the four option buttons.
+
+---
+
 ## 🔮 Active & Upcoming Work
 
-### 35. QLoRA Fine-Tuning Execution (`axom:1.2`)
+### 36. QLoRA Fine-Tuning Execution (`axom:1.2`)
 - **Goal:** Run the fine-tuning pipeline (`train/train_unsloth_lora.py`) using the generated 500,490-word synthetic training dataset.
 - **Deliverable:** Quantized GGUF weights for Ollama.
 

@@ -535,6 +535,19 @@ details.think .think-body {
   display: none;
 }
 
+
+.live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ac);
+  box-shadow: 0 0 8px rgba(255,81,47,.8);
+  animation: pulseGlow 1.2s infinite ease-in-out;
+  display: inline-block;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
 /* Header Mode Switcher */
 .hdr-view-switch {
   display: inline-flex;
@@ -1179,6 +1192,7 @@ if(S.showThinking===undefined) S.showThinking = false;
 if(!S.view) S.view = 'chat';
 if(!Array.isArray(S.ragMsgs)) S.ragMsgs = [];
 const save=()=>{try{localStorage.setItem('axom-v2',JSON.stringify(S))}catch(e){}};
+const activeRuns=new Map();
 let models=[],query='',atts=[],run=null,pop=null,fresh=-1;
 const cur=()=>S.convs.find(c=>c.id===S.cur);
 
@@ -1641,7 +1655,10 @@ function sideHTML(){
   S.convs.slice().sort((a,b)=>b.ts-a.ts).forEach(c=>{
     let snip='';if(q){const m=c.msgs.find(m=>m.text.toLowerCase().includes(q));if(!c.title.toLowerCase().includes(q)&&!m)return;if(m){const i=m.text.toLowerCase().indexOf(q);snip=m.text.slice(Math.max(0,i-20),i+50)}}
     g[c.pinned?kPinned:c.ts>=start?kToday:c.ts>=start-D?kYesterday:kOlder].push([c,snip])});
-  const h=Object.entries(g).filter(([,a])=>a.length).map(([k,a])=>`<div class="grp">${k}</div>`+a.map(([c,s])=>`<div class="item" style="--n:${Math.min(n++,12)}"><button class="row ${c.id===S.cur?'on':''}" data-act="open" data-id="${c.id}" ${c.id===S.cur?'aria-current="true"':''}><span class="lbl" style="min-width:0"><span class="t" style="display:block;overflow:hidden;text-overflow:ellipsis">${hl(c.title,q)}</span>${s?`<span class="snip">${hl(s,q)}</span>`:''}</span></button><button class="ib more" data-act="menu" data-id="${c.id}" aria-label="${t('rename')}">${ic('more')}</button></div>`).join('')).join('');
+  const h=Object.entries(g).filter(([,a])=>a.length).map(([k,a])=>`<div class="grp">${k}</div>`+a.map(([c,s])=>{
+    const isRunning = activeRuns.has(c.id);
+    return `<div class="item" style="--n:${Math.min(n++,12)}"><button class="row ${c.id===S.cur?'on':''}" data-act="open" data-id="${c.id}" ${c.id===S.cur?'aria-current="true"':''}><span class="lbl" style="min-width:0"><span class="t" style="display:block;overflow:hidden;text-overflow:ellipsis">${hl(c.title,q)}</span>${s?`<span class="snip">${hl(s,q)}</span>`:''}</span>${isRunning?'<span class="live-dot" title="Generating..."></span>':''}</button><button class="ib more" data-act="menu" data-id="${c.id}" aria-label="${t('rename')}">${ic('more')}</button></div>`;
+  }).join('')).join('');
   return h||`<div style="padding:20px 10px;color:var(--tx3);font-family:'JetBrains Mono',monospace;font-size:11px">${q?t('noMatches'):t('noConvs')}</div>`}
 
 function defaultBrowserStartHTML(){
@@ -1928,6 +1945,7 @@ function shell(){
     $('#app').classList.add('browser-open');
     InsideBrowser.render();
   }
+  focusInput();
 }
 
 
@@ -1988,24 +2006,6 @@ function ragEmptyHTML(){
     <div class="rag-empty-icon">${ic('book')}</div>
     <h2>${t('ragEmptyTitle')}</h2>
     <p>${t('ragEmptyDesc')}</p>
-    <div class="rag-sample-grid">
-      <button class="rag-sample-btn" data-act="ragsug" data-q="${esc(t('ragSample1'))}">
-        ${ic('cpu')}
-        <span>${esc(t('ragSample1'))}</span>
-      </button>
-      <button class="rag-sample-btn" data-act="ragsug" data-q="${esc(t('ragSample2'))}">
-        ${ic('lock')}
-        <span>${esc(t('ragSample2'))}</span>
-      </button>
-      <button class="rag-sample-btn" data-act="ragsug" data-q="${esc(t('ragSample3'))}">
-        ${ic('code')}
-        <span>${esc(t('ragSample3'))}</span>
-      </button>
-      <button class="rag-sample-btn" data-act="ragsug" data-q="${esc(t('ragSample4'))}">
-        ${ic('database')}
-        <span>${esc(t('ragSample4'))}</span>
-      </button>
-    </div>
   </div>`;
 }
 
@@ -2264,19 +2264,12 @@ function inspectChunkModal({ doc, chunk, score, dense, lex, text }){
 }
 
 function welcome(){
-  const isPt = S.lang === 'pt';
   return `<div class="empty">
     <div class="home-hero">
       <div class="home-brand">
         <span class="brand-logo">AXOM</span><sup>®</sup>
       </div>
       <h1>${t('heroTitle')}</h1>
-      <div class="home-suggestions">
-        <button class="home-sug-chip" data-act="sug" data-t="${isPt ? 'Pesquise artigos no arXiv sobre Agentic AI e apresente um resumo estruturado' : 'Search arXiv for recent papers on Agentic AI and provide a structured summary'}">${ic('book')}<span>${isPt ? 'Pesquisar Artigos no arXiv' : 'Discover arXiv Papers'}</span></button>
-        <button class="home-sug-chip" data-act="sug" data-t="${isPt ? 'Avalie a lacuna de investigação (dossiê de 3 portas) para geração de código auto-corretiva com testes' : 'Evaluate the research gap (3-gate dossier) for self-correcting code generation via tests'}">${ic('clipboard')}<span>${isPt ? 'Dossiê de 3 Portas (Gap)' : '3-Gate Gap Dossier'}</span></button>
-        <button class="home-sug-chip" data-act="sug" data-t="${isPt ? 'Construa uma matriz de triagem de literatura para raciocínio multi-agente' : 'Build a literature triage matrix for multi-agent reasoning'}">${ic('file')}<span>${isPt ? 'Matriz de Literatura' : 'Literature Triage Matrix'}</span></button>
-        <button class="home-sug-chip" data-act="sug" data-t="${isPt ? 'Crie um resumo de design de investigação socrático com uma questão falsificável' : 'Create a Socratic research design brief with a falsifiable question'}">${ic('code')}<span>${isPt ? 'Design Socrático' : 'Socratic Design Brief'}</span></button>
-      </div>
     </div>
   </div>`;
 }
@@ -2411,7 +2404,8 @@ function toolsTraceHTML(tools, isOpen=false){
 function msgHTML(m,i,last){
   const cls=i===fresh?' in':'';
   if(m.role==='user')return`<div class="msg user${cls}"><div class="who">${t('you')}</div>${m.files?.length?`<div class="chips">${m.files.map(f=>`<span class="chip">${ic('file')}${esc(f)}</span>`).join('')}</div>`:''}<div class="bd">${esc(m.text)}</div></div>`;
-  const isLive = run && last;
+  const isCurRunning = S.cur && activeRuns.has(S.cur);
+  const isLive = isCurRunning && last;
   const isComputing = isLive && !m.text;
   const toolsRender=(m.tools&&m.tools.length)?toolsTraceHTML(m.tools,false):'';
   const thinkRender=(S.showThinking && m.think)?`<details class="think think-trace"><summary class="think-summary"><span class="think-icon">${ic('code')}</span><span class="think-title">${t('thinking')} · ${(m.thinkMs/1e3).toFixed(1)}s</span><span class="think-chevron">${ic('chevron')}</span></summary><div class="think-body">${esc(m.think)}</div></details>`:'';
@@ -2430,10 +2424,63 @@ function drawMsgs(){
   el.innerHTML='<div class="session-label">'+t('sessionPrefix')+esc(c.title)+'</div>'+c.msgs.map((m,i)=>msgHTML(m,i,i===c.msgs.length-1)).join('');scrollEnd();
 }
 const scrollEnd=()=>{const c=$('#chat');if(c)c.scrollTop=c.scrollHeight};
+function focusInput(){
+  requestAnimationFrame(() => {
+    const el = (S.view === 'rag') ? $('#ragInp') : $('#inp');
+    if(!el) return;
+    const active = document.activeElement;
+    const isOtherInput = active && active !== document.body && (
+      active.tagName === 'INPUT' ||
+      active.tagName === 'TEXTAREA' ||
+      active.tagName === 'SELECT' ||
+      active.isContentEditable ||
+      Boolean(active.closest && active.closest('.modal'))
+    );
+    if(!isOtherInput || active === el){
+      el.focus();
+    }
+  });
+}
+
+function updateSidebarLiveDots(){
+  const list = $('#list');
+  if(!list) return;
+  $$('.item', list).forEach(item => {
+    const btn = $('button.row', item);
+    const id = btn?.dataset.id;
+    if(!id) return;
+    let dot = $('.live-dot', btn);
+    if(activeRuns.has(id)){
+      if(!dot){
+        dot = document.createElement('span');
+        dot.className = 'live-dot';
+        dot.title = 'Generating...';
+        btn.appendChild(dot);
+      }
+    } else {
+      if(dot) dot.remove();
+    }
+  });
+}
+
 function updSend(){
-  const b=$('#send'),i=$('#inp');if(!b)return;
-  if(run){b.innerHTML=ic('stop');b.dataset.act='stop';b.setAttribute('aria-label',t('stop'));b.title=t('stop');b.disabled=false}
-  else{b.innerHTML=ic('up');b.dataset.act='send';b.setAttribute('aria-label',t('send'));b.title=t('send');b.disabled=!(i.value.trim()||atts.length)}
+  const b=$('#send'), i=$('#inp'); if(!b) return;
+  const isCurRunning = S.cur && activeRuns.has(S.cur);
+  const hasText = !!(i && i.value.trim()) || atts.length > 0;
+
+  if (isCurRunning && !hasText) {
+    b.innerHTML = ic('stop');
+    b.dataset.act = 'stop';
+    b.setAttribute('aria-label', t('stop'));
+    b.title = t('stop');
+    b.disabled = false;
+  } else {
+    b.innerHTML = ic('up');
+    b.dataset.act = 'send';
+    b.setAttribute('aria-label', t('send'));
+    b.title = t('send');
+    b.disabled = !hasText;
+  }
 }
 
 /* ---- file & folder recursive scanner ---- */
@@ -2539,13 +2586,42 @@ function bindInput(){
 addEventListener('dragover',e=>e.preventDefault());addEventListener('drop',e=>e.preventDefault());
 
 /* ---- chat flow ---- */
-function newChat(){S.cur=null;save();atts=[];shell();$('#inp').focus();closeDrawer()}
+function newChat(){
+  S.cur = null;
+  save();
+  atts = [];
+  shell();
+  focusInput();
+  closeDrawer();
+}
+
 async function send(text){
-  const i=$('#inp');text=(text??i.value);if((!text.trim()&&!atts.length)||run)return;
-  let c=cur();if(!c){c={id:'c'+Date.now(),title:text.slice(0,40)||atts[0]?.name||t('newConvHeader'),ts:Date.now(),msgs:[]};S.convs.push(c);S.cur=c.id}
+  const i = $('#inp');
+  text = (text ?? (i ? i.value : ''));
+  if((!text.trim() && !atts.length)) return;
+
+  let c = cur();
+  if(!c){
+    c = { id:'c'+Date.now(), title:text.slice(0,40)||atts[0]?.name||t('newConvHeader'), ts:Date.now(), msgs:[] };
+    S.convs.push(c);
+    S.cur = c.id;
+  }
+
+  // If this conversation was already generating, cancel its previous run cleanly before starting new turn
+  if(activeRuns.has(c.id)){
+    activeRuns.get(c.id).controller.abort();
+    activeRuns.delete(c.id);
+  }
 
   const currentAtts = [...atts];
-  atts=[];i.value='';i.style.height='auto';drawAtts();updSend();
+  atts = [];
+  if(i){
+    i.value = '';
+    i.style.height = 'auto';
+  }
+  drawAtts();
+  updSend();
+  focusInput();
 
   let parsedCtx = [];
   const filesToParse = currentAtts.filter(f => f.data);
@@ -2583,43 +2659,64 @@ async function send(text){
     }
   }
 
-  c.msgs.push({role:'user',text,files:currentAtts.map(f=>f.name),ctx:ctxParts.join('\n\n')});
-  c.ts=Date.now();
-  fresh=c.msgs.length-1;shell();fresh=-1;await generate(c);
+  c.msgs.push({ role:'user', text, files:currentAtts.map(f=>f.name), ctx:ctxParts.join('\n\n') });
+  c.ts = Date.now();
+  fresh = c.msgs.length - 1;
+  if(S.cur === c.id) drawMsgs();
+  fresh = -1;
+  focusInput();
+  generate(c);
 }
 
-/* Live Generation with Working Step Previewer & Agentic Tool Visualizer */
+/* Multi-tasking background generation */
 async function generate(c){
-  const m={role:'assistant',text:'',think:'',thinkMs:0,tools:[]};c.msgs.push(m);run=new AbortController();const t0=Date.now();
-  fresh=c.msgs.length-1;drawMsgs();fresh=-1;updSend();
+  const m = { role:'assistant', text:'', think:'', thinkMs:0, tools:[] };
+  c.msgs.push(m);
+  const controller = new AbortController();
+  activeRuns.set(c.id, { controller, msg: m });
+  const t0 = Date.now();
 
-  const msgEl=$('.msg:last-child',$('#msgs'));
-  const el=$('.bd',msgEl);el.classList.add('live');
+  if(S.cur === c.id){
+    fresh = c.msgs.length - 1;
+    drawMsgs();
+    fresh = -1;
+    updSend();
+    focusInput();
+  }
+  updateSidebarLiveDots();
 
-  let raf=0;
-  const paint=()=>{
-    raf=0;
+  let raf = 0;
+  const paint = () => {
+    raf = 0;
+    if(S.cur !== c.id) return;
+
+    const msgEl = $('.msg:last-child', $('#msgs'));
+    if(!msgEl) return;
+    const el = $('.bd', msgEl);
+    if(!el) return;
+    el.classList.add('live');
+
     if(S.showThinking && m.think){
-      let thinkEl=$('.think',msgEl);
+      let thinkEl = $('.think', msgEl);
       if(!thinkEl){
-        thinkEl=document.createElement('details');
-        thinkEl.className='think think-trace';
-        msgEl.insertBefore(thinkEl,el);
+        thinkEl = document.createElement('details');
+        thinkEl.className = 'think think-trace';
+        msgEl.insertBefore(thinkEl, el);
       }
       const wasOpen = thinkEl.hasAttribute('open');
-      thinkEl.innerHTML=`<summary class="think-summary"><span class="think-icon">${ic('code')}</span><span class="think-title">${t('thinking')} · ${(m.thinkMs/1e3).toFixed(1)}s</span><span class="think-chevron">${ic('chevron')}</span></summary><div class="think-body">${esc(m.think)}</div>`;
-      if(wasOpen) thinkEl.setAttribute('open','');
+      thinkEl.innerHTML = `<summary class="think-summary"><span class="think-icon">${ic('code')}</span><span class="think-title">${t('thinking')} · ${(m.thinkMs/1e3).toFixed(1)}s</span><span class="think-chevron">${ic('chevron')}</span></summary><div class="think-body">${esc(m.think)}</div>`;
+      if(wasOpen) thinkEl.setAttribute('open', '');
     }
-    if(m.tools&&m.tools.length){
-      let tContainer=$('.tools-wrap',msgEl);
+    if(m.tools && m.tools.length){
+      let tContainer = $('.tools-wrap', msgEl);
       if(!tContainer){
-        tContainer=document.createElement('div');
-        tContainer.className='tools-wrap';
-        msgEl.insertBefore(tContainer,el);
+        tContainer = document.createElement('div');
+        tContainer.className = 'tools-wrap';
+        msgEl.insertBefore(tContainer, el);
       }
       const existingDetails = tContainer.querySelector('details');
       const wasOpen = existingDetails ? existingDetails.hasAttribute('open') : false;
-      tContainer.innerHTML=toolsTraceHTML(m.tools, wasOpen);
+      tContainer.innerHTML = toolsTraceHTML(m.tools, wasOpen);
     }
     let loadEl = $('.compute-loading', msgEl);
     if (!m.text) {
@@ -2632,33 +2729,47 @@ async function generate(c){
     } else {
       if (loadEl) loadEl.remove();
     }
-    el.innerHTML=md(m.text);
+    el.innerHTML = md(m.text);
     scrollEnd();
   };
 
-  try{
-    for await(const ev of Axom.stream({messages:c.msgs.slice(0,-1),signal:run.signal})){
-      if(ev.type==='tool_start'){
-        m.tools.push({id:ev.id,name:ev.name,args:ev.args,status:'running'});
-        if(!raf)raf=requestAnimationFrame(paint);
-      }else if(ev.type==='tool_end'){
-        const tObj=m.tools.find(x=>x.id===ev.id)||m.tools.find(x=>x.status==='running')||m.tools.at(-1);
-        if(tObj){tObj.status='done';tObj.result=ev.result;}
-        if(!raf)raf=requestAnimationFrame(paint);
-      }else if(ev.type==='think'){
-        m.think+=(ev.text||'');m.thinkMs=Date.now()-t0;
-      }else{
-        const chunk=ev.text||ev.token||'';
-        if(chunk){m.text+=chunk;if(!raf)raf=requestAnimationFrame(paint);}
+  try {
+    for await (const ev of Axom.stream({ messages: c.msgs.slice(0, -1), signal: controller.signal })) {
+      if(ev.type === 'tool_start'){
+        m.tools.push({ id: ev.id, name: ev.name, args: ev.args, status: 'running' });
+        if(!raf) raf = requestAnimationFrame(paint);
+      } else if(ev.type === 'tool_end'){
+        const tObj = m.tools.find(x => x.id === ev.id) || m.tools.find(x => x.status === 'running') || m.tools.at(-1);
+        if(tObj){ tObj.status = 'done'; tObj.result = ev.result; }
+        if(!raf) raf = requestAnimationFrame(paint);
+      } else if(ev.type === 'think'){
+        m.think += (ev.text || '');
+        m.thinkMs = Date.now() - t0;
+      } else {
+        const chunk = ev.text || ev.token || '';
+        if(chunk){
+          m.text += chunk;
+          if(!raf) raf = requestAnimationFrame(paint);
+        }
       }
     }
-  }catch(e){
-    if(e.name==='AbortError'){m.text+=m.text?'\n\n'+t('genStopped'):t('genStopped')}
-    else m.err=e.message||t('genStoppedUnexpected');
+  } catch(e) {
+    if(e.name === 'AbortError'){
+      m.text += m.text ? '\n\n' + t('genStopped') : t('genStopped');
+    } else {
+      m.err = e.message || t('genStoppedUnexpected');
+    }
   }
-  
-  if(raf)cancelAnimationFrame(raf);
-  run=null;save();drawMsgs();updSend();
+
+  if(raf) cancelAnimationFrame(raf);
+  activeRuns.delete(c.id);
+  save();
+  updateSidebarLiveDots();
+  if(S.cur === c.id){
+    drawMsgs();
+    updSend();
+    focusInput();
+  }
 }
 
 /* ---- voice dictation (speech-to-text) ---- */
@@ -2919,7 +3030,7 @@ document.addEventListener('change',e=>{
 document.addEventListener('click',async e=>{
   const b=e.target.closest('[data-act]');if(!e.target.closest('.pop'))closePop();if(!b)return;
   const a=b.dataset.act,id=b.dataset.id,c=cur();
-  if(run&&['new','open','rename','del','pinc','retry','fb','sug'].includes(a)){toast(t('stopGenFirst'));return}
+  // Non-blocking multi-tasking: allow navigation anytime
   if(a==='setview'){
     S.view = b.dataset.v || 'chat';
     save();
@@ -3032,11 +3143,11 @@ document.addEventListener('click',async e=>{
     toast(S.web ? t('webAuto') : t('webDisabled'));
   }
   else if(a==='theme'){S.theme=document.documentElement.dataset.theme==='dark'?'light':'dark';applyTheme();updateThemeLabel();save();}
-  else if(a==='open'){S.cur=id;save();shell();closeDrawer()}
+  else if(a==='open'){S.cur=id;save();shell();closeDrawer();focusInput();}
   else if(a==='collapse'){S.col=!S.col;save();$('#side').classList.toggle('col',S.col)}
   else if(a==='drawer'){innerWidth<=800?$('#side').classList.toggle('open'):(S.col=!S.col,save(),$('#side').classList.toggle('col',S.col))}
   else if(a==='expandsearch'){S.col=false;save();$('#side').classList.remove('col');$('#q').focus()}
-  else if(a==='send')send();else if(a==='stop')run?.abort();
+  else if(a==='send')send();else if(a==='stop'){if(S.cur && activeRuns.has(S.cur)){activeRuns.get(S.cur).controller.abort();activeRuns.delete(S.cur);updSend();focusInput();}}
   else if(a==='sug')send(b.dataset.t);
   else if(a==='attach')$('#file').click();
   else if(a==='voice')toggleVoice();
@@ -3133,13 +3244,33 @@ document.addEventListener('click',async e=>{
 });
 
 document.addEventListener('keydown',e=>{
+  // If modal or popover is open, ignore
+  if($('.ov') || pop) return;
+
+  // Direct typing capture: if user types a printable key while not in another input, automatically focus input
+  if(!e.ctrlKey && !e.metaKey && !e.altKey && e.key && e.key.length === 1 && !e.isComposing){
+    const active = document.activeElement;
+    const isInputActive = active && (
+      active.tagName === 'INPUT' ||
+      active.tagName === 'TEXTAREA' ||
+      active.isContentEditable ||
+      Boolean(active.closest && active.closest('.modal'))
+    );
+    if(!isInputActive){
+      const el = (S.view === 'rag') ? $('#ragInp') : $('#inp');
+      if(el){
+        el.focus();
+      }
+    }
+  }
+
   if(e.target && e.target.id === 'ibUrlInput' && e.key === 'Enter'){
     e.preventDefault();
     InsideBrowser.navigate(e.target.value);
     return;
   }
   const k=e.key.toLowerCase(),mod=e.ctrlKey||e.metaKey;
-  if(mod&&k==='n'){e.preventDefault();run?toast(t('stopGenFirst')):newChat()}
+  if(mod&&k==='n'){e.preventDefault();newChat();focusInput();}
   else if(mod&&k==='k'){e.preventDefault();S.col=false;$('#side').classList.remove('col');$('#side').classList.add('open');$('#q').focus()}
   else if(mod&&k==='/'){e.preventDefault();$('#inp').focus()}else if(k==='escape'){closePop();closeDrawer()}
 });
@@ -3172,7 +3303,7 @@ document.addEventListener('click', e => {
   }
 });
 
-applyTheme();shell();InsideBrowser.init();loadRagDocs();
+applyTheme();shell();InsideBrowser.init();loadRagDocs();focusInput();
 Axom.models().then(m=>{
   models=m;
   if(m.length&&!m.some(x=>x.id===S.model))S.model=m[0].id;
