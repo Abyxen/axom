@@ -456,6 +456,578 @@ details.think .think-body {
 .header-btn.on{background:rgba(255,81,47,.12);color:var(--ac);border-color:var(--ac)}
 .header-btn.on svg{color:var(--ac)}
 
+/* ---- RAG Knowledge Studio Styles ---- */
+.nav-modes {
+  display: flex;
+  gap: 4px;
+  background: var(--input);
+  border: 1px solid var(--bd);
+  border-radius: 6px;
+  padding: 3px;
+  margin-bottom: 12px;
+}
+.side.col .nav-modes {
+  flex-direction: column;
+  padding: 2px;
+}
+.mode-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font: 500 11px 'JetBrains Mono', monospace;
+  color: var(--tx2);
+  transition: all .18s var(--ease);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.side.col .mode-btn {
+  padding: 8px 0;
+}
+.side.col .mode-btn span {
+  display: none;
+}
+.mode-btn:hover {
+  background: var(--elev);
+  color: var(--tx);
+}
+.mode-btn.on {
+  background: var(--ac);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 1px 6px rgba(255,81,47,.25);
+}
+.rag-pill {
+  font-size: 8.5px;
+  background: rgba(255,255,255,.2);
+  padding: 1px 4px;
+  border-radius: 3px;
+  letter-spacing: .05em;
+}
+.mode-btn.on .rag-pill {
+  background: rgba(0,0,0,.25);
+  color: #fff;
+}
+.rag-side-info {
+  padding: 10px 4px;
+}
+.rag-vault-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 11px 'JetBrains Mono', monospace;
+  color: var(--tx2);
+  padding: 10px 8px;
+  background: var(--surf);
+  border: 1px solid var(--bd);
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+.rag-vault-summary svg {
+  color: var(--ac);
+  width: 15px;
+  height: 15px;
+}
+.side.col .rag-side-info {
+  display: none;
+}
+
+/* Header Mode Switcher */
+.hdr-view-switch {
+  display: inline-flex;
+  align-items: center;
+  background: var(--surf);
+  border: 1px solid var(--bd);
+  border-radius: 6px;
+  padding: 2px;
+  gap: 2px;
+}
+.hdr-view-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font: 500 11px 'JetBrains Mono', monospace;
+  color: var(--tx2);
+  transition: all .15s ease;
+  cursor: pointer;
+  border: 0;
+  background: none;
+}
+.hdr-view-btn:hover {
+  color: var(--tx);
+  background: var(--elev);
+}
+.hdr-view-btn.on {
+  background: var(--ac);
+  color: #fff;
+  font-weight: 600;
+}
+.hdr-view-btn svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* RAG Studio Main Layout */
+.rag-studio {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  background: var(--bg);
+  position: relative;
+  overflow: hidden;
+}
+.rag-vault-pane {
+  width: 320px;
+  flex: none;
+  border-right: 1px solid var(--bd);
+  background: var(--bg2);
+  display: flex;
+  flex-direction: column;
+  transition: all .2s var(--ease);
+}
+.rag-vault-head {
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid var(--bd);
+}
+.rag-vault-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.rag-vault-title {
+  font: 600 12px 'JetBrains Mono', monospace;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--tx);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.rag-vault-title svg {
+  width: 14px;
+  height: 14px;
+  color: var(--ac);
+}
+.rag-meta-badge {
+  font: 10px 'JetBrains Mono', monospace;
+  color: var(--tx3);
+}
+.rag-vault-acts {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+.rag-vault-acts .btn {
+  flex: 1;
+  justify-content: center;
+  padding: 6px 10px;
+  font-size: 10px;
+}
+
+/* Dropzone */
+.rag-dropzone {
+  margin: 12px 14px;
+  border: 1.5px dashed var(--bd);
+  border-radius: 8px;
+  padding: 16px 12px;
+  text-align: center;
+  background: var(--surf);
+  cursor: pointer;
+  transition: all .18s var(--ease);
+}
+.rag-dropzone:hover, .rag-dropzone.drag {
+  border-color: var(--ac);
+  background: var(--elev);
+  transform: translateY(-1px);
+}
+.rag-dropzone svg {
+  width: 22px;
+  height: 22px;
+  color: var(--ac);
+  margin-bottom: 6px;
+}
+.rag-dropzone strong {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--tx);
+}
+.rag-dropzone small {
+  display: block;
+  font-size: 10px;
+  color: var(--tx3);
+  margin-top: 3px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Vault Document List */
+.rag-doc-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rag-doc-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surf);
+  border: 1px solid var(--bd);
+  border-radius: 6px;
+  padding: 8px 10px;
+  transition: all .15s ease;
+}
+.rag-doc-card:hover {
+  border-color: var(--tx3);
+  background: var(--elev);
+}
+.rag-doc-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  background: var(--input);
+  border: 1px solid var(--bd);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: var(--tx2);
+  font: 600 9px 'JetBrains Mono', monospace;
+  text-transform: uppercase;
+}
+.rag-doc-icon.pdf { color: #f06464; border-color: rgba(240,100,100,.3); background: rgba(240,100,100,.08); }
+.rag-doc-icon.md { color: var(--ac); border-color: rgba(255,81,47,.3); background: rgba(255,81,47,.08); }
+.rag-doc-icon.txt { color: #45D483; border-color: rgba(69,212,131,.3); background: rgba(69,212,131,.08); }
+.rag-doc-info {
+  flex: 1;
+  min-width: 0;
+}
+.rag-doc-name {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--tx);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rag-doc-sub {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 10px 'JetBrains Mono', monospace;
+  color: var(--tx3);
+  margin-top: 2px;
+}
+.rag-doc-chunks {
+  background: rgba(213,248,90,.12);
+  color: var(--acid);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-weight: 500;
+}
+.rag-doc-del {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 4px;
+  color: var(--tx3);
+  transition: all .15s;
+  cursor: pointer;
+  flex-shrink: 0;
+  border: 0;
+  background: none;
+}
+.rag-doc-del:hover {
+  background: rgba(240,100,100,.15);
+  color: var(--err);
+}
+.rag-doc-del svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* RAG Chat Main Panel */
+.rag-chat-pane {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+.rag-chat-header {
+  height: 52px;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--bd);
+  background: var(--bg2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.rag-chat-title {
+  font: 600 11.5px 'JetBrains Mono', monospace;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--tx);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rag-chat-title .badge {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: rgba(69,212,131,.15);
+  color: #45D483;
+}
+.rag-chat-status {
+  font: 10.5px 'JetBrains Mono', monospace;
+  color: var(--tx3);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.rag-stream {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Empty RAG State */
+.rag-empty {
+  margin: auto;
+  max-width: 620px;
+  text-align: center;
+  padding: 30px 16px;
+}
+.rag-empty-icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 16px;
+  border-radius: 12px;
+  background: rgba(255,81,47,.12);
+  border: 1px solid rgba(255,81,47,.3);
+  display: grid;
+  place-items: center;
+  color: var(--ac);
+}
+.rag-empty-icon svg {
+  width: 24px;
+  height: 24px;
+}
+.rag-empty h2 {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  margin: 0 0 8px;
+  color: var(--tx);
+}
+.rag-empty p {
+  color: var(--tx2);
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0 0 24px;
+}
+.rag-sample-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  text-align: left;
+}
+.rag-sample-btn {
+  background: var(--surf);
+  border: 1px solid var(--bd);
+  border-radius: 8px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: all .18s var(--ease);
+  color: var(--tx);
+  font-size: 12px;
+  line-height: 1.5;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.rag-sample-btn:hover {
+  background: var(--elev);
+  border-color: var(--ac);
+  transform: translateY(-2px);
+}
+.rag-sample-btn svg {
+  width: 14px;
+  height: 14px;
+  color: var(--ac);
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+/* RAG Messages & Citations */
+.rag-msg {
+  display: flex;
+  flex-direction: column;
+  animation: rise .25s var(--ease);
+}
+.rag-msg.user {
+  align-items: flex-end;
+}
+.rag-msg.user .rag-msg-bubble {
+  background: #27272a;
+  border: 1px solid #3f3f46;
+  border-radius: 12px;
+  border-bottom-right-radius: 3px;
+  padding: 10px 16px;
+  color: #f4f4f5;
+  font-size: 13.5px;
+  line-height: 1.55;
+  max-width: 80%;
+}
+.rag-msg.assistant {
+  align-items: flex-start;
+  max-width: 90%;
+}
+.rag-msg-author {
+  font: 500 11px 'JetBrains Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--tx3);
+  margin-bottom: 6px;
+}
+.rag-citations-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.rag-cit-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px;
+  background: var(--surf);
+  border: 1px solid var(--bd);
+  border-radius: 6px;
+  font: 500 11px 'JetBrains Mono', monospace;
+  color: var(--tx);
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.rag-cit-chip:hover {
+  background: var(--elev);
+  border-color: var(--ac);
+  color: var(--ac);
+}
+.rag-cit-chip svg {
+  width: 12px;
+  height: 12px;
+  color: var(--ac);
+}
+.rag-cit-score {
+  font-size: 9.5px;
+  background: rgba(69,212,131,.15);
+  color: #45D483;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-weight: 600;
+}
+.rag-msg-content {
+  font-size: 14px;
+  line-height: 1.65;
+  color: #e4e4e7;
+  overflow-wrap: anywhere;
+}
+.rag-msg-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+/* RAG Input Area */
+.rag-composer {
+  padding: 14px 24px 18px;
+  border-top: 1px solid var(--bd);
+  background: var(--bg2);
+}
+.rag-cbox {
+  background: var(--input);
+  border: 1px solid var(--bd);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color .18s;
+}
+.rag-cbox:focus-within {
+  border-color: var(--ac);
+}
+.rag-cbox textarea {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  resize: none;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--tx);
+  min-height: 44px;
+  max-height: 180px;
+}
+.rag-cbox-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.rag-ground-note {
+  font: 10px 'JetBrains Mono', monospace;
+  color: var(--tx3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.rag-ground-note::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #45D483;
+}
+.inline-cit {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: rgba(255,81,47,.12);
+  color: var(--ac);
+  border: 1px solid rgba(255,81,47,.3);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font: 500 11px 'JetBrains Mono', monospace;
+  margin: 0 2px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.inline-cit:hover {
+  background: var(--ac);
+  color: #fff;
+}
+@media(max-width:850px){
+  .rag-vault-pane {
+    display: none;
+  }
+}
+
+
 @media(max-width:1100px){.side{width:225px;padding-inline:15px}.col-in{padding-inline:35px}.comp{padding-inline:35px}.hero-side{right:0;top:14px}.seal{width:85px;height:85px;font-size:10px}.seal b{font-size:22px}.sug button{padding:15px 12px}.sug button strong{font-size:18px}.empty h1{font-size:83px}}
 @media(max-width:800px){.side{position:fixed;width:270px!important;padding:25px 20px;z-index:40;transform:translateX(-100%);transition:transform .25s var(--ease)}.side.open{transform:none}.side.col{padding:25px 20px}.side.col .logo-btn,.side.col .edition,.side.col .sidebar-note,.side.col .profile{display:flex}.side.col .list{visibility:visible}.side.col .row{justify-content:flex-start}.side.col .colonly{display:none}.hdr{height:64px;min-height:64px;padding-inline:20px}.top-version{display:none}.col-in{padding-inline:24px}.intro-meta{margin-top:27px;margin-bottom:27px;font-size:8px}.empty h1{font-size:clamp(64px,12vw,92px);letter-spacing:-1.5px}.hero-side{top:11px;right:5px}.empty .intro-copy{font-size:12px;max-width:350px;margin:22px 0 29px}.sug{grid-template-columns:repeat(3,1fr);gap:9px}.sug button{min-height:119px;padding:13px}.comp{padding:13px 24px 18px}.side.open~.scrim{display:block;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:35;animation:fade .2s}}
 @media(max-width:480px){.hero-side{right:0;top:5px}.seal{width:68px;height:68px;font-size:8px}.seal b{font-size:18px}.hero-side .seal-note{display:none}.empty h1{font-size:66px}.sug{grid-template-columns:1fr}.empty .foot{margin-top:20px;padding-bottom:18px;font-size:7px}.cbox{padding:14px}.comp{padding-inline:20px}.attach-label{display:none}}
@@ -466,7 +1038,7 @@ details.think .think-body {
 <script>
 const $=(s,e=document)=>e.querySelector(s),$$=(s,e=document)=>[...e.querySelectorAll(s)];
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const P={plus:'M12 5v14M5 12h14',search:'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-5-5',panel:'M3 5h18v14H3zM9 5v14',gear:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19 12l2-1-2-4-2 1-2-1V5h-4v2l-2 1-2-1-2 4 2 1v2l-2 1 2 4 2-1 2 1v2h4v-2l2-1 2 1 2-4-2-1z',more:'M5 12h.01M12 12h.01M19 12h.01',clip:'M20 12l-8 8a5 5 0 0 1-7-7l9-9a3.5 3.5 0 0 1 5 5l-9 9a2 2 0 0 1-3-3l8-8',up:'M12 19V5M5 12l7-7 7 7',stop:'M7 7h10v10H7z',copy:'M9 9h11v11H9zM5 15V4h11',redo:'M20 11a8 8 0 1 0-2 6M20 4v7h-7',up2:'M7 11l4-8 2 1-1 5h7l-1 8H7zM3 11h4v10H3z',dn:'M17 13l-4 8-2-1 1-5H5l1-8h11zM21 13h-4V3h4',x:'M6 6l12 12M18 6L6 18',file:'M6 3h8l4 4v14H6zM14 3v4h4',mic:'M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3zm7 8v2a7 7 0 0 1-14 0v-2M12 19v3m-4 0h8',globe:'M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 0c2.5 2.7 4 6.2 4 10s-1.5 7.3-4 10c-2.5-2.7-4-6.2-4-10s1.5-7.3 4-10zm-8 10h16M4.9 6.5h14.2M4.9 17.5h14.2',code:'M16 18l6-6-6-6M8 6l-6 6 6 6',check:'M20 6L9 17l-5-5',chevron:'M6 9l6 6 6-6',ext:'M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3',lock:'M7 11V7a5 5 0 0 1 10 0v4m-12 0h14v10H5z',expand:'M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7',shrink:'M4 14h6v6M20 10h-6V4M14 10l7-7M10 14l-7 7',leftArrow:'M15 19l-7-7 7-7',rightArrow:'M9 5l7 7-7 7',save:'M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2zM17 21v-8H7v8M7 3v5h8',download:'M12 3v13m0 0l-4-4m4 4l4-4M4 21h16',book:'M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z',clipboard:'M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2M9 2h6a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z',folder:'M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z',trash:'M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2'};
+const P={plus:'M12 5v14M5 12h14',search:'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-5-5',panel:'M3 5h18v14H3zM9 5v14',gear:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19 12l2-1-2-4-2 1-2-1V5h-4v2l-2 1-2-1-2 4 2 1v2l-2 1 2 4 2-1 2 1v2h4v-2l2-1 2 1 2-4-2-1z',more:'M5 12h.01M12 12h.01M19 12h.01',clip:'M20 12l-8 8a5 5 0 0 1-7-7l9-9a3.5 3.5 0 0 1 5 5l-9 9a2 2 0 0 1-3-3l8-8',up:'M12 19V5M5 12l7-7 7 7',stop:'M7 7h10v10H7z',copy:'M9 9h11v11H9zM5 15V4h11',redo:'M20 11a8 8 0 1 0-2 6M20 4v7h-7',up2:'M7 11l4-8 2 1-1 5h7l-1 8H7zM3 11h4v10H3z',dn:'M17 13l-4 8-2-1 1-5H5l1-8h11zM21 13h-4V3h4',x:'M6 6l12 12M18 6L6 18',file:'M6 3h8l4 4v14H6zM14 3v4h4',mic:'M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3zm7 8v2a7 7 0 0 1-14 0v-2M12 19v3m-4 0h8',globe:'M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 0c2.5 2.7 4 6.2 4 10s-1.5 7.3-4 10c-2.5-2.7-4-6.2-4-10s1.5-7.3 4-10zm-8 10h16M4.9 6.5h14.2M4.9 17.5h14.2',code:'M16 18l6-6-6-6M8 6l-6 6 6 6',check:'M20 6L9 17l-5-5',chevron:'M6 9l6 6 6-6',ext:'M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3',lock:'M7 11V7a5 5 0 0 1 10 0v4m-12 0h14v10H5z',expand:'M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7',shrink:'M4 14h6v6M20 10h-6V4M14 10l7-7M10 14l-7 7',leftArrow:'M15 19l-7-7 7-7',rightArrow:'M9 5l7 7-7 7',save:'M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2zM17 21v-8H7v8M7 3v5h8',download:'M12 3v13m0 0l-4-4m4 4l4-4M4 21h16',book:'M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z',clipboard:'M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2M9 2h6a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z',folder:'M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z',trash:'M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2',chat:'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z',refresh:'M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15',upload:'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12',database:'M4 6c0 1.66 3.58 3 8 3s8-1.34 8-3-3.58-3-8-3-8 1.34-8 3zm0 6c0 1.66 3.58 3 8 3s8-1.34 8-3M4 18c0 1.66 3.58 3 8 3s8-1.34 8-3V6M4 12v6M20 6v12',cpu:'M4 4h16v16H4zM9 9h6v6H9zM9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3'};
 const ic=n=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${P[n]}"/></svg>`;
 
 /* ---- API layer ---- */
@@ -522,14 +1094,90 @@ const Axom={
   }
 };
 
+const RagApi = {
+  async getDocuments() {
+    try {
+      const r = await fetch(Axom.url('/api/rag/documents'));
+      if (!r.ok) return [];
+      const d = await r.json();
+      return d.documents || [];
+    } catch(e) {
+      console.warn('RAG getDocuments error:', e);
+      return [];
+    }
+  },
+  async upload(files) {
+    const fd = new FormData();
+    for (const f of files) fd.append('files', f);
+    const r = await fetch(Axom.url('/api/rag/upload'), {
+      method: 'POST',
+      body: fd
+    });
+    return r.json();
+  },
+  async delete(filename) {
+    const r = await fetch(Axom.url('/api/rag/delete'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename })
+    });
+    return r.json();
+  },
+  async reindex() {
+    const r = await fetch(Axom.url('/api/rag/ingest'), {
+      method: 'POST'
+    });
+    return r.json();
+  },
+  async* streamChat({ query, messages, signal }) {
+    const r = await fetch(Axom.url('/api/rag/chat'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal,
+      body: JSON.stringify({
+        messages: messages.map(m => ({ role: m.role, content: m.text })),
+        stream: true,
+        top_k: 4
+      })
+    });
+    if (!r.ok) {
+      const err = await r.json().catch(() => null);
+      throw new Error(err?.error || 'RAG backend error ' + r.status);
+    }
+    const rd = r.body.getReader(), dec = new TextDecoder();
+    let buf = '';
+    while (true) {
+      const { done, value } = await rd.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let i;
+      while ((i = buf.indexOf('\n\n')) >= 0) {
+        const chunk = buf.slice(0, i);
+        buf = buf.slice(i + 2);
+        const line = chunk.split('\n').find(l => l.startsWith('data:'));
+        if (!line) continue;
+        const ev = JSON.parse(line.slice(5));
+        if (ev.type === 'error') throw new Error(ev.message);
+        if (ev.type === 'done' || ev.done) return;
+        yield ev;
+      }
+    }
+  }
+};
+
+let ragRun = null, ragDocs = [];
+
+
 /* ---- state ---- */
 const D=864e5,MAXF=24000;
-let S={convs:[],cur:null,api:'',model:'axom:1.1',lang:'pt',web:true,theme:'dark',col:false,enterSends:true,showThinking:false,effort:'fast',gen:{temperature:.7,top_k:50,max_tokens:512,seed:-1,stop:'',stream:true}};
+let S={convs:[],cur:null,api:'',model:'axom:1.1',lang:'pt',web:true,theme:'dark',col:false,enterSends:true,showThinking:false,effort:'fast',gen:{temperature:.7,top_k:50,max_tokens:512,seed:-1,stop:'',stream:true},view:'chat',ragMsgs:[]};
 try{const j=JSON.parse(localStorage.getItem('axom-v2'));if(j)S={...S,...j,gen:{...S.gen,...j.gen}}}catch(e){}
 if(!S.lang) S.lang = 'pt';
 if(!S.effort) S.effort = 'fast';
 if(S.web===undefined) S.web = true;
 if(S.showThinking===undefined) S.showThinking = false;
+if(!S.view) S.view = 'chat';
+if(!Array.isArray(S.ragMsgs)) S.ragMsgs = [];
 const save=()=>{try{localStorage.setItem('axom-v2',JSON.stringify(S))}catch(e){}};
 let models=[],query='',atts=[],run=null,pop=null,fresh=-1;
 const cur=()=>S.convs.find(c=>c.id===S.cur);
@@ -691,6 +1339,33 @@ const I18N = {
     lossLabel: "Loss",
     speedLabel: "Speed",
     checkpointsLabel: "Checkpoints",
+    modeChat: "AI Chat",
+    modeRag: "RAG Vault",
+    navChat: "AI Companion",
+    navRag: "Knowledge Vault",
+    ragVaultTitle: "Knowledge Vault",
+    ragUploadDoc: "Upload",
+    ragReindex: "Re-Index",
+    ragReindexing: "Indexing Vault...",
+    ragDropTitle: "Drop files to ingest into vault",
+    ragDropSub: "PDF, Markdown, Text, Code (.py, .js, .json)",
+    ragNoDocs: "No documents in vault. Upload files to index.",
+    ragCopilotTitle: "Grounded Document Intelligence",
+    ragGroundingBadge: "HYBRID VECTOR + BM25",
+    ragClearChat: "Clear RAG Chat",
+    ragEmptyTitle: "HIGH-ACCURACY RAG COPILOT",
+    ragEmptyDesc: "Answers are mathematically synthesized from your indexed documents with zero hallucination. Exact citations are verified and inspectable.",
+    ragInputPlaceholder: "Ask anything grounded in your vault documents...",
+    ragSample1: "What is the TDP and benchmark score of Hyperion-V4?",
+    ragSample2: "Who is the chief security architect of Project Quantum-Shield?",
+    ragSample3: "What are the public and private key sizes for Kyber-1024?",
+    ragSample4: "What is the memory bandwidth of Hyperion-V4?",
+    ragSourceInspector: "Retrieved Source Passage",
+    ragDocDeleted: "Document removed and vault re-indexed",
+    ragDocUploaded: "Document ingested into knowledge base",
+    ragReindexDone: "Vault re-indexing complete",
+    ragDocsCount: "{n} Documents",
+    ragChunksCount: "{n} Chunks",
     aboutText: "<b>AXOM AI</b><br>Founder & Creator: <b>Abiral</b><br>Active Model: <b>Axom v1.1</b> (Qwen 3.5 4B Uncensored Fine-Tuned)<br>Hardware: <b>NVIDIA GeForce RTX 5060 Laptop GPU (CUDA)</b> · 32GB RAM · HP OMEN<br>Dataset: Blended coding (CodeAlpaca), reasoning (FineTome), and custom creator grounding."
   },
   pt: {
@@ -823,6 +1498,33 @@ const I18N = {
     btnSyncObsidian: "Sincronizar Cofre",
     btnSyncingObsidian: "A sincronizar...",
     btnSyncedObsidian: "Cofre Sincronizado",
+    modeChat: "Chat IA",
+    modeRag: "Cofre RAG",
+    navChat: "Companheiro IA",
+    navRag: "Cofre de Documentos",
+    ragVaultTitle: "Cofre de Documentos",
+    ragUploadDoc: "Carregar",
+    ragReindex: "Reindexar",
+    ragReindexing: "A indexar cofre...",
+    ragDropTitle: "Arraste ficheiros para o cofre",
+    ragDropSub: "PDF, Markdown, Texto, Código (.py, .js, .json)",
+    ragNoDocs: "Nenhum documento no cofre. Envie ficheiros para indexar.",
+    ragCopilotTitle: "Inteligência Documental Fundamentada",
+    ragGroundingBadge: "VETORIAL HÍBRIDO + BM25",
+    ragClearChat: "Limpar Chat RAG",
+    ragEmptyTitle: "COPILOTO RAG DE ALTA PRECISÃO",
+    ragEmptyDesc: "As respostas são sintetizadas matematicamente a partir dos documentos indexados com zero alucinação. Citações exatas verificadas e inspecionáveis.",
+    ragInputPlaceholder: "Pergunte algo fundamentado nos documentos do cofre...",
+    ragSample1: "Qual é o TDP e pontuação de benchmark do Hyperion-V4?",
+    ragSample2: "Quem é o arquiteto-chefe de segurança do Projeto Quantum-Shield?",
+    ragSample3: "Quais são os tamanhos das chaves do Kyber-1024?",
+    ragSample4: "Qual é a largura de banda de memória do Hyperion-V4?",
+    ragSourceInspector: "Passagem Original Recuperada",
+    ragDocDeleted: "Documento removido e cofre reindexado",
+    ragDocUploaded: "Documento indexado na base de conhecimento",
+    ragReindexDone: "Reindexação do cofre concluída",
+    ragDocsCount: "{n} Documentos",
+    ragChunksCount: "{n} Fragmentos",
     themeLabel: "Tema de Cor",
     themeSub: "Escolha escuro, claro ou siga as preferências do sistema.",
     themeDark: "Escuro",
@@ -858,7 +1560,13 @@ function t(k){
 }
 
 /* ---- markdown parser with full table support & clean code blocks ---- */
-function inline(t){t=esc(t);return t.replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<em>$2</em>').replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')}
+function inline(t){
+  t=esc(t);
+  t=t.replace(/\[doc:([^\]#]+)(?:#(\d+))?\]/g, (match, doc, chunk) => {
+    return `<span class="inline-cit" data-doc="${doc}" data-chunk="${chunk||0}" title="View source passage">${doc}${chunk ? ' #' + chunk : ''}</span>`;
+  });
+  return t.replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<em>$2</em>').replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+}
 function md(src){
   const h=[];
   src.split(/```/).forEach((p,i)=>{
@@ -1108,19 +1816,74 @@ function shell(){
   document.title = t('appTitle');
   document.documentElement.lang = S.lang || 'pt';
 
-  $('#app').innerHTML=`<aside class="side ${S.col?'col':''}" id="side" aria-label="Conversations">
+  const isRag = S.view === 'rag';
+  const headerTitle = isRag
+    ? `${t('workspacePrefix')} <b>/ ${t('ragCopilotTitle').toUpperCase()}</b>`
+    : `${t('workspacePrefix')} <b>/ ${esc(cur()?.title||t('newConvHeader'))}</b>`;
+
+  $('#app').innerHTML=`<aside class="side ${S.col?'col':''}" id="side" aria-label="Navigation">
   <button class="logo-btn" data-act="gohome" title="AXOM Home">
     <span>AXOM</span><sup>®</sup><div class="edition">${t('edition')}</div>
   </button>
-  <button class="row new-chat" data-act="new" title="${t('newChatTitle')}">${ic('plus')}<span class="lbl">${t('newChat')}</span><kbd>Ctrl+N</kbd></button>
-  <div class="search">${ic('search')}<input id="q" placeholder="${t('searchPlaceholder')}" aria-label="${t('searchAria')}" value="${esc(query)}"><kbd>Ctrl+K</kbd></div>
-  <nav class="list" id="list">${sideHTML()}</nav>
+  <div class="nav-modes" role="tablist">
+    <button class="mode-btn ${!isRag?'on':''}" data-act="setview" data-v="chat" title="${t('navChat')}">
+      ${ic('chat')}<span>${t('navChat')}</span>
+    </button>
+    <button class="mode-btn ${isRag?'on':''}" data-act="setview" data-v="rag" title="${t('navRag')}">
+      ${ic('book')}<span>${t('navRag')}</span><span class="rag-pill">RAG</span>
+    </button>
+  </div>
+  ${!isRag ? `
+    <button class="row new-chat" data-act="new" title="${t('newChatTitle')}">${ic('plus')}<span class="lbl">${t('newChat')}</span><kbd>Ctrl+N</kbd></button>
+    <div class="search">${ic('search')}<input id="q" placeholder="${t('searchPlaceholder')}" aria-label="${t('searchAria')}" value="${esc(query)}"><kbd>Ctrl+K</kbd></div>
+    <nav class="list" id="list">${sideHTML()}</nav>
+  ` : `
+    <div class="rag-side-info">
+      <div class="grp">${t('ragVaultTitle')}</div>
+      <div class="rag-vault-summary" id="ragSideSummary">
+        ${ic('database')} <span id="ragSideCount">${ragDocs.length} ${t('ragDocsCount').replace('{n}', ragDocs.length)}</span>
+      </div>
+      <button class="row" data-act="ragreindex" title="${t('ragReindex')}">${ic('refresh')}<span class="lbl">${t('ragReindex')}</span></button>
+      <button class="row" data-act="ragclear" title="${t('ragClearChat')}">${ic('trash')}<span class="lbl">${t('ragClearChat')}</span></button>
+    </div>
+    <div style="flex:1"></div>
+  `}
   <button class="row" data-act="settings" title="${t('settings')}">${ic('gear')}<span class="lbl">${t('settings')}</span></button>
   </aside>
   <div class="scrim" data-act="drawer"></div>
-  <section class="main"><header class="hdr"><button class="ib" data-act="drawer" aria-label="${t('toggleSidebar')}" title="${t('toggleSidebar')}">${ic('panel')}</button><div class="ttl">${t('workspacePrefix')} <b>/ ${esc(cur()?.title||t('newConvHeader'))}</b></div><span class="sp"></span><div class="lang-switch" role="group" aria-label="Language / Idioma"><button class="lang-btn ${S.lang==='en'?'on':''}" data-act="setlang" data-l="en" title="English">EN</button><button class="lang-btn ${S.lang==='pt'?'on':''}" data-act="setlang" data-l="pt" title="Português">PT</button></div></header>
-  <main class="chat" id="chat" aria-label="Chat"><div class="col-in" id="msgs" aria-live="polite"></div></main>
-  <div class="comp"><div class="cbox" id="cbox"><div class="chips" id="atts"></div><textarea id="inp" rows="1" placeholder="${t('inputPlaceholder')}" aria-label="Message" maxlength="32000"></textarea><div class="tools"><button class="ib" data-act="attach" aria-label="${t('attachTitle')}" title="${t('attachTitle')}">${ic('clip')}</button><button class="ib mic-btn" id="micBtn" data-act="voice" aria-label="${t('voiceTitle')}" title="${t('voiceTitle')}">${ic('mic')}</button><button class="web-btn ${S.web?'on':''}" id="webBtn" data-act="toggleweb" aria-label="${t('webTitle')}" title="${t('webTitle')}">${ic('globe')}<span>${t('webBadge')}</span></button><span class="sp"></span><button class="send" id="send" data-act="send" aria-label="${t('send')}" title="${t('send')}">${ic('up')}</button></div></div><div class="hint"><span>${t('disclaimer')}</span><span>${t('hintKeys')}</span></div></div><input type="file" id="file" multiple hidden></section>
+  <section class="main">
+    <header class="hdr">
+      <button class="ib" data-act="drawer" aria-label="${t('toggleSidebar')}" title="${t('toggleSidebar')}">${ic('panel')}</button>
+      <div class="ttl">${headerTitle}</div>
+      <span class="sp"></span>
+      <div class="hdr-view-switch" role="tablist">
+        <button class="hdr-view-btn ${!isRag?'on':''}" data-act="setview" data-v="chat">${ic('chat')}<span>${t('modeChat')}</span></button>
+        <button class="hdr-view-btn ${isRag?'on':''}" data-act="setview" data-v="rag">${ic('book')}<span>${t('modeRag')}</span><span class="rag-pill">VAULT</span></button>
+      </div>
+      <div class="lang-switch" role="group" aria-label="Language / Idioma">
+        <button class="lang-btn ${S.lang==='en'?'on':''}" data-act="setlang" data-l="en" title="English">EN</button>
+        <button class="lang-btn ${S.lang==='pt'?'on':''}" data-act="setlang" data-l="pt" title="Português">PT</button>
+      </div>
+    </header>
+    ${isRag ? ragStudioHTML() : `
+      <main class="chat" id="chat" aria-label="Chat"><div class="col-in" id="msgs" aria-live="polite"></div></main>
+      <div class="comp">
+        <div class="cbox" id="cbox">
+          <div class="chips" id="atts"></div>
+          <textarea id="inp" rows="1" placeholder="${t('inputPlaceholder')}" aria-label="Message" maxlength="32000"></textarea>
+          <div class="tools">
+            <button class="ib" data-act="attach" aria-label="${t('attachTitle')}" title="${t('attachTitle')}">${ic('clip')}</button>
+            <button class="ib mic-btn" id="micBtn" data-act="voice" aria-label="${t('voiceTitle')}" title="${t('voiceTitle')}">${ic('mic')}</button>
+            <button class="web-btn ${S.web?'on':''}" id="webBtn" data-act="toggleweb" aria-label="${t('webTitle')}" title="${t('webTitle')}">${ic('globe')}<span>${t('webBadge')}</span></button>
+            <span class="sp"></span>
+            <button class="send" id="send" data-act="send" aria-label="${t('send')}" title="${t('send')}">${ic('up')}</button>
+          </div>
+        </div>
+        <div class="hint"><span>${t('disclaimer')}</span><span>${t('hintKeys')}</span></div>
+      </div>
+      <input type="file" id="file" multiple hidden>
+    `}
+  </section>
   <aside class="inside-browser ${InsideBrowser.isMaximized?'maximized':''}" id="insideBrowser">
     <div class="ib-header">
       <div class="ib-tab">
@@ -1149,7 +1912,356 @@ function shell(){
       <iframe id="ibFrame" class="ib-frame" sandbox="allow-scripts allow-forms allow-modals allow-popups allow-same-origin"></iframe>
     </div>
   </aside>`;
-  drawMsgs();drawAtts();bindInput();updSend();updateThemeLabel();if(InsideBrowser.isOpen){$('#app').classList.add('browser-open');InsideBrowser.render();}}
+
+  if(isRag){
+    bindRagStudio();
+    drawRagMsgs();
+    drawRagVault();
+  } else {
+    drawMsgs();
+    drawAtts();
+    bindInput();
+    updSend();
+    updateThemeLabel();
+  }
+  if(InsideBrowser.isOpen){
+    $('#app').classList.add('browser-open');
+    InsideBrowser.render();
+  }
+}
+
+
+/* ---- RAG Knowledge Studio Functions ---- */
+function ragStudioHTML(){
+  const totalChunks = ragDocs.reduce((acc, d) => acc + (d.chunks_count || 0), 0);
+  return `<div class="rag-studio" id="ragStudio">
+    <div class="rag-vault-pane" id="ragVaultPane">
+      <div class="rag-vault-head">
+        <div class="rag-vault-title-row">
+          <span class="rag-vault-title">${ic('database')} ${t('ragVaultTitle')}</span>
+          <span class="rag-meta-badge" id="ragVaultSummary">${ragDocs.length} Docs · ${totalChunks} Chunks</span>
+        </div>
+        <div class="rag-vault-acts">
+          <button class="btn pri" data-act="ragupload" title="${t('ragUploadDoc')}">${ic('upload')}<span>${t('ragUploadDoc')}</span></button>
+          <button class="btn" data-act="ragreindex" id="ragReindexBtn" title="${t('ragReindex')}">${ic('refresh')}<span>${t('ragReindex')}</span></button>
+        </div>
+      </div>
+      <div class="rag-dropzone" id="ragDropzone" data-act="ragupload">
+        ${ic('upload')}
+        <strong>${t('ragDropTitle')}</strong>
+        <small>${t('ragDropSub')}</small>
+      </div>
+      <input type="file" id="ragFileInput" multiple accept=".pdf,.md,.markdown,.txt,.py,.js,.json,.csv" hidden>
+      <div class="rag-doc-list" id="ragDocList">
+        <!-- Rendered by drawRagVault -->
+      </div>
+    </div>
+    <div class="rag-chat-pane">
+      <div class="rag-chat-header">
+        <div class="rag-chat-title">
+          <span>${t('ragCopilotTitle')}</span>
+          <span class="badge">${t('ragGroundingBadge')}</span>
+        </div>
+        <div class="rag-chat-status">
+          <span>1024-dim Vector + BM25</span>
+          <button class="ib" data-act="ragclear" title="${t('ragClearChat')}">${ic('trash')}</button>
+        </div>
+      </div>
+      <div class="rag-stream" id="ragMsgs">
+        <!-- Rendered by drawRagMsgs -->
+      </div>
+      <div class="rag-composer">
+        <div class="rag-cbox" id="ragCbox">
+          <textarea id="ragInp" rows="1" placeholder="${t('ragInputPlaceholder')}" aria-label="RAG Question" maxlength="16000"></textarea>
+          <div class="rag-cbox-foot">
+            <span class="rag-ground-note">Strict Grounding · Temp 0.2 · Zero Hallucination</span>
+            <button class="send" id="ragSend" data-act="ragsend" aria-label="${t('send')}" title="${t('send')}">${ic('up')}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function ragEmptyHTML(){
+  return `<div class="rag-empty">
+    <div class="rag-empty-icon">${ic('book')}</div>
+    <h2>${t('ragEmptyTitle')}</h2>
+    <p>${t('ragEmptyDesc')}</p>
+    <div class="rag-sample-grid">
+      <button class="rag-sample-btn" data-act="ragsug" data-q="${esc(t('ragSample1'))}">
+        ${ic('cpu')}
+        <span>${esc(t('ragSample1'))}</span>
+      </button>
+      <button class="rag-sample-btn" data-act="ragsug" data-q="${esc(t('ragSample2'))}">
+        ${ic('lock')}
+        <span>${esc(t('ragSample2'))}</span>
+      </button>
+      <button class="rag-sample-btn" data-act="ragsug" data-q="${esc(t('ragSample3'))}">
+        ${ic('code')}
+        <span>${esc(t('ragSample3'))}</span>
+      </button>
+      <button class="rag-sample-btn" data-act="ragsug" data-q="${esc(t('ragSample4'))}">
+        ${ic('database')}
+        <span>${esc(t('ragSample4'))}</span>
+      </button>
+    </div>
+  </div>`;
+}
+
+function drawRagVault(){
+  const el = $('#ragDocList');
+  const summaryEl = $('#ragVaultSummary');
+  const sideCountEl = $('#ragSideCount');
+  if(!el) return;
+
+  const totalChunks = ragDocs.reduce((acc, d) => acc + (d.chunks_count || 0), 0);
+  if(summaryEl) summaryEl.textContent = `${ragDocs.length} Docs · ${totalChunks} Chunks`;
+  if(sideCountEl) sideCountEl.textContent = `${ragDocs.length} ${t('ragDocsCount').replace('{n}', ragDocs.length)}`;
+
+  if(!ragDocs.length){
+    el.innerHTML = `<div style="padding:24px 12px;text-align:center;color:var(--tx3);font-size:11.5px;font-family:'JetBrains Mono',monospace">${t('ragNoDocs')}</div>`;
+    return;
+  }
+
+  el.innerHTML = ragDocs.map(d => {
+    const ext = d.filename.split('.').pop().toLowerCase();
+    const sizeKb = (d.size_bytes / 1024).toFixed(1);
+    const iconCls = ['pdf','md','txt'].includes(ext) ? ext : 'txt';
+    return `<div class="rag-doc-card">
+      <div class="rag-doc-icon ${iconCls}">${ext}</div>
+      <div class="rag-doc-info">
+        <div class="rag-doc-name" title="${esc(d.filename)}">${esc(d.filename)}</div>
+        <div class="rag-doc-sub">
+          <span>${sizeKb} KB</span>
+          <span class="rag-doc-chunks">${d.chunks_count || 0} chunks</span>
+        </div>
+      </div>
+      <button class="rag-doc-del" data-act="ragdel" data-file="${esc(d.filename)}" title="${t('del')}">${ic('trash')}</button>
+    </div>`;
+  }).join('');
+}
+
+function renderCitationsBarHTML(citations){
+  if(!citations || !citations.length) return '';
+  return citations.map(c => {
+    const scorePct = Math.round((c.score || 0) * 100);
+    const docShort = c.doc || c.filename || 'document';
+    const chunkId = c.chunk_id !== undefined ? c.chunk_id : (c.chunk_index !== undefined ? c.chunk_index : 0);
+    const denseVal = Math.round(((c.dense_score !== undefined ? c.dense_score : c.vector_score) || 0) * 100);
+    const lexVal = Math.round((c.lexical_score || 0) * 100);
+    return `<button class="rag-cit-chip" data-act="inspectchunk" data-doc="${esc(docShort)}" data-chunk="${chunkId}" data-score="${scorePct}" data-dense="${denseVal}" data-lex="${lexVal}" data-text="${esc(c.text||'')}">
+      ${ic('file')}
+      <span>${esc(docShort)} #${chunkId}</span>
+      <span class="rag-cit-score">${scorePct}%</span>
+    </button>`;
+  }).join('');
+}
+
+function drawRagMsgs(){
+  const el = $('#ragMsgs');
+  if(!el) return;
+
+  if(!S.ragMsgs.length){
+    el.innerHTML = ragEmptyHTML();
+    return;
+  }
+
+  el.innerHTML = S.ragMsgs.map((m, i) => {
+    if(m.role === 'user'){
+      return `<div class="rag-msg user">
+        <div class="rag-msg-author">${t('you')}</div>
+        <div class="rag-msg-bubble">${esc(m.text)}</div>
+      </div>`;
+    }
+    const isLive = ragRun && (i === S.ragMsgs.length - 1);
+    const citationsHtml = renderCitationsBarHTML(m.citations);
+    const loadingHtml = isLive && !m.text ? `<div class="compute-loading"><svg class="spin-circle" viewBox="0 0 24 24" width="15" height="15"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.5" stroke-opacity="0.25" fill="none"/><path d="M12 3a9 9 0 0 1 9 9" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg><span>Searching knowledge vault...</span></div>` : '';
+
+    return `<div class="rag-msg assistant" data-i="${i}">
+      <div class="rag-msg-author">${t('axom')} · GROUNDED</div>
+      ${citationsHtml ? `<div class="rag-citations-bar">${citationsHtml}</div>` : ''}
+      ${loadingHtml}
+      <div class="rag-msg-content">${md(m.text)}</div>
+      ${isLive ? '' : `<div class="rag-msg-actions"><button class="ib" data-act="copyrag" data-i="${i}" title="${t('copy')}">${ic('copy')}</button></div>`}
+    </div>`;
+  }).join('');
+  scrollRagEnd();
+}
+
+const scrollRagEnd = () => { const c = $('#ragMsgs'); if(c) c.scrollTop = c.scrollHeight; };
+
+function updRagSend(){
+  const b = $('#ragSend');
+  const i = $('#ragInp');
+  if(!b) return;
+  if(ragRun){
+    b.innerHTML = ic('stop');
+    b.dataset.act = 'ragstop';
+    b.disabled = false;
+  } else {
+    b.innerHTML = ic('up');
+    b.dataset.act = 'ragsend';
+    b.disabled = !(i && i.value.trim());
+  }
+}
+
+function bindRagStudio(){
+  const inp = $('#ragInp');
+  const fileInp = $('#ragFileInput');
+  const dropzone = $('#ragDropzone');
+
+  if(inp){
+    inp.addEventListener('input', () => {
+      inp.style.height = 'auto';
+      inp.style.height = Math.min(inp.scrollHeight, 180) + 'px';
+      updRagSend();
+    });
+    inp.addEventListener('keydown', e => {
+      if(e.key === 'Enter' && !e.shiftKey && !e.isComposing){
+        e.preventDefault();
+        if(!ragRun) sendRag();
+      }
+    });
+  }
+
+  if(fileInp){
+    fileInp.addEventListener('change', async () => {
+      if(fileInp.files && fileInp.files.length){
+        await uploadRagFiles(fileInp.files);
+        fileInp.value = '';
+      }
+    });
+  }
+
+  if(dropzone){
+    dropzone.addEventListener('dragover', e => {
+      e.preventDefault();
+      dropzone.classList.add('drag');
+    });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+    dropzone.addEventListener('drop', async e => {
+      e.preventDefault();
+      dropzone.classList.remove('drag');
+      if(e.dataTransfer.files && e.dataTransfer.files.length){
+        await uploadRagFiles(e.dataTransfer.files);
+      }
+    });
+  }
+}
+
+async function uploadRagFiles(files){
+  toast(t('ragReindexing'));
+  try{
+    const res = await RagApi.upload(files);
+    if(res.documents){
+      ragDocs = res.documents;
+      drawRagVault();
+      toast(t('ragDocUploaded'));
+    } else {
+      await loadRagDocs();
+      toast(t('ragDocUploaded'));
+    }
+  }catch(e){
+    toast('Upload failed: ' + e.message);
+  }
+}
+
+async function loadRagDocs(){
+  ragDocs = await RagApi.getDocuments();
+  drawRagVault();
+}
+
+async function sendRag(prompt){
+  const inp = $('#ragInp');
+  prompt = (prompt != null ? prompt : (inp ? inp.value : '')).trim();
+  if(!prompt || ragRun) return;
+
+  if(inp){
+    inp.value = '';
+    inp.style.height = 'auto';
+  }
+
+  S.ragMsgs.push({ role: 'user', text: prompt });
+  const asstMsg = { role: 'assistant', text: '', citations: [] };
+  S.ragMsgs.push(asstMsg);
+  save();
+  drawRagMsgs();
+
+  ragRun = new AbortController();
+  updRagSend();
+
+  const msgEls = $$('.rag-msg.assistant', $('#ragMsgs'));
+  const targetMsgEl = msgEls[msgEls.length - 1];
+  const bodyEl = targetMsgEl?.querySelector('.rag-msg-content');
+
+  try{
+    const msgsToSend = S.ragMsgs.slice(0, -1);
+    for await (const ev of RagApi.streamChat({ query: prompt, messages: msgsToSend, signal: ragRun.signal })){
+      if(ev.type === 'citations'){
+        asstMsg.citations = ev.citations || [];
+        const citBar = targetMsgEl?.querySelector('.rag-citations-bar') || (() => {
+          const div = document.createElement('div');
+          div.className = 'rag-citations-bar';
+          targetMsgEl.insertBefore(div, targetMsgEl.querySelector('.compute-loading') || bodyEl);
+          return div;
+        })();
+        citBar.innerHTML = renderCitationsBarHTML(asstMsg.citations);
+      } else if(ev.text){
+        const loadEl = targetMsgEl?.querySelector('.compute-loading');
+        if(loadEl) loadEl.remove();
+        asstMsg.text += ev.text;
+        if(bodyEl) bodyEl.innerHTML = md(asstMsg.text);
+        scrollRagEnd();
+      }
+    }
+  }catch(e){
+    if(e.name === 'AbortError'){
+      asstMsg.text += '\n\n' + t('genStopped');
+    } else {
+      asstMsg.text += '\n\n' + (e.message || 'Error communicating with RAG server.');
+    }
+    if(bodyEl) bodyEl.innerHTML = md(asstMsg.text);
+  }finally{
+    ragRun = null;
+    save();
+    drawRagMsgs();
+    updRagSend();
+  }
+}
+
+function inspectChunkModal({ doc, chunk, score, dense, lex, text }){
+  $('.ov')?.remove();
+  const o = document.createElement('div');
+  o.className = 'ov';
+  o.innerHTML = `<div class="modal" role="dialog" aria-modal="true" style="width:min(620px,100%)">
+    <div class="mh">
+      <span>${ic('book')} ${esc(doc)} (Chunk #${chunk})</span>
+      <button class="ib" data-act="closeinspect">${ic('x')}</button>
+    </div>
+    <div style="padding:16px 20px">
+      <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+        <div style="background:var(--surf);border:1px solid var(--bd);padding:6px 12px;font:11px 'JetBrains Mono',monospace">
+          <span style="color:var(--tx3)">MATCH:</span> <strong style="color:var(--acid)">${score}%</strong>
+        </div>
+        <div style="background:var(--surf);border:1px solid var(--bd);padding:6px 12px;font:11px 'JetBrains Mono',monospace">
+          <span style="color:var(--tx3)">VECTOR COSINE:</span> <strong style="color:var(--ac)">${dense}%</strong>
+        </div>
+        <div style="background:var(--surf);border:1px solid var(--bd);padding:6px 12px;font:11px 'JetBrains Mono',monospace">
+          <span style="color:var(--tx3)">BM25 KEYWORD:</span> <strong style="color:#45D483">${lex}%</strong>
+        </div>
+      </div>
+      <div style="font:11px 'JetBrains Mono',monospace;color:var(--tx3);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">
+        Exact Retrieved Grounding Passage:
+      </div>
+      <pre style="background:var(--bg);border:1px solid var(--bd);border-radius:6px;padding:12px;font:12.5px/1.6 'JetBrains Mono',monospace;color:var(--tx);white-space:pre-wrap;max-height:300px;overflow-y:auto;margin:0">${esc(text)}</pre>
+    </div>
+    <div style="display:flex;justify-content:flex-end;padding:0 20px 16px">
+      <button class="btn pri" data-act="closeinspect">${t('ok')}</button>
+    </div>
+  </div>`;
+  document.body.appendChild(o);
+}
 
 function welcome(){
   const isPt = S.lang === 'pt';
@@ -1808,6 +2920,100 @@ document.addEventListener('click',async e=>{
   const b=e.target.closest('[data-act]');if(!e.target.closest('.pop'))closePop();if(!b)return;
   const a=b.dataset.act,id=b.dataset.id,c=cur();
   if(run&&['new','open','rename','del','pinc','retry','fb','sug'].includes(a)){toast(t('stopGenFirst'));return}
+  if(a==='setview'){
+    S.view = b.dataset.v || 'chat';
+    save();
+    if(S.view === 'rag' && !ragDocs.length){
+      loadRagDocs();
+    }
+    shell();
+    toast(S.view === 'rag' ? t('navRag') : t('navChat'));
+    return;
+  }
+  else if(a==='ragupload'){
+    $('#ragFileInput')?.click();
+    return;
+  }
+  else if(a==='ragreindex'){
+    const btn = $('#ragReindexBtn');
+    if(btn){
+      btn.disabled = true;
+      btn.textContent = t('ragReindexing');
+    }
+    toast(t('ragReindexing'));
+    try{
+      const r = await RagApi.reindex();
+      if(r.documents) ragDocs = r.documents;
+      else await loadRagDocs();
+      drawRagVault();
+      toast(t('ragReindexDone'));
+    }catch(err){
+      toast('Re-index failed: ' + err.message);
+    }finally{
+      if(btn){
+        btn.disabled = false;
+        btn.innerHTML = `${ic('refresh')}<span>${t('ragReindex')}</span>`;
+      }
+    }
+    return;
+  }
+  else if(a==='ragdel'){
+    const file = b.dataset.file;
+    if(!file) return;
+    if(await dialog({ title: t('delTitle'), body: `"${esc(file)}" ${t('delConfirm')}`, ok: t('del'), danger: 1 })){
+      try{
+        const r = await RagApi.delete(file);
+        if(r.documents) ragDocs = r.documents;
+        else await loadRagDocs();
+        drawRagVault();
+        toast(t('ragDocDeleted'));
+      }catch(err){
+        toast('Delete failed: ' + err.message);
+      }
+    }
+    return;
+  }
+  else if(a==='ragclear'){
+    S.ragMsgs = [];
+    save();
+    drawRagMsgs();
+    toast(t('ragClearChat'));
+    return;
+  }
+  else if(a==='ragsend'){
+    sendRag();
+    return;
+  }
+  else if(a==='ragstop'){
+    ragRun?.abort();
+    return;
+  }
+  else if(a==='ragsug'){
+    sendRag(b.dataset.q);
+    return;
+  }
+  else if(a==='copyrag'){
+    const m = S.ragMsgs[+b.dataset.i];
+    if(m && m.text){
+      navigator.clipboard.writeText(m.text).then(() => toast(t('copied')), () => toast(t('copyFailed')));
+    }
+    return;
+  }
+  else if(a==='inspectchunk'){
+    const doc = b.dataset.doc;
+    const chunk = b.dataset.chunk;
+    const score = b.dataset.score;
+    const dense = b.dataset.dense;
+    const lex = b.dataset.lex;
+    const text = b.dataset.text;
+    inspectChunkModal({ doc, chunk, score, dense, lex, text });
+    return;
+  }
+  else if(a==='closeinspect'){
+    $('.ov')?.remove();
+    return;
+  }
+
   if(a==='gohome'||a==='new')newChat();
   else if(a==='setlang'){
     const targetLang=b.dataset.l;
@@ -1939,7 +3145,34 @@ document.addEventListener('keydown',e=>{
 });
 matchMedia('(prefers-color-scheme:light)').addEventListener('change',()=>S.theme==='system'&&applyTheme());
 
-applyTheme();shell();InsideBrowser.init();
+// Inline citation inspector listener
+document.addEventListener('click', e => {
+  const citEl = e.target.closest('.inline-cit');
+  if(citEl){
+    const doc = citEl.dataset.doc;
+    const chunkId = parseInt(citEl.dataset.chunk || '0', 10);
+    let matchedChunk = null;
+    for(let k = S.ragMsgs.length - 1; k >= 0; k--){
+      const cList = S.ragMsgs[k].citations || [];
+      matchedChunk = cList.find(c => c.doc === doc && c.chunk_id === chunkId);
+      if(matchedChunk) break;
+    }
+    if(matchedChunk){
+      inspectChunkModal({
+        doc: matchedChunk.doc,
+        chunk: matchedChunk.chunk_id,
+        score: Math.round((matchedChunk.score||0)*100),
+        dense: Math.round((matchedChunk.dense_score||0)*100),
+        lex: Math.round((matchedChunk.lexical_score||0)*100),
+        text: matchedChunk.text || ''
+      });
+    } else {
+      toast(`${doc} #${chunkId}`);
+    }
+  }
+});
+
+applyTheme();shell();InsideBrowser.init();loadRagDocs();
 Axom.models().then(m=>{
   models=m;
   if(m.length&&!m.some(x=>x.id===S.model))S.model=m[0].id;

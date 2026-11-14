@@ -1,0 +1,37 @@
+{
+  "total_documents": 5,
+  "total_chunks": 14,
+  "documents": [
+    {
+      "filename": "axom_architecture.md",
+      "size_bytes": 1753,
+      "chunks_count": 4,
+      "last_modified": 1794420082.2442584
+    },
+    {
+      "filename": "neural_hardware_whitepaper.pdf",
+      "size_bytes": 1116,
+      "chunks_count": 1,
+      "last_modified": 1794698910.2712116
+    },
+    {
+      "filename": "quantum_cryptography_report.md",
+      "size_bytes": 1697,
+      "chunks_count": 4,
+      "last_modified": 1794698736.959172
+    },
+    {
+      "filename": "system_specifications.md",
+      "size_bytes": 1064,
+      "chunks_count": 2,
+      "last_modified": 1794420088.1880157
+    },
+    {
+      "filename": "tools_reference.md",
+      "size_bytes": 1101,
+      "chunks_count": 3,
+      "last_modified": 1794420093.5380132
+    }
+  ],
+  "last_indexed_at": "2026-11-14T23:28:39Z"
+}

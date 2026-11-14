@@ -790,9 +790,47 @@
 
 ---
 
+### 34. Dedicated High-Accuracy RAG Chatbot & Knowledge Vault Studio (2026-11-14)
+- **What Was Done:**
+  - Designed and built a dedicated, isolated RAG (Retrieval-Augmented Generation) Chatbot & Document Knowledge Base Studio directly inside the AXOM workspace (`http://127.0.0.1:8000`).
+  - Implemented an advanced hybrid search retrieval pipeline combining:
+    1. **Dense Vector Search**: Powered by LanceDB vector store (`rag_knowledge_chunks.lance`) and Ollama's `qwen3-embedding:0.6b` (1,024-dimensional embeddings).
+    2. **BM25 Lexical Keyword Overlap**: Exact term matching for technical identifiers, hardware specs, cryptographic key sizes, and names (65% vector cosine + 35% lexical scoring).
+    3. **Document Ingestion Pipeline (`scripts/rag_core.py`)**: Automatic text extraction from PDFs (`pypdf` with page tracking), Markdown (`.md`), text files (`.txt`), and code files (`.py`, `.js`, `.json`). Recursive semantic chunking (`chunk_size = 650`, `chunk_overlap = 120`).
+  - Added full RAG REST API endpoints to `server.js` and `rag_service.js`:
+    - `GET /api/rag/documents`: returns indexed documents, chunk counts, and file sizes.
+    - `POST /api/rag/upload`: multipart file upload and automated ingestion into LanceDB.
+    - `POST /api/rag/delete`: document removal with automatic index update.
+    - `POST /api/rag/ingest`: manual vault re-indexing.
+    - `POST /api/rag/chat`: grounded SSE streaming and non-streaming inference using Ollama `axom:1.1` (`temperature: 0.2`, `num_ctx: 16384`) with source citations.
+  - Developed a separated, responsive RAG frontend in `index.html`:
+    - One-click **Mode Switcher** in the sidebar and top header to toggle between `[AI Companion]` and `[Knowledge Vault]`.
+    - **Knowledge Base Vault Drawer**: Displays document cards (PDF, Markdown, Code), size in KB, chunks count, delete button, drag-and-drop file dropzone, and "Re-Index Vault" button.
+    - **Grounded Copilot Chat Stream**: Dedicated conversation stream with clickable citation chips (`[doc:filename#chunk (XX% match)]`).
+    - **Interactive Source Chunk Inspector Modal**: Clicking any citation chip or inline source tag opens an inspection dialog showing match score, cosine vector similarity, BM25 overlap, and the raw grounding passage from the document.
+    - Strict Zero-Emoji compliance throughout all UI components and prompts.
+    - Bilingual English and Portuguese translations in `I18N`.
+  - **Empirical Grounding & Accuracy Verification**:
+    - Created test documents: `neural_hardware_whitepaper.pdf` and `quantum_cryptography_report.md`.
+    - Created and executed test evaluation suite (`scripts/test_rag_eval.py`):
+      1. **PDF Fact Retrieval**: 100% accurate (Hyperion-V4 TDP: 18W, ResNet-101 Benchmark: 14,280 fps, Lead Engineer: Dr. Kenneth Ward) with citation `[doc:neural_hardware_whitepaper.pdf#0]`.
+      2. **Markdown Technical Report Retrieval**: 100% accurate (Kyber-1024 Public Key: 1,568 bytes, Private Key: 3,168 bytes, Lead Cryptographer: Dr. Evelyn Vance at Zurich Institute) with citations `[doc:quantum_cryptography_report.md#1]` and `#0`.
+      3. **Negative / Zero-Hallucination Test**: 100% pass (correctly identified that Martian blueberry pancakes do not exist in the documents, summarized what was in the documents, and refused to hallucinate).
+- **How It Was Implemented:**
+  - Files created/modified:
+    - [`scripts/rag_core.py`](file:///c:/Users/abira/Documents/axom/scripts/rag_core.py): LanceDB + Ollama embedding + BM25 hybrid search engine.
+    - [`rag_service.js`](file:///c:/Users/abira/Documents/axom/rag_service.js): Node.js integration layer for document ingestion, search, and formatting.
+    - [`server.js`](file:///c:/Users/abira/Documents/axom/server.js): REST and SSE streaming endpoints for `/api/rag/*`.
+    - [`index.html`](file:///c:/Users/abira/Documents/axom/index.html): Full RAG Studio interface, mode switcher, knowledge vault, and citation inspector.
+    - [`data/rag_docs/`](file:///c:/Users/abira/Documents/axom/data/rag_docs/): Pre-indexed documentation and whitepapers.
+- **Why It Was Done:**
+  - The user requested: *"now in my ai can you build me a rag chatbott too like seperated section in my ai for now make it tso itt has high accuraccy and also test it wih documents and let me know"*.
+
+---
+
 ## 🔮 Active & Upcoming Work
 
-### 34. QLoRA Fine-Tuning Execution (`axom:1.2`)
+### 35. QLoRA Fine-Tuning Execution (`axom:1.2`)
 - **Goal:** Run the fine-tuning pipeline (`train/train_unsloth_lora.py`) using the generated 500,490-word synthetic training dataset.
 - **Deliverable:** Quantized GGUF weights for Ollama.
 

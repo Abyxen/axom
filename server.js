@@ -16,6 +16,7 @@ const obsidianVault = require('./obsidian_vault');
 const fileService = require('./file_service');
 const researchSkills = require('./research_skills');
 const mcpClient = require('./mcp_client');
+const ragService = require('./rag_service');
 
 const PORT = 8000;
 const HOST = '127.0.0.1';
@@ -537,6 +538,162 @@ button:hover{background:#3f3f46}
   if (req.method === 'GET' && pathname === '/api/files/workspace') {
     const list = fileService.listWorkspaceFiles();
     return sendJson(res, 200, { files: list });
+  }
+
+  // --- API: RAG (Retrieval Augmented Generation) Knowledge Vault ---
+
+  if (req.method === 'GET' && pathname === '/api/rag/documents') {
+    return sendJson(res, 200, ragService.listDocuments());
+  }
+
+  if (req.method === 'POST' && pathname === '/api/rag/upload') {
+    let bodyText = '';
+    req.on('data', chunk => {
+      bodyText += chunk;
+      if (bodyText.length > 50 * 1024 * 1024) req.destroy();
+    });
+    req.on('end', async () => {
+      try {
+        const body = JSON.parse(bodyText || '{}');
+        const files = Array.isArray(body.files) ? body.files : (body.name ? [{ name: body.name, data: body.data || body.content }] : []);
+        const saved = [];
+        for (const f of files) {
+          const resSave = ragService.saveUploadedDocument(f.name, f.data || f.content);
+          saved.push(resSave);
+        }
+        // Auto-ingest after upload
+        const ingestRes = await ragService.ingestDocuments();
+        return sendJson(res, 200, { success: true, saved, ingest: ingestRes });
+      } catch (err) {
+        return sendJson(res, 500, { error: err.message });
+      }
+    });
+    return;
+  }
+
+  if (req.method === 'POST' && pathname === '/api/rag/delete') {
+    let bodyText = '';
+    req.on('data', chunk => bodyText += chunk);
+    req.on('end', async () => {
+      try {
+        const body = JSON.parse(bodyText || '{}');
+        const delRes = ragService.deleteDocument(body.filename);
+        if (delRes.error) return sendJson(res, 404, delRes);
+        const ingestRes = await ragService.ingestDocuments();
+        return sendJson(res, 200, { success: true, deleted: delRes.deleted, ingest: ingestRes });
+      } catch (err) {
+        return sendJson(res, 500, { error: err.message });
+      }
+    });
+    return;
+  }
+
+  if (req.method === 'POST' && pathname === '/api/rag/ingest') {
+    try {
+      const resIngest = await ragService.ingestDocuments();
+      return sendJson(res, 200, resIngest);
+    } catch (err) {
+      return sendJson(res, 500, { error: err.message });
+    }
+  }
+
+  if (req.method === 'POST' && pathname === '/api/rag/chat') {
+    let bodyText = '';
+    req.on('data', chunk => {
+      bodyText += chunk;
+      if (bodyText.length > 10 * 1024 * 1024) req.destroy();
+    });
+    req.on('end', async () => {
+      try {
+        const body = JSON.parse(bodyText || '{}');
+        const requestedModel = 'axom:1.1';
+        const messages = Array.isArray(body.messages) ? body.messages : [];
+        const isStream = body.stream !== false;
+        const topK = typeof body.top_k === 'number' ? body.top_k : 4;
+
+        const userMsgObj = messages.filter(m => m.role === 'user').slice(-1)[0];
+        const lastUserPrompt = userMsgObj ? (typeof userMsgObj.content === 'string' ? userMsgObj.content : '') : '';
+
+        // Retrieve top grounded chunks using Hybrid LanceDB search
+        const chunks = await ragService.searchChunks(lastUserPrompt, topK);
+        const groundingContext = ragService.formatGroundedContext(chunks);
+        const ragDirective = ragService.getRagSystemDirective();
+
+        const formattedMessages = [
+          {
+            role: 'system',
+            content: `${groundingContext}${ragDirective}`
+          }
+        ];
+
+        for (const msg of messages) {
+          if (msg.role !== 'system') {
+            formattedMessages.push({ role: msg.role, content: msg.content });
+          }
+        }
+
+        const controller = new AbortController();
+        res.on('close', () => {
+          if (!res.writableEnded) controller.abort();
+        });
+
+        const ollamaPayload = {
+          model: requestedModel,
+          messages: formattedMessages,
+          stream: isStream,
+          options: {
+            num_ctx: 16384,
+            temperature: 0.2, // Ultra-focused low temperature for maximum grounding accuracy
+            repeat_penalty: 1.1,
+            top_p: 0.9,
+            top_k: 40,
+            num_predict: 2048
+          }
+        };
+
+        const ollamaRes = await fetch(`${OLLAMA_BASE}/api/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(ollamaPayload),
+          signal: controller.signal
+        });
+
+        if (!ollamaRes.ok) {
+          const errDetail = await ollamaRes.text().catch(() => '');
+          return sendJson(res, ollamaRes.status, { error: `Ollama error (${ollamaRes.status}): ${errDetail}` });
+        }
+
+        if (!isStream) {
+          const data = await ollamaRes.json();
+          let finalReply = data.message?.content || '';
+          finalReply = finalReply.replace(/^<\/think>\s*/i, '');
+          if (!finalReply && data.message?.thinking) finalReply = data.message.thinking;
+          finalReply = finalReply.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1FA00}-\u{1FAFF}\u{1F1E6}-\u{1F1FF}]/gu, '').trim();
+          return sendJson(res, 200, {
+            message: { role: 'assistant', content: finalReply },
+            citations: chunks
+          });
+        }
+
+        // SSE Streaming with Citations
+        setCors(res);
+        res.writeHead(200, {
+          'Content-Type': 'text/event-stream; charset=utf-8',
+          'Cache-Control': 'no-cache, no-transform',
+          'Connection': 'keep-alive'
+        });
+
+        // Write citations event first so client knows which chunks were grounded
+        res.write(`data: ${JSON.stringify({ type: 'citations', citations: chunks })}\n\n`);
+
+        return pipeOllamaStream(ollamaRes, res, body.session_id || 'rag_session', requestedModel);
+      } catch (err) {
+        if (err.name === 'AbortError') return res.end();
+        console.error('[RAG] Chat error:', err);
+        return sendJson(res, 500, { error: err.message });
+      }
+    });
+    return;
   }
 
   function isMcpTaskNeeded(prompt) {
