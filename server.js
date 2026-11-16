@@ -20,6 +20,7 @@ const ragService = require('./rag_service');
 const aiProviders = require('./ai_providers');
 const { isBasicPrompt } = aiProviders;
 const axomSkills = require('./axom_skills');
+const freeApisService = require('./free_apis_service');
 
 const PORT = 8000;
 const HOST = '127.0.0.1';
@@ -261,6 +262,41 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 200, testRes);
       } catch (e) {
         return sendJson(res, 500, { ok: false, error: e.message });
+      }
+    });
+    return;
+  }
+
+  // --- API: Free LLM APIs Catalog & Hub (Awesome Free LLM APIs) ---
+  if (req.method === 'GET' && pathname === '/api/free-apis') {
+    return sendJson(res, 200, freeApisService.getCatalog());
+  }
+
+  if (req.method === 'POST' && pathname === '/api/free-apis/test') {
+    let bodyText = '';
+    req.on('data', chunk => { bodyText += chunk; });
+    req.on('end', async () => {
+      try {
+        const body = JSON.parse(bodyText || '{}');
+        const testRes = await freeApisService.testEndpoint(body.provider_id, body.model_id, body.api_key);
+        return sendJson(res, 200, testRes);
+      } catch (e) {
+        return sendJson(res, 500, { ok: false, error: e.message });
+      }
+    });
+    return;
+  }
+
+  if (req.method === 'POST' && pathname === '/api/free-apis/snippet') {
+    let bodyText = '';
+    req.on('data', chunk => { bodyText += chunk; });
+    req.on('end', () => {
+      try {
+        const body = JSON.parse(bodyText || '{}');
+        const snippet = freeApisService.generateSnippet(body.provider_id, body.model_id, body.language || 'python');
+        return sendJson(res, 200, { ok: true, snippet });
+      } catch (e) {
+        return sendJson(res, 400, { ok: false, error: e.message });
       }
     });
     return;

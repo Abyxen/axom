@@ -784,6 +784,245 @@ details.think .think-body {
   color: #60a5fa;
 }
 
+
+/* Awesome Free LLM APIs Catalog & Hub Styling */
+.hdr-free-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  background: linear-gradient(135deg, rgba(59,130,246,.12) 0%, rgba(6,182,212,.08) 100%);
+  border: 1px solid rgba(59,130,246,.3);
+  border-radius: 20px;
+  color: var(--tx);
+  font: 500 11.5px Inter, sans-serif;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.hdr-free-btn:hover {
+  background: linear-gradient(135deg, rgba(59,130,246,.2) 0%, rgba(6,182,212,.15) 100%);
+  border-color: #38bdf8;
+  transform: translateY(-1px);
+}
+.free-sparkle { color: #38bdf8; font-size: 12px; }
+.free-count-pill {
+  font: 600 9px 'JetBrains Mono', monospace;
+  padding: 1px 5.5px;
+  background: rgba(16,185,129,.15);
+  color: #34d399;
+  border-radius: 10px;
+  border: 1px solid rgba(16,185,129,.3);
+}
+
+.free-hub-modal {
+  width: min(1040px, 96vw);
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  background: #0d0f15;
+  border: 1px solid #232736;
+  border-radius: 14px;
+  box-shadow: 0 24px 60px rgba(0,0,0,.7);
+  overflow: hidden;
+}
+.free-hub-top {
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--bd);
+  background: #121520;
+}
+.free-hub-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.free-hub-title {
+  font: 700 16px Inter, sans-serif;
+  color: var(--tx);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.free-hub-stats {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  font: 11px 'JetBrains Mono', monospace;
+  color: var(--tx2);
+}
+.free-hub-chip {
+  padding: 2px 7.5px;
+  background: var(--surf);
+  border: 1px solid var(--bd);
+  border-radius: 4px;
+  color: #94a3b8;
+}
+.free-hub-chip.emerald { color: #34d399; border-color: rgba(52,211,153,.3); background: rgba(52,211,153,.1); }
+.free-hub-chip.cyan { color: #38bdf8; border-color: rgba(56,189,248,.3); background: rgba(56,189,248,.1); }
+
+.free-hub-pills {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 10px 0 2px;
+}
+.free-hub-pill-btn {
+  padding: 5px 12px;
+  background: var(--surf);
+  border: 1px solid var(--bd);
+  border-radius: 20px;
+  font: 500 11px Inter, sans-serif;
+  color: var(--tx2);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .15s ease;
+}
+.free-hub-pill-btn:hover {
+  color: var(--tx);
+  border-color: #3b82f6;
+}
+.free-hub-pill-btn.on {
+  background: rgba(59,130,246,.2);
+  border-color: #3b82f6;
+  color: #93c5fd;
+  font-weight: 600;
+}
+
+.free-hub-search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--bd);
+}
+.free-hub-search-box input {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  font: 12.5px Inter, sans-serif;
+  color: var(--tx);
+}
+
+.free-hub-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.free-prov-card {
+  background: #141722;
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  padding: 14px 16px;
+  transition: border-color .15s ease;
+}
+.free-prov-card:hover {
+  border-color: rgba(59,130,246,.4);
+}
+.free-prov-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.free-prov-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 600 14px Inter, sans-serif;
+  color: var(--tx);
+}
+.free-prov-desc {
+  font: 11.5px Inter, sans-serif;
+  color: var(--tx2);
+  line-height: 1.45;
+  margin-bottom: 10px;
+}
+.free-prov-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.free-hub-table-wrap {
+  margin-top: 10px;
+  overflow-x: auto;
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 6px;
+}
+.free-hub-table {
+  width: 100%;
+  border-collapse: collapse;
+  font: 11.5px 'JetBrains Mono', monospace;
+  text-align: left;
+}
+.free-hub-table th {
+  background: #1b1e2e;
+  color: #94a3b8;
+  padding: 8px 10px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.free-hub-table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+  color: var(--tx);
+}
+.free-hub-table tr:hover td {
+  background: rgba(255,255,255,.02);
+}
+.free-hub-table .model-id-cell {
+  font-weight: 600;
+  color: #e2e8f0;
+}
+.mod-badge {
+  font: 500 9.5px 'JetBrains Mono', monospace;
+  padding: 1.5px 6px;
+  border-radius: 4px;
+  display: inline-block;
+}
+.mod-badge.reasoning { background: rgba(168,85,247,.15); color: #c084fc; border: 1px solid rgba(168,85,247,.3); }
+.mod-badge.code { background: rgba(16,185,129,.15); color: #34d399; border: 1px solid rgba(16,185,129,.3); }
+.mod-badge.multimodal { background: rgba(6,182,212,.15); color: #38bdf8; border: 1px solid rgba(6,182,212,.3); }
+.mod-badge.text { background: rgba(148,163,184,.15); color: #94a3b8; border: 1px solid rgba(148,163,184,.25); }
+
+.snippet-modal-box {
+  width: min(660px, 94vw);
+  background: #10121a;
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.snippet-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 10px 16px;
+  background: #161824;
+  border-bottom: 1px solid var(--bd);
+  align-items: center;
+}
+.snippet-pre {
+  margin: 0;
+  padding: 16px;
+  background: #090a0f;
+  color: #e2e8f0;
+  font: 11.5px 'JetBrains Mono', monospace;
+  overflow-x: auto;
+  max-height: 50vh;
+  line-height: 1.5;
+}
+
 /* Auto-routing transparent badge in messages */
 .auto-route-badge {
   display: inline-flex;
@@ -3432,6 +3671,364 @@ async function openModelPicker(){
   document.body.appendChild(o);
 }
 
+
+let freeApisData = null;
+
+async function openFreeApisHub(initialFilter = 'all'){
+  closePop();
+  $('#freeApisModal')?.remove();
+
+  if(!freeApisData){
+    try {
+      const res = await fetch('/api/free-apis');
+      if(res.ok) freeApisData = await res.json();
+    } catch(e){
+      console.warn('Free APIs fetch error:', e);
+    }
+  }
+
+  const catalog = freeApisData || { providers: [] };
+  const o = document.createElement('div');
+  o.className = 'ov free-hub-ov';
+  o.id = 'freeApisModal';
+
+  let currentFilter = initialFilter;
+  let searchQuery = '';
+
+  const renderContent = () => {
+    let filtered = [...catalog.providers];
+
+    if(currentFilter === 'keyless'){
+      filtered = filtered.filter(p => p.keyless);
+    } else if(currentFilter === 'fastest'){
+      filtered = filtered.filter(p => p.priorities.includes('fastest'));
+    } else if(currentFilter === 'reasoning'){
+      filtered = filtered.filter(p => p.priorities.includes('reasoning') || p.models.some(m => m.priorities?.includes('reasoning')));
+    } else if(currentFilter === 'code'){
+      filtered = filtered.filter(p => p.priorities.includes('code') || p.models.some(m => m.priorities?.includes('code')));
+    } else if(currentFilter === 'large_context'){
+      filtered = filtered.filter(p => p.priorities.includes('large_context') || p.models.some(m => m.priorities?.includes('large_context')));
+    } else if(currentFilter === 'eu'){
+      filtered = filtered.filter(p => p.priorities.includes('eu'));
+    }
+
+    if(searchQuery){
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(p => {
+        const pMatch = p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q) || (p.country && p.country.toLowerCase().includes(q));
+        const mMatch = p.models.some(m => m.name.toLowerCase().includes(q) || (m.modality && m.modality.toLowerCase().includes(q)) || (m.context && m.context.toLowerCase().includes(q)));
+        return pMatch || mMatch;
+      });
+    }
+
+    const cardsHtml = filtered.map(p => {
+      const isKeyless = p.keyless;
+      const statusBadge = isKeyless 
+        ? `<span class="prov-pill green">✨ NO KEY NEEDED</span>` 
+        : (p.hasKey ? `<span class="prov-pill green">CONNECTED</span>` : `<span class="prov-pill dim">KEY REQUIRED</span>`);
+      
+      const catLabel = p.category === 'provider_api' ? 'PROVIDER API' : 'INFERENCE PROVIDER';
+
+      const modelsTableRows = p.models.map(m => {
+        const isReasoning = (m.modality || '').toLowerCase().includes('reasoning');
+        const isCode = (m.modality || '').toLowerCase().includes('code');
+        const isMulti = (m.modality || '').toLowerCase().includes('image') || (m.modality || '').toLowerCase().includes('video') || (m.modality || '').toLowerCase().includes('multimodal');
+        const badgeCls = isReasoning ? 'reasoning' : (isCode ? 'code' : (isMulti ? 'multimodal' : 'text'));
+
+        return `<tr>
+          <td class="model-id-cell">
+            <div>${esc(m.name)}</div>
+            ${m.id !== m.name ? `<small style="color:var(--tx3);font-size:9.5px">${esc(m.id)}</small>` : ''}
+          </td>
+          <td><span class="model-ctx">${esc(m.context || '—')}</span></td>
+          <td><span style="color:var(--tx2)">${esc(m.maxOutput || '—')}</span></td>
+          <td><span class="mod-badge ${badgeCls}">${esc(m.modality || 'Text')}</span></td>
+          <td style="color:#34d399;font-size:10.5px">${esc(m.rateLimit || 'Free')}</td>
+          <td>
+            <div style="display:flex;gap:4px">
+              <button class="btn" style="padding:2px 7px;font-size:10px" data-act-snippet="${esc(p.id)}" data-model="${esc(m.id)}" title="Copy code snippet">Snippet</button>
+              <button class="btn" style="padding:2px 7px;font-size:10px" data-act-testfree="${esc(p.id)}" data-model="${esc(m.id)}" title="Test endpoint latency">Test</button>
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+
+      return `<div class="free-prov-card" data-provider="${esc(p.id)}">
+        <div class="free-prov-top">
+          <div class="free-prov-title">
+            <span style="font-size:17px">${p.flag || '🌐'}</span>
+            <span>${esc(p.name)}</span>
+            <span class="prov-pill acid" style="font-size:9px">${catLabel}</span>
+            ${statusBadge}
+          </div>
+          <div class="free-prov-actions">
+            ${p.keyUrl ? `<a href="${esc(p.keyUrl)}" target="_blank" rel="noopener" class="prov-link" style="font-size:11px">${t('getKey')} &nearr;</a>` : ''}
+            <button class="btn" style="padding:3px 9px;font-size:10.5px" data-act-togglesetup="${esc(p.id)}">${p.hasKey ? 'Update Key' : 'Configure Key'}</button>
+            <button class="btn pri" style="padding:3px 9px;font-size:10.5px" data-act-testfree="${esc(p.id)}" data-model="${esc(p.models[0]?.id || '')}">Test Provider</button>
+          </div>
+        </div>
+        <p class="free-prov-desc">${esc(p.description)}</p>
+        <div style="display:flex;align-items:center;gap:8px;font-size:10.5px;color:var(--tx3);margin-bottom:8px">
+          <span>Base URL:</span>
+          <code style="background:var(--surf);padding:2px 6px;border-radius:4px;color:#93c5fd">${esc(p.openaiBaseUrl)}</code>
+        </div>
+        <div class="free-key-input-wrap" id="setup_${esc(p.id)}" style="display:none;margin-bottom:10px;padding:10px;background:var(--surf);border-radius:6px;border:1px solid var(--bd)">
+          <div style="display:flex;gap:8px">
+            <input type="password" class="prov-input" data-key-val="${esc(p.id)}" placeholder="${p.hasKey ? '••••••••' : (p.keyPrefix ? p.keyPrefix + '...' : 'Paste API Key')}" style="flex:1">
+            <button class="btn pri" data-act-savefreekey="${esc(p.id)}" style="font-size:11px;padding:4px 12px">Save Key</button>
+          </div>
+        </div>
+        <div class="test-feedback" id="test_${esc(p.id)}" style="display:none;margin-bottom:10px;padding:7px 10px;border-radius:6px;font:11px 'JetBrains Mono',monospace"></div>
+        <div class="free-hub-table-wrap">
+          <table class="free-hub-table">
+            <thead>
+              <tr>
+                <th>Model Name &amp; ID</th>
+                <th>Context</th>
+                <th>Max Output</th>
+                <th>Modality</th>
+                <th>Rate Limit</th>
+                <th>Quick Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${modelsTableRows}
+            </tbody>
+          </table>
+        </div>
+      </div>`;
+    }).join('');
+
+    return `
+      <div class="free-hub-modal">
+        <div class="free-hub-top">
+          <div class="free-hub-head">
+            <div class="free-hub-title">
+              <span style="color:#38bdf8;font-size:18px">⚡</span>
+              <span>Awesome Free LLM APIs Catalog &amp; Hub</span>
+            </div>
+            <button class="ib" data-act="closefreeapis" title="Close">${ic('x')}</button>
+          </div>
+          <div class="free-hub-stats">
+            <span class="free-hub-chip emerald">${catalog.totalProviders || 14} Free Providers</span>
+            <span class="free-hub-chip cyan">${catalog.totalModels || 79} Free Models</span>
+            <span class="free-hub-chip emerald">${catalog.keylessProviders || 3} Keyless Instant Gateways</span>
+            <span class="free-hub-chip">Permanent Free Tiers</span>
+          </div>
+          <div class="free-hub-pills" id="freeHubPills">
+            <button class="free-hub-pill-btn ${currentFilter==='all'?'on':''}" data-filter="all">All Providers (14)</button>
+            <button class="free-hub-pill-btn ${currentFilter==='keyless'?'on':''}" data-filter="keyless">✨ No Key Needed (3)</button>
+            <button class="free-hub-pill-btn ${currentFilter==='fastest'?'on':''}" data-filter="fastest">⚡ Fastest (Groq / LPU)</button>
+            <button class="free-hub-pill-btn ${currentFilter==='reasoning'?'on':''}" data-filter="reasoning">🧠 Deep Reasoning</button>
+            <button class="free-hub-pill-btn ${currentFilter==='code'?'on':''}" data-filter="code">💻 Code Specialists</button>
+            <button class="free-hub-pill-btn ${currentFilter==='large_context'?'on':''}" data-filter="large_context">📚 1M+ Context</button>
+            <button class="free-hub-pill-btn ${currentFilter==='eu'?'on':''}" data-filter="eu">🇪🇺 EU Hosting</button>
+          </div>
+        </div>
+        <div class="free-hub-search-box">
+          ${ic('search')}
+          <input type="text" id="freeHubSearchInput" placeholder="Filter by provider name, model, context, modality, or rate limit..." value="${esc(searchQuery)}" autofocus autocomplete="off">
+        </div>
+        <div class="free-hub-body" id="freeHubBody">
+          ${cardsHtml.length ? cardsHtml : '<div style="text-align:center;padding:40px;color:var(--tx3)">No providers found matching your filter.</div>'}
+        </div>
+      </div>
+    `;
+  };
+
+  o.innerHTML = renderContent();
+  document.body.appendChild(o);
+
+  const rebindEvents = () => {
+    const searchInp = $('#freeHubSearchInput', o);
+    if(searchInp){
+      searchInp.value = searchQuery;
+      searchInp.focus();
+      searchInp.oninput = () => {
+        searchQuery = searchInp.value.trim();
+        const bodyEl = $('#freeHubBody', o);
+        if(bodyEl){
+          o.innerHTML = renderContent();
+          rebindEvents();
+        }
+      };
+    }
+  };
+
+  o.onclick = async e => {
+    const target = e.target;
+    if(target === o || target.closest('[data-act="closefreeapis"]')){
+      o.remove();
+      focusInput();
+      return;
+    }
+
+    const filterBtn = target.closest('[data-filter]');
+    if(filterBtn){
+      currentFilter = filterBtn.dataset.filter;
+      o.innerHTML = renderContent();
+      rebindEvents();
+      return;
+    }
+
+    const toggleBtn = target.closest('[data-act-togglesetup]');
+    if(toggleBtn){
+      const pId = toggleBtn.dataset.actTogglesetup;
+      const wrap = $('#setup_' + pId, o);
+      if(wrap){
+        wrap.style.display = wrap.style.display === 'none' ? 'block' : 'none';
+      }
+      return;
+    }
+
+    const saveKeyBtn = target.closest('[data-act-savefreekey]');
+    if(saveKeyBtn){
+      const pId = saveKeyBtn.dataset.actSavefreekey;
+      const inp = o.querySelector(`[data-key-val="${pId}"]`);
+      const val = inp?.value?.trim();
+      if(val){
+        saveKeyBtn.disabled = true;
+        saveKeyBtn.textContent = 'Saving...';
+        try {
+          const payload = {};
+          payload[pId] = val;
+          const r = await fetch('/api/providers/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          if(r.ok){
+            toast('API Key saved for ' + pId);
+            freeApisData = null; // force reload
+            saveKeyBtn.textContent = 'Saved!';
+            setTimeout(() => {
+              openFreeApisHub(currentFilter);
+            }, 400);
+          }
+        } catch(err){
+          saveKeyBtn.disabled = false;
+          saveKeyBtn.textContent = 'Save Key';
+          toast('Save failed: ' + err.message);
+        }
+      }
+      return;
+    }
+
+    const snippetBtn = target.closest('[data-act-snippet]');
+    if(snippetBtn){
+      const pId = snippetBtn.dataset.actSnippet;
+      const mId = snippetBtn.dataset.model;
+      openSnippetModal(pId, mId);
+      return;
+    }
+
+    const testBtn = target.closest('[data-act-testfree]');
+    if(testBtn){
+      const pId = testBtn.dataset.actTestfree;
+      const mId = testBtn.dataset.model || '';
+      const feedbackEl = $('#test_' + pId, o);
+      testBtn.disabled = true;
+      const origText = testBtn.textContent;
+      testBtn.textContent = 'Testing...';
+      if(feedbackEl){
+        feedbackEl.style.display = 'block';
+        feedbackEl.style.background = 'rgba(59,130,246,.15)';
+        feedbackEl.style.color = '#93c5fd';
+        feedbackEl.textContent = 'Probing endpoint ' + pId + ' (' + mId + ')...';
+      }
+
+      try {
+        const res = await fetch('/api/free-apis/test', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ provider_id: pId, model_id: mId })
+        });
+        const d = await res.json();
+        testBtn.disabled = false;
+        testBtn.textContent = origText;
+        if(feedbackEl){
+          if(d.ok){
+            feedbackEl.style.background = 'rgba(16,185,129,.15)';
+            feedbackEl.style.color = '#34d399';
+            feedbackEl.innerHTML = '<strong>' + ic('check') + ' HTTP ' + d.status + ' OK (' + d.latency_ms + 'ms):</strong> ' + esc(d.reply);
+          } else {
+            feedbackEl.style.background = 'rgba(239,68,68,.15)';
+            feedbackEl.style.color = '#f87171';
+            feedbackEl.textContent = 'Failed: ' + (d.error || 'Connection error');
+          }
+        }
+      } catch(tErr){
+        testBtn.disabled = false;
+        testBtn.textContent = origText;
+        if(feedbackEl){
+          feedbackEl.style.background = 'rgba(239,68,68,.15)';
+          feedbackEl.style.color = '#f87171';
+          feedbackEl.textContent = 'Error: ' + tErr.message;
+        }
+      }
+      return;
+    }
+  };
+
+  rebindEvents();
+}
+
+async function openSnippetModal(providerId, modelId){
+  $('#snippetModal')?.remove();
+  let lang = 'python';
+
+  const modal = document.createElement('div');
+  modal.className = 'ov snippet-ov';
+  modal.id = 'snippetModal';
+
+  const fetchAndRender = async () => {
+    let snippet = '';
+    try {
+      const res = await fetch('/api/free-apis/snippet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider_id: providerId, model_id: modelId, language: lang })
+      });
+      const d = await res.json();
+      snippet = d.snippet || '';
+    } catch(e){}
+
+    modal.innerHTML = `<div class="modal snippet-modal-box">
+      <div class="mh">
+        <div style="font-weight:600;display:flex;align-items:center;gap:8px">
+          ${ic('code')}
+          <span>Free Code Snippet: <strong>${esc(modelId)}</strong></span>
+        </div>
+        <button class="ib" data-act="closesnippet">${ic('x')}</button>
+      </div>
+      <div class="snippet-tabs">
+        <button class="free-hub-pill-btn ${lang==='python'?'on':''}" data-lang="python">Python (OpenAI SDK)</button>
+        <button class="free-hub-pill-btn ${lang==='curl'?'on':''}" data-lang="curl">cURL (REST API)</button>
+        <button class="free-hub-pill-btn ${lang==='node'?'on':''}" data-lang="node">Node.js (Fetch / SDK)</button>
+        <div style="flex:1"></div>
+        <button class="btn pri" id="btnCopySnippet" style="padding:4px 12px;font-size:11px">${ic('copy')} <span>Copy</span></button>
+      </div>
+      <pre class="snippet-pre"><code id="snippetCode">${esc(snippet)}</code></pre>
+    </div>`;
+  };
+
+  await fetchAndRender();
+  document.body.appendChild(modal);
+
+  modal.onclick = async e => {
+    if(e.target === modal || e.target.closest('[data-act="closesnippet"]')) return modal.remove();
+    const langBtn = e.target.closest('[data-lang]');
+    if(langBtn){
+      lang = langBtn.dataset.lang;
+      await fetchAndRender();
+    }
+    if(e.target.closest('#btnCopySnippet')){
+      const code = $('#snippetCode', modal)?.textContent || '';
+      navigator.clipboard.writeText(code).then(() => toast('Snippet copied to clipboard!'));
+    }
+  };
+}
+
 async function settings(tab='appearance'){
   await fetchSettingsData();
   $('.set-ov')?.remove();const o=document.createElement('div');o.className='ov set-ov';
@@ -3629,6 +4226,10 @@ document.addEventListener('click',async e=>{
   // Non-blocking multi-tasking: allow navigation anytime
   if(a==='setview'){
     setView(b.dataset.v || 'chat');
+    return;
+  }
+  else if(a==='openfreeapishub'){
+    openFreeApisHub();
     return;
   }
   else if(a==='openmodelpicker'){
@@ -3897,6 +4498,7 @@ document.addEventListener('keydown',e=>{
   else if(mod&&k==='1'){e.preventDefault();setView('chat');}
   else if(mod&&k==='2'){e.preventDefault();setView('rag');}
   else if(mod&&k==='m'){e.preventDefault();openModelPicker();}
+  else if(mod&&e.shiftKey&&k==='f'){e.preventDefault();openFreeApisHub();}
   else if(mod&&k==='/'){e.preventDefault();focusInput();}
   else if(k==='escape'){closePop();closeDrawer();$('#modelPickerModal')?.remove();}
 });

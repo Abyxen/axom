@@ -44,6 +44,37 @@ const PROVIDER_METADATA = {
       { id: 'gemini/gemini-2.0-flash', rawId: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash (Google AI Studio)' },
       { id: 'gemini/gemini-1.5-flash', rawId: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash (Google AI Studio)' }
     ]
+  },
+  kilo: {
+    id: 'kilo',
+    name: 'Kilo Code (Keyless Free Tier)',
+    tagline: '200 req/hr · No Key Needed',
+    badge: 'KEYLESS FREE',
+    keyUrl: 'https://app.kilo.ai/profile',
+    baseUrl: 'https://api.kilo.ai/api/gateway',
+    description: 'Permanent free tier without needing an API key or credit card. Routes dynamically through kilo-auto/free and Nemotron/Cohere free pools.',
+    envKey: 'KILO_API_KEY',
+    keyless: true,
+    anonymousKey: 'anonymous',
+    models: [
+      { id: 'kilo/kilo-auto/free', rawId: 'kilo-auto/free', name: 'Kilo Auto Free Router' },
+      { id: 'kilo/nvidia/nemotron-3.5-lightning:free', rawId: 'nvidia/nemotron-3.5-lightning:free', name: 'Nemotron 3.5 Lightning (Kilo Free)' },
+      { id: 'kilo/cohere/north-mini-code:free', rawId: 'cohere/north-mini-code:free', name: 'Cohere North Mini Code (Kilo Free)' }
+    ]
+  },
+  llm7: {
+    id: 'llm7',
+    name: 'LLM7.io (Keyless Gateway)',
+    tagline: '60 RPM · Anonymous Free Tier',
+    badge: 'KEYLESS FREE',
+    keyUrl: 'https://token.llm7.io',
+    baseUrl: 'https://api.llm7.io/v1',
+    description: 'Free European anonymous gateway for GPT-OSS models with no API key needed.',
+    envKey: 'LLM7_API_KEY',
+    keyless: true,
+    models: [
+      { id: 'llm7/gpt-oss:20b', rawId: 'gpt-oss:20b', name: 'GPT-OSS 20B (LLM7 Free)' }
+    ]
   }
 };
 
@@ -827,10 +858,12 @@ async function streamProviderChat({ model, modelId, messages, temperature, max_t
 
   const { providerId, rawModel, meta } = resolved;
   const cfg = loadStoredConfig();
-  const apiKey = getEffectiveKey(providerId);
+  let apiKey = getEffectiveKey(providerId);
+  if (providerId === 'kilo' && !apiKey) apiKey = 'anonymous';
+  const isKeyless = Boolean(meta.keyless || providerId === 'kilo' || providerId === 'llm7' || providerId === 'ovhcloud');
   const baseUrl = providerId === 'custom' ? (cfg.custom?.baseUrl || '') : meta.baseUrl;
 
-  if (providerId !== 'custom' && !apiKey) {
+  if (!isKeyless && providerId !== 'custom' && !apiKey) {
     const err = new Error(`API key not configured for ${meta.name}. Please enter your free API key in Settings -> AI Providers.`);
     if (res && typeof res.write === 'function') {
       res.write(`data: ${JSON.stringify({ type: 'error', message: err.message })}\n\n`);
@@ -851,7 +884,7 @@ async function streamProviderChat({ model, modelId, messages, temperature, max_t
   const headers = {
     'Content-Type': 'application/json'
   };
-  if (apiKey) {
+  if (apiKey && providerId !== 'ovhcloud') {
     headers['Authorization'] = `Bearer ${apiKey}`;
   }
   if (providerId === 'openrouter') {
