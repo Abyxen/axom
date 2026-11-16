@@ -1180,6 +1180,30 @@ details.think .think-body {
 .prov-btn-test { padding: 6px 10px; font-size: 10px; font-weight: 600; font-family: 'JetBrains Mono', monospace; background: var(--elev); border: 1px solid var(--bd); color: var(--tx); cursor: pointer; white-space: nowrap; }
 .prov-btn-test:hover { background: var(--bd); }
 .prov-btn-test:disabled { opacity: .4; cursor: default; }
+.prov-telemetry-strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--input);
+  border: 1px solid var(--bd);
+  border-radius: 6px;
+  margin-bottom: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--tx2);
+  flex-wrap: wrap;
+}
+.prov-telemetry-item { display: flex; align-items: center; gap: 4px; }
+.prov-telemetry-item strong { color: var(--tx); font-weight: 600; }
+.prov-telemetry-sep { color: var(--tx3); }
+.prov-usage-bar { margin: 6px 0 8px; display: flex; flex-direction: column; gap: 3px; }
+.prov-usage-labels { display: flex; justify-content: space-between; align-items: center; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: var(--tx3); }
+.prov-meter-track { height: 4px; background: var(--elev); border-radius: 2px; overflow: hidden; }
+.prov-meter-fill { height: 100%; border-radius: 2px; transition: width .3s ease; }
+.prov-meter-fill.green { background: #34d399; }
+.prov-meter-fill.yellow { background: #fbbf24; }
+.prov-meter-fill.red { background: #f87171; }
 .prov-save-bar { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--bd); display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 
 /* RAG Studio Main Layout */
@@ -2964,12 +2988,12 @@ function welcome(){
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
         </div>
       </div>
-      <h1 class="hero-title">${t('heroGreeting')}</h1>
-      <p class="hero-sub">${t('heroSub')}</p>
+      <h1 class="hero-title">AXOM</h1>
+      <p class="hero-sub">Autonomous Neural Intelligence · Local RTX 5060 &amp; 14 Free AI Providers</p>
       <div class="hero-badges">
-        <span class="hero-chip">${ic('cpu')} <span>RTX 5060</span></span>
-        <span class="hero-chip">${ic('brain')} <span>Living Brain</span></span>
-        <span class="hero-chip">${ic('lock')} <span>Private & Local</span></span>
+        <span class="hero-chip">${ic('cpu')} <span>RTX 5060 8GB</span></span>
+        <span class="hero-chip">${ic('globe')} <span>14 Free AI Providers</span></span>
+        <span class="hero-chip">${ic('lock')} <span>Private &amp; Offline</span></span>
       </div>
     </div>
   </div>`;
@@ -3577,10 +3601,15 @@ function closeDrawer(){$('#side')?.classList.remove('open')}
 /* ---- settings ---- */
 let activeProviders=[];
 
+let usageStatsData = { totalRequestsToday: 0, totalTokensToday: 0, providers: {} };
 async function fetchSettingsData(){
   try{
-    const pRes = await fetch('/api/providers').then(r=>r.ok?r.json():{providers:[]});
+    const [pRes, uRes] = await Promise.all([
+      fetch('/api/providers').then(r=>r.ok?r.json():{providers:[]}),
+      fetch('/api/usage').then(r=>r.ok?r.json():{totalRequestsToday:0,totalTokensToday:0,providers:{}})
+    ]);
     activeProviders = pRes?.providers || [];
+    usageStatsData = uRes || { totalRequestsToday: 0, totalTokensToday: 0, providers: {} };
   }catch(e){}
 }
 
@@ -4042,81 +4071,169 @@ async function settings(tab='appearance'){
   const tabs=tabKeys.map(k=>`<button class="${k===activeTab?'on':''}" data-tab="${k}">${tabLabels[k]}</button>`).join('');
   const modelOptions = renderModelOptions(S.model);
 
+  const totalReq = usageStatsData.totalRequestsToday || 0;
+  const totalTok = usageStatsData.totalTokensToday || 0;
+  const configuredCount = activeProviders.filter(p => p.has_key || p.isConfigured).length;
+
   const pane={
-   appearance:`<div class="set"><label for="th">${t('themeLabel')}<small>${t('themeSub')}</small></label><div class="ctl"><select id="th"><option value="dark">${t('themeDark')}</option><option value="light">${t('themeLight')}</option><option value="system">${t('themeSystem')}</option></select></div></div><div class="set"><label><span>${t('enterSendsLabel')}<small>${t('enterSendsSub')}</small></span><input type="checkbox" id="ent" ${S.enterSends?'checked':''}></label></div>`,
-   generation:`<div class="set"><label for="m-sel">${t('modelLabel')}<small>${t('modelSub')}</small></label><div class="ctl"><select id="modelSelect" style="font-family:'JetBrains Mono',monospace">${modelOptions}</select></div></div>` +
-     `<div class="set"><label><span>${t('showThinkingLabel')}<small>${t('showThinkingSub')}</small></span><input type="checkbox" id="showThinking" ${S.showThinking?'checked':''}></label></div>` +
-     `<div class="set"><label for="r-temperature">${t('tempLabel')}</label><div class="ctl"><input type="range" id="r-temperature" data-g="temperature" min="0.05" max="2" step="0.05" value="${S.gen.temperature}"><input type="number" data-g="temperature" min="0.05" max="2" step="0.05" value="${S.gen.temperature}"></div></div>` +
-     `<div class="set"><label for="r-top_k">${t('topKLabel')}</label><div class="ctl"><input type="range" id="r-top_k" data-g="top_k" min="0" max="100" step="1" value="${S.gen.top_k}"><input type="number" data-g="top_k" min="0" max="100" step="1" value="${S.gen.top_k}"></div></div>` +
-     `<div class="set"><label for="r-max_tokens">${t('maxTokensLabel')}</label><div class="ctl"><input type="range" id="r-max_tokens" data-g="max_tokens" min="64" max="1024" step="64" value="${S.gen.max_tokens}"><input type="number" data-g="max_tokens" min="64" max="1024" step="64" value="${S.gen.max_tokens}"></div></div>` +
-     `<div class="set"><label for="seed">${t('seedLabel')}<small>${t('seedSub')}</small></label><div class="ctl"><input type="number" data-g="seed" id="seed" value="${S.gen.seed}"></div></div><div class="set"><label for="stp">${t('stopSeqLabel')}</label><div class="ctl"><input type="text" id="stp" data-g="stop" value="${esc(S.gen.stop)}" placeholder="${t('stopSeqPlaceholder')}"></div></div>`,
-   providers: `<div class="set" style="padding:0">
-     <div class="prov-header">
-       <div class="prov-title">
-         <span>${t('provTitle')}</span>
-         <span class="prov-pill acid">FREE TIERS</span>
-       </div>
-       <p class="prov-sub">${t('provSub')}</p>
-     </div>
-     <div class="prov-list">
-        ${(activeProviders.length ? activeProviders : [
-          { id: 'openrouter', name: 'OpenRouter (Free Hub)', free_tier: '100% Free Models: Nemotron 3.5 Lightning, North Mini Code, Nemotron Nano Reasoning', key_url: 'https://openrouter.ai/keys', key_prefix: 'sk-or-v1-', has_key: false, models: ['nvidia/nemotron-3.5-lightning:free', 'cohere/north-mini-code:free', 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free'] },
-          { id: 'gemini', name: 'Google Gemini (AI Studio)', free_tier: '1,500 req/day · 1M Context Window · Free Tier', key_url: 'https://aistudio.google.com/app/apikey', key_prefix: 'AIzaSy', has_key: false, models: ['gemini-2.5-flash', 'gemini-2.5-pro'] }
-        ]).filter(p => p.id === 'openrouter' || p.id === 'gemini').map(p => {
-          const isConfigured = p.has_key;
-          const statusBadge = isConfigured 
-            ? `<span class="prov-pill green">${t('statusConnected')}</span>` 
-            : `<span class="prov-pill dim">${t('statusNotConfigured')}</span>`;
-          const modelTags = (p.models || []).map(m => `<span class="prov-model-tag">${esc(m)}</span>`).join('');
+    appearance:`<div class="set"><label for="th">${t('themeLabel')}<small>${t('themeSub')}</small></label><div class="ctl"><select id="th"><option value="dark">${t('themeDark')}</option><option value="light">${t('themeLight')}</option><option value="system">${t('themeSystem')}</option></select></div></div><div class="set"><label><span>${t('enterSendsLabel')}<small>${t('enterSendsSub')}</small></span><input type="checkbox" id="ent" ${S.enterSends?'checked':''}></label></div>`,
+    generation:`<div class="set"><label for="m-sel">${t('modelLabel')}<small>${t('modelSub')}</small></label><div class="ctl"><select id="modelSelect" style="font-family:'JetBrains Mono',monospace">${modelOptions}</select></div></div>` +
+      `<div class="set"><label><span>${t('showThinkingLabel')}<small>${t('showThinkingSub')}</small></span><input type="checkbox" id="showThinking" ${S.showThinking?'checked':''}></label></div>` +
+      `<div class="set"><label for="r-temperature">${t('tempLabel')}</label><div class="ctl"><input type="range" id="r-temperature" data-g="temperature" min="0.05" max="2" step="0.05" value="${S.gen.temperature}"><input type="number" data-g="temperature" min="0.05" max="2" step="0.05" value="${S.gen.temperature}"></div></div>` +
+      `<div class="set"><label for="r-top_k">${t('topKLabel')}</label><div class="ctl"><input type="range" id="r-top_k" data-g="top_k" min="0" max="100" step="1" value="${S.gen.top_k}"><input type="number" data-g="top_k" min="0" max="100" step="1" value="${S.gen.top_k}"></div></div>` +
+      `<div class="set"><label for="r-max_tokens">${t('maxTokensLabel')}</label><div class="ctl"><input type="range" id="r-max_tokens" data-g="max_tokens" min="64" max="1024" step="64" value="${S.gen.max_tokens}"><input type="number" data-g="max_tokens" min="64" max="1024" step="64" value="${S.gen.max_tokens}"></div></div>` +
+      `<div class="set"><label for="seed">${t('seedLabel')}<small>${t('seedSub')}</small></label><div class="ctl"><input type="number" data-g="seed" id="seed" value="${S.gen.seed}"></div></div><div class="set"><label for="stp">${t('stopSeqLabel')}</label><div class="ctl"><input type="text" id="stp" data-g="stop" value="${esc(S.gen.stop)}" placeholder="${t('stopSeqPlaceholder')}"></div></div>`,
+    providers: `<div class="set" style="padding:0">
+      <div class="prov-header">
+        <div class="prov-title">
+          <span>Free AI Providers &amp; Quotas</span>
+          <span class="prov-pill acid">${activeProviders.length} PROVIDERS</span>
+        </div>
+        <p class="prov-sub" style="font-size:11px;color:var(--tx3);margin-top:2px">Manage free provider keys, monitor real-time daily quota usage, and test connection latency.</p>
+      </div>
+
+      <div class="prov-telemetry-strip">
+        <div class="prov-telemetry-item">
+          <span>Today:</span>
+          <strong>${totalReq} reqs</strong>
+        </div>
+        <div class="prov-telemetry-sep">·</div>
+        <div class="prov-telemetry-item">
+          <span>Tokens:</span>
+          <strong>${totalTok.toLocaleString()}</strong>
+        </div>
+        <div class="prov-telemetry-sep">·</div>
+        <div class="prov-telemetry-item">
+          <span>Active:</span>
+          <strong>${configuredCount} / ${activeProviders.length}</strong>
+        </div>
+        <div style="flex:1"></div>
+        <button class="btn" data-act="openfreehub" style="font-size:10.5px;padding:3px 9px;font-family:'JetBrains Mono',monospace">${ic('globe')} Catalog &amp; Snippets</button>
+      </div>
+
+      <div class="prov-list">
+        ${activeProviders.map(p => {
+          const isConfigured = p.has_key || p.keyless;
+          let statusBadge = `<span class="prov-pill dim">NOT CONFIGURED</span>`;
+          if (p.has_key) {
+            statusBadge = `<span class="prov-pill green">CONNECTED</span>`;
+          } else if (p.keyless) {
+            statusBadge = `<span class="prov-pill green">KEYLESS FREE</span>`;
+          }
+
+          const u = usageStatsData.providers[p.id] || p.usage || { requestsToday: 0, maxRequests: 0, percentUsed: 0, remaining: 'Unlimited', quotaLabel: p.badge || 'Free Tier' };
+          const reqToday = u.requestsToday || 0;
+          const maxReq = u.maxRequests || 0;
+          const pct = u.percentUsed || 0;
+          const rem = u.remaining !== undefined ? u.remaining : (maxReq > 0 ? Math.max(0, maxReq - reqToday) : 'Unlimited');
+          const meterColor = pct >= 85 ? 'red' : (pct >= 50 ? 'yellow' : 'green');
+
+          const modelTags = (p.models || []).slice(0, 3).map(m => `<span class="prov-model-tag">${esc(typeof m === 'string' ? m : m.name || m.id)}</span>`).join('');
+
           return `
             <div class="prov-card" data-provider="${esc(p.id)}">
               <div class="prov-card-top">
                 <div class="prov-card-name">
+                  <span>${p.flag || '🌐'}</span>
                   <span>${esc(p.name)}</span>
+                  <span class="prov-pill acid" style="font-size:8.5px">${esc(u.quotaLabel || p.badge || 'FREE')}</span>
                   ${statusBadge}
                 </div>
-                ${p.key_url ? `<a href="${esc(p.key_url)}" target="_blank" rel="noopener" class="prov-link">${t('getKey')} &nearr;</a>` : ''}
+                ${p.key_url || p.keyUrl ? `<a href="${esc(p.key_url || p.keyUrl)}" target="_blank" rel="noopener" class="prov-link">${t('getKey')} &nearr;</a>` : ''}
               </div>
-              <div class="prov-desc">${esc(p.free_tier || '')}</div>
+
+              <div class="prov-usage-bar">
+                <div class="prov-usage-labels">
+                  <span>Usage: <strong>${reqToday} / ${maxReq > 0 ? maxReq : '∞'}</strong> (${pct}%)</span>
+                  <span>Remaining: <strong>${rem}</strong> ${u.avgLatencyMs ? `· ${u.avgLatencyMs}ms avg` : ''}</span>
+                </div>
+                <div class="prov-meter-track">
+                  <div class="prov-meter-fill ${meterColor}" style="width:${Math.max(pct, maxReq > 0 ? 3 : 0)}%"></div>
+                </div>
+              </div>
+
               ${modelTags ? `<div class="prov-models-row">${modelTags}</div>` : ''}
+
               <div class="prov-input-row">
-                <input type="password" class="prov-input" data-key-input="${esc(p.id)}" placeholder="${isConfigured ? esc(p.masked_key || '••••••••') : (p.key_prefix ? p.key_prefix + '...' : t('enterApiKey'))}" value="${isConfigured ? esc(p.masked_key || '') : ''}">
-                <button type="button" class="prov-btn-test" data-act-test="${esc(p.id)}" ${!isConfigured ? 'disabled' : ''}>${t('testConnection')}</button>
+                <input type="password" class="prov-input" data-key-input="${esc(p.id)}" placeholder="${p.has_key ? esc(p.masked_key || '••••••••') : (p.key_prefix ? p.key_prefix + '...' : (p.keyless ? 'Keyless · No key needed' : t('enterApiKey')))}" value="${p.has_key ? esc(p.masked_key || '') : ''}">
+                <button type="button" class="prov-btn-test" data-act-test="${esc(p.id)}" ${(!isConfigured && !p.keyless) ? 'disabled' : ''}>${t('testConnection')}</button>
+                <button type="button" class="btn" data-act-snippet="${esc(p.id)}" style="font-size:10.5px;padding:5px 9px" title="Generate code snippet">${ic('code')} Snippet</button>
+                ${p.has_key ? `<button type="button" class="btn" data-act-disconnect="${esc(p.id)}" style="font-size:10px;padding:5px 8px;color:#f87171;border-color:rgba(239,68,68,.3)" title="Disconnect and delete key">Disconnect</button>` : ''}
               </div>
               <div class="prov-test-status" data-test-status="${esc(p.id)}" style="font-size:10px;font-family:'JetBrains Mono',monospace;margin-top:5px;display:none"></div>
             </div>
           `;
         }).join('')}
       </div>
+
       <div class="prov-save-bar">
-       <span style="font-size:11px;color:var(--tx3);font-family:'JetBrains Mono',monospace">${t('keysStoredLocally')}</span>
-       <button id="btn-save-providers" class="btn pri" style="padding:7px 16px;font-size:11px;font-weight:600">${t('saveProviders')}</button>
-     </div>
-   </div>`
+        <span style="font-size:10.5px;color:var(--tx3);font-family:'JetBrains Mono',monospace">Keys encrypted &amp; stored locally on disk</span>
+        <button id="btn-save-providers" class="btn pri" style="padding:7px 18px;font-size:11px;font-weight:600">${t('saveProviders')}</button>
+      </div>
+    </div>`
   }[activeTab] || '';
-  o.innerHTML=`<div class="modal" role="dialog" aria-modal="true" aria-label="${t('settingsTitle')}"><div class="mh">${t('settingsTitle')}<button class="ib" data-close aria-label="Close">${ic('x')}</button></div><div class="mb"><nav class="tabs">${tabs}</nav><div class="pane">${pane}</div></div></div>`;
+
+  o.innerHTML=`<div class="modal" role="dialog" aria-modal="true" aria-label="${t('settingsTitle')}" style="width:min(680px,96vw)"><div class="mh">${t('settingsTitle')}<button class="ib" data-close aria-label="Close">${ic('x')}</button></div><div class="mb"><nav class="tabs">${tabs}</nav><div class="pane">${pane}</div></div></div>`;
   document.body.appendChild(o);const th=$('#th',o);if(th)th.value=S.theme;
 
   o.onclick=async e=>{
     const target=e.target;
     if(target===o||target.closest('[data-close]'))return o.remove();
     if(target.dataset.tab)settings(target.dataset.tab);
+
+    if(target.closest('[data-act="openfreehub"]')){
+      openFreeHubModal();
+      return;
+    }
+
+    // Snippet button handler
+    const snipBtn = target.closest('[data-act-snippet]');
+    if(snipBtn){
+      const provId = snipBtn.dataset.actSnippet;
+      const prov = activeProviders.find(p => p.id === provId);
+      const topModel = prov?.models?.[0];
+      const modelId = typeof topModel === 'string' ? topModel : (topModel?.rawId || topModel?.id || 'default');
+      openSnippetModal(provId, modelId);
+      return;
+    }
+
+    // Disconnect button handler
+    const discBtn = target.closest('[data-act-disconnect]');
+    if(discBtn){
+      const provId = discBtn.dataset.actDisconnect;
+      discBtn.disabled = true;
+      discBtn.textContent = 'Disconnecting...';
+      try {
+        const payload = {};
+        payload[provId] = '';
+        await fetch('/api/providers/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        toast(`Disconnected ${provId}`);
+        await fetchSettingsData();
+        settings('providers');
+      } catch(err) {
+        toast('Disconnect error: ' + err.message);
+      }
+      return;
+    }
+
+    // Save providers button handler
     if(target.id==='btn-save-providers'){
       target.disabled=true;target.textContent=t('saving');
       const keysPayload={};
       $$('.prov-card', o).forEach(card=>{
         const provId=card.dataset.provider;
         const keyInput=card.querySelector(`[data-key-input="${provId}"]`);
-        const customUrlInput=card.querySelector('[data-custom-url]');
-        const customModelInput=card.querySelector('[data-custom-model]');
         const val=keyInput?.value?.trim()||'';
         if(val && !val.includes('••••')){
           keysPayload[provId]=val;
-        }else if(!val){
+        }else if(!val && card.querySelector('[data-act-disconnect]')){
+          // User erased the key
           keysPayload[provId]='';
         }
-        if(customUrlInput)keysPayload.custom_url=customUrlInput.value.trim();
-        if(customModelInput)keysPayload.custom_model=customModelInput.value.trim();
       });
       try{
         const r=await fetch('/api/providers/save',{
@@ -4137,23 +4254,29 @@ async function settings(tab='appearance'){
         toast('Save error: '+err.message);
       }
     }
+
+    // Test button handler
     const testBtn=target.closest('[data-act-test]');
     if(testBtn){
       const provId=testBtn.dataset.actTest;
       const card=testBtn.closest('.prov-card');
       const statusEl=card?.querySelector(`[data-test-status="${provId}"]`);
+      const keyInput=card?.querySelector(`[data-key-input="${provId}"]`);
+      const enteredKey = keyInput?.value?.trim();
+      const apiKey = (enteredKey && !enteredKey.includes('••••')) ? enteredKey : '';
+
       testBtn.disabled=true;
       testBtn.textContent=t('testing');
       if(statusEl){
         statusEl.style.display='block';
         statusEl.style.color='var(--tx3)';
-        statusEl.textContent='Testing '+provId+' connection...';
+        statusEl.textContent=`Testing ${provId} endpoint...`;
       }
       try{
-        const r=await fetch('/api/providers/test',{
+        const r=await fetch('/api/free-apis/test',{
           method:'POST',
           headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({provider_id:provId})
+          body:JSON.stringify({provider_id:provId, api_key:apiKey})
         });
         const data=await r.json();
         testBtn.disabled=false;
@@ -4162,6 +4285,8 @@ async function settings(tab='appearance'){
           if(data.ok){
             statusEl.style.color='#45D483';
             statusEl.textContent=`OK (${data.latency_ms}ms) - Model: ${data.model||'ready'}`;
+            // Refresh telemetry stats to show new test count
+            fetchSettingsData();
           }else{
             statusEl.style.color='var(--err)';
             statusEl.textContent=`Failed: ${data.error||'Error'}`;
@@ -4177,6 +4302,7 @@ async function settings(tab='appearance'){
       }
     }
   };
+
   o.oninput=e=>{const target=e.target,g=target.dataset.g;
     if(target.matches('[data-key-input]')){
       const provId=target.dataset.keyInput;
@@ -4189,7 +4315,9 @@ async function settings(tab='appearance'){
     if(target.id==='th'){S.theme=target.value;applyTheme()}if(target.id==='api')S.api=target.value.trim().replace(/\/$/,'');if(target.id==='ent')S.enterSends=target.checked;save();
     fetch('/api/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({theme:S.theme,gen:S.gen,effort:S.effort})});
   };
-  o.onkeydown=e=>{if(e.key==='Escape')o.remove()}}
+  o.onkeydown=e=>{if(e.key==='Escape')o.remove()}
+}
+
 function applyTheme(){document.documentElement.dataset.theme=S.theme==='system'?(matchMedia('(prefers-color-scheme:light)').matches?'light':'dark'):S.theme}
 function updateThemeLabel(){const light=document.documentElement.dataset.theme==='light';if($('#theme-label'))$('#theme-label').textContent=(light?'Light':'Dark')+' appearance'}
 

@@ -139,6 +139,15 @@ async function pipeOllamaStream(ollamaRes, res, sessionId, requestedModel, isBas
             fullAssistantReply = gatheredThinking;
             res.write(`data: ${JSON.stringify({ text: gatheredThinking })}\n\n`);
           }
+          try {
+            freeApisService.recordUsage({
+              providerId: 'local',
+              modelId: requestedModel || 'axom:1.1',
+              promptTokens: Math.max(1, Math.round((buffer?.length || 50) / 4)),
+              completionTokens: Math.max(1, Math.round(fullAssistantReply.length / 4)),
+              latencyMs: Date.now() - streamStartTime
+            });
+          } catch (e) {}
           res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
         }
       } catch (e) {}
@@ -270,6 +279,16 @@ const server = http.createServer(async (req, res) => {
   // --- API: Free LLM APIs Catalog & Hub (Awesome Free LLM APIs) ---
   if (req.method === 'GET' && pathname === '/api/free-apis') {
     return sendJson(res, 200, freeApisService.getCatalog());
+  }
+
+  if (req.method === 'GET' && pathname === '/api/usage') {
+    return sendJson(res, 200, freeApisService.getUsageStats());
+  }
+
+  if (req.method === 'POST' && pathname === '/api/usage/reset') {
+    const today = new Date().toISOString().slice(0, 10);
+    freeApisService.saveUsageData({ date: today, providers: {} });
+    return sendJson(res, 200, { ok: true, stats: freeApisService.getUsageStats() });
   }
 
   if (req.method === 'POST' && pathname === '/api/free-apis/test') {

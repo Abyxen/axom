@@ -12,71 +12,56 @@
 const fs = require('fs');
 const path = require('path');
 
+const freeApisService = require('./free_apis_service');
 const KEYS_FILE = path.join(__dirname, 'data', 'ai_keys.json');
 
-const PROVIDER_METADATA = {
-  openrouter: {
-    id: 'openrouter',
-    name: 'OpenRouter (Free Hub)',
-    tagline: 'Multi-Model Free Tier Gateway',
-    badge: '100% FREE MODELS',
-    keyUrl: 'https://openrouter.ai/keys',
-    baseUrl: 'https://openrouter.ai/api/v1',
-    description: 'A single unified free API key with completely free access ($0.00) using :free models including Nemotron, Llama 3.3, Cohere Code, and Ernie Flash.',
-    envKey: 'OPENROUTER_API_KEY',
-    models: [
-      { id: 'openrouter/nvidia/nemotron-3.5-lightning:free', rawId: 'nvidia/nemotron-3.5-lightning:free', name: 'Nemotron 3.5 Lightning (Free)' },
-      { id: 'openrouter/nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free', rawId: 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free', name: 'Nemotron Nano Reasoning (Free)' },
-      { id: 'openrouter/cohere/north-mini-code:free', rawId: 'cohere/north-mini-code:free', name: 'Cohere North Mini Code (Free)' },
-      { id: 'openrouter/baidu/ernie-5.5-flash-preview:free', rawId: 'baidu/ernie-5.5-flash-preview:free', name: 'Ernie 5.5 Flash Large Context (Free)' }
-    ]
-  },
-  gemini: {
-    id: 'gemini',
-    name: 'Google Gemini (AI Studio)',
-    tagline: '1M+ Context & Multimodal Intelligence',
-    badge: '1,500 REQ/DAY FREE',
-    keyUrl: 'https://aistudio.google.com/app/apikey',
-    baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai',
-    description: 'Generous 1,500 requests/day free tier for Flash models with 1,000,000+ token context window. Supports native OpenAI-compatible API format.',
-    envKey: 'GEMINI_API_KEY',
-    models: [
-      { id: 'gemini/gemini-2.0-flash', rawId: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash (Google AI Studio)' },
-      { id: 'gemini/gemini-1.5-flash', rawId: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash (Google AI Studio)' }
-    ]
-  },
-  kilo: {
-    id: 'kilo',
-    name: 'Kilo Code (Keyless Free Tier)',
-    tagline: '200 req/hr · No Key Needed',
-    badge: 'KEYLESS FREE',
-    keyUrl: 'https://app.kilo.ai/profile',
-    baseUrl: 'https://api.kilo.ai/api/gateway',
-    description: 'Permanent free tier without needing an API key or credit card. Routes dynamically through kilo-auto/free and Nemotron/Cohere free pools.',
-    envKey: 'KILO_API_KEY',
-    keyless: true,
-    anonymousKey: 'anonymous',
-    models: [
-      { id: 'kilo/kilo-auto/free', rawId: 'kilo-auto/free', name: 'Kilo Auto Free Router' },
-      { id: 'kilo/nvidia/nemotron-3.5-lightning:free', rawId: 'nvidia/nemotron-3.5-lightning:free', name: 'Nemotron 3.5 Lightning (Kilo Free)' },
-      { id: 'kilo/cohere/north-mini-code:free', rawId: 'cohere/north-mini-code:free', name: 'Cohere North Mini Code (Kilo Free)' }
-    ]
-  },
-  llm7: {
-    id: 'llm7',
-    name: 'LLM7.io (Keyless Gateway)',
-    tagline: '60 RPM · Anonymous Free Tier',
-    badge: 'KEYLESS FREE',
-    keyUrl: 'https://token.llm7.io',
-    baseUrl: 'https://api.llm7.io/v1',
-    description: 'Free European anonymous gateway for GPT-OSS models with no API key needed.',
-    envKey: 'LLM7_API_KEY',
-    keyless: true,
-    models: [
-      { id: 'llm7/gpt-oss:20b', rawId: 'gpt-oss:20b', name: 'GPT-OSS 20B (LLM7 Free)' }
-    ]
+function buildProviderMetadata() {
+  const catalog = freeApisService.getCatalog();
+  const map = {};
+
+  for (const p of catalog.providers) {
+    map[p.id] = {
+      id: p.id,
+      name: p.name,
+      flag: p.flag || '🌐',
+      country: p.country || '',
+      tagline: p.description || '',
+      badge: p.usage?.quotaLabel || (p.keyless ? 'KEYLESS FREE' : 'FREE TIER'),
+      keyUrl: p.keyUrl || '',
+      baseUrl: p.openaiBaseUrl || p.baseUrl,
+      description: p.description || '',
+      envKey: p.envVar || '',
+      keyless: Boolean(p.keyless),
+      noBearer: Boolean(p.noBearer),
+      anonymousKey: p.anonymousKey || '',
+      keyPrefix: p.keyPrefix || '',
+      models: (p.models || []).map(m => ({
+        id: `${p.id}/${m.id}`,
+        rawId: m.id,
+        name: `${m.name || m.id} (${p.name})`,
+        modality: m.modality,
+        contextWindow: m.contextWindow,
+        maxTokens: m.maxTokens
+      }))
+    };
   }
-};
+
+  map.custom = {
+    id: 'custom',
+    name: 'Custom OpenAI-Compatible Endpoint',
+    tagline: 'Connect local vLLM, LM Studio, Ollama OpenAI or custom server',
+    badge: 'SELF-HOSTED / PROXY',
+    keyUrl: '',
+    baseUrl: '',
+    description: 'Connect any OpenAI-compatible server URL (e.g. http://localhost:1234/v1).',
+    envKey: 'CUSTOM_API_KEY',
+    models: []
+  };
+
+  return map;
+}
+
+const PROVIDER_METADATA = buildProviderMetadata();
 
 function loadStoredConfig() {
   const defaults = {
@@ -151,9 +136,24 @@ function getProviderStatusList() {
       isConfigured = Boolean(cfg.custom?.baseUrl && cfg.custom?.model);
     }
 
+    const usageStats = freeApisService.getUsageStats();
+    const pUsage = usageStats.providers[pId] || {
+      requestsToday: 0,
+      requestsTotal: 0,
+      tokensToday: 0,
+      tokensTotal: 0,
+      percentUsed: 0,
+      remaining: 'Unlimited',
+      quotaLabel: meta.badge || 'Free Tier',
+      avgLatencyMs: 0
+    };
+
     list.push({
       id: pId,
       name: meta.name,
+      flag: meta.flag || '🌐',
+      country: meta.country || '',
+      usage: pUsage,
       tagline: meta.tagline,
       badge: meta.badge,
       free_tier: meta.badge || meta.tagline,
@@ -185,14 +185,14 @@ function saveProvidersConfig(payload = {}) {
   const cfg = loadStoredConfig();
   if (!cfg.keys) cfg.keys = {};
 
-  const provIds = ['groq', 'openrouter', 'gemini', 'cerebras', 'deepseek'];
-  for (const pId of provIds) {
-    if (typeof payload[pId] === 'string') {
-      const val = payload[pId].trim();
+  for (const [key, value] of Object.entries(payload)) {
+    if (key === 'custom_url' || key === 'custom_model' || key === 'active_model') continue;
+    if (typeof value === 'string') {
+      const val = value.trim();
       if (val && !val.includes('••••')) {
-        cfg.keys[pId] = val;
+        cfg.keys[key] = val;
       } else if (val === '') {
-        delete cfg.keys[pId];
+        delete cfg.keys[key];
       }
     }
   }
@@ -760,85 +760,46 @@ function resolveProvider(modelId) {
  * Test connectivity and auth for any provider
  */
 async function testProviderConnection(providerId, apiKey, customBaseUrl = '', customModel = '') {
-  const meta = PROVIDER_METADATA[providerId];
-  if (!meta) {
-    return { success: false, error: `Unknown provider: ${providerId}` };
-  }
-
-  const effectiveKey = apiKey && apiKey.trim() ? apiKey.trim() : getEffectiveKey(providerId);
-  const baseUrl = providerId === 'custom' ? customBaseUrl.trim() : meta.baseUrl;
-  const testModel = providerId === 'custom' ? customModel.trim() : (meta.models[0]?.rawId || 'default');
-
-  if (!baseUrl) {
-    return { success: false, error: 'Missing base URL for provider.' };
-  }
-  if (providerId !== 'custom' && !effectiveKey) {
-    return { success: false, error: 'Please enter a valid API key to test connection.' };
-  }
-
-  const url = `${baseUrl.replace(/\/$/, '')}/chat/completions`;
-  const headers = {
-    'Content-Type': 'application/json'
-  };
-  if (effectiveKey) {
-    headers['Authorization'] = `Bearer ${effectiveKey}`;
-  }
-  if (providerId === 'openrouter') {
-    headers['HTTP-Referer'] = 'http://localhost:8000';
-    headers['X-Title'] = 'AXOM';
-  }
-
-  const t0 = Date.now();
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
-
-    const res = await fetch(url, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({
-        model: testModel,
-        messages: [{ role: 'user', content: 'Say hello in 1 word.' }],
-        max_tokens: 5,
-        stream: false
-      }),
-      signal: controller.signal
-    });
-    clearTimeout(timeout);
-
-    const latencyMs = Date.now() - t0;
-    if (!res.ok) {
-      const errText = await res.text().catch(() => '');
-      let parsedErr = errText;
-      try {
-        const j = JSON.parse(errText);
-        parsedErr = j.error?.message || j.message || errText;
-      } catch (e) {}
-      return {
-        ok: false,
-        success: false,
-        error: `HTTP ${res.status}: ${parsedErr.slice(0, 300)}`
-      };
+  if (providerId === 'custom') {
+    const baseUrl = customBaseUrl.trim();
+    if (!baseUrl) return { ok: false, success: false, error: 'Custom base URL is required' };
+    const url = `${baseUrl.replace(/\/$/, '')}/chat/completions`;
+    const headers = { 'Content-Type': 'application/json' };
+    if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+    const t0 = Date.now();
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
+      const res = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          model: customModel || 'default',
+          messages: [{ role: 'user', content: 'Ping' }],
+          max_tokens: 15
+        }),
+        signal: controller.signal
+      });
+      clearTimeout(timeout);
+      const latency_ms = Date.now() - t0;
+      if (!res.ok) return { ok: false, success: false, status: res.status, error: `HTTP ${res.status}` };
+      return { ok: true, success: true, latency_ms, latency: `${latency_ms}ms`, model: customModel };
+    } catch (e) {
+      return { ok: false, success: false, error: e.message };
     }
-
-    const data = await res.json();
-    const reply = data.choices?.[0]?.message?.content || '';
-    return {
-      ok: true,
-      success: true,
-      latency_ms: latencyMs,
-      latencyMs,
-      model: testModel,
-      testModel,
-      sampleOutput: reply.trim()
-    };
-  } catch (err) {
-    return {
-      ok: false,
-      success: false,
-      error: err.name === 'AbortError' ? 'Connection timed out (15s).' : err.message
-    };
   }
+
+  const res = await freeApisService.testEndpoint(providerId, customModel, apiKey);
+  return {
+    ok: res.ok,
+    success: res.ok,
+    latency_ms: res.latency_ms,
+    latency: `${res.latency_ms}ms`,
+    status: res.status,
+    model: res.model,
+    sampleReply: res.reply,
+    error: res.error
+  };
 }
 
 /**
@@ -857,6 +818,7 @@ async function streamProviderChat({ model, modelId, messages, temperature, max_t
   }
 
   const { providerId, rawModel, meta } = resolved;
+  const streamStartTime = Date.now();
   const cfg = loadStoredConfig();
   let apiKey = getEffectiveKey(providerId);
   if (providerId === 'kilo' && !apiKey) apiKey = 'anonymous';
@@ -964,6 +926,17 @@ async function streamProviderChat({ model, modelId, messages, temperature, max_t
             res.write(`data: ${JSON.stringify({ type: 'done', fullText })}\n\n`);
             res.end();
           }
+          const latencyMs = Date.now() - streamStartTime;
+          try {
+            const promptLen = messages.reduce((acc, m) => acc + (typeof m.content === 'string' ? m.content.length : 20), 0);
+            freeApisService.recordUsage({
+              providerId,
+              modelId: rawModel,
+              promptTokens: Math.max(1, Math.round(promptLen / 4)),
+              completionTokens: Math.max(1, Math.round(fullText.length / 4)),
+              latencyMs
+            });
+          } catch (e) {}
           if (onFinish) onFinish(fullText);
           return { content: fullText, reasoning: fullReasoning };
         }

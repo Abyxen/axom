@@ -1082,6 +1082,34 @@
 
 ---
 
+
+---
+
+### 43. 14 Free AI Providers Full Key Management, Real-Time Usage Telemetry & Ultra-Minimalist UI
+- **Date:** 2026-11-16
+- **What Was Done:**
+  - **Full 14-Provider Directory & Key Management**:
+    - Expanded provider registry in [`ai_providers.js`](file:///c:/Users/abira/Documents/axom/ai_providers.js) to support all 14 providers from `awesome-free-llm-apis`: Google Gemini, OpenRouter, Groq, Kilo Code, Cohere, Cloudflare Workers AI, LLM7.io, OVHcloud, NVIDIA NIM, Aion Labs, Z AI (Zhipu AI), Gonka Broker, ModelScope, SiliconFlow, plus local Axom RTX 5060 and custom OpenAI proxies.
+    - Updated `saveProvidersConfig()` to dynamically store, update, or delete keys for any of the 14 providers.
+    - Added one-click `Disconnect` button to remove and erase stored provider keys.
+  - **Live Usage Telemetry & Quota Tracking ("see how much i used")**:
+    - Implemented `GET /api/usage` and `POST /api/usage/reset` endpoints in [`server.js`](file:///c:/Users/abira/Documents/axom/server.js).
+    - Integrated automatic telemetry logging on completion for all cloud streams (`streamProviderChat`) and local chats (`pipeOllamaStream`).
+    - Tracks `requestsToday`, `requestsTotal`, `tokensToday`, `tokensTotal`, `avgLatencyMs`, and `lastUsed` with automatic daily rollover.
+    - Embedded dynamic progress meters (`prov-meter-fill`) on all provider cards showing `[ requestsToday / maxRequests (percentUsed%) · remaining left ]` with color-coded warning thresholds (green < 60%, yellow < 85%, red >= 85%).
+    - Added high-density Telemetry Strip at the top of Settings -> AI Providers: `Today: {totalRequestsToday} reqs · {totalTokensToday} tokens · Active: {activeCount} / 14`.
+  - **Ultra-Minimalist UI & Clutter Purge**:
+    - Purged verbose explanatory texts, disclaimers, and text walls across the interface.
+    - Replaced home hero with a clean, high-density minimal header: `AXOM - Autonomous Neural Intelligence · Local RTX 5060 & 14 Free AI Providers`.
+    - Verified complete absence of prompt option chips (`[Discover arXiv Papers]`, `[3-Gate Gap Dossier]`, `[Literature Triage Matrix]`, `[Socratic Design Brief]`).
+    - Verified Settings dialog strictly displays only 3 clean tabs: `Appearance`, `Generation`, and `AI Providers` (completely omitting `Account`, `Brain`, `Training`, and `About`).
+  - **Folder & Repository Optimization**:
+    - Updated [`.gitignore`](file:///c:/Users/abira/Documents/axom/.gitignore) to protect `data/provider_usage.json`, `data/ai_keys.json`, `scratch/`, and runtime artifacts.
+- **How It Was Implemented:**
+  - Files modified: [`ai_providers.js`](file:///c:/Users/abira/Documents/axom/ai_providers.js), [`server.js`](file:///c:/Users/abira/Documents/axom/server.js), [`index.html`](file:///c:/Users/abira/Documents/axom/index.html), [`free_apis_service.js`](file:///c:/Users/abira/Documents/axom/free_apis_service.js), [`.gitignore`](file:///c:/Users/abira/Documents/axom/.gitignore).
+- **Why It Was Done:**
+  - The user requested: *"well i wanted my app to have aall the features of free llm api like where i could connect to all the providers see how much i used manages and all and also copy the ui design and build my axom onto it yk manke my folders optimmized and also make website very mininal like not that much texts and all only the important info is written"*
+
 ## 🔮 Active & Upcoming Work
 
 ### 43. QLoRA Fine-Tuning Execution (`axom:1.2`)

@@ -1,7 +1,8 @@
 /**
  * free_apis_service.js
  * Comprehensive integration of Awesome Free LLM APIs (https://github.com/mnfst/awesome-free-llm-apis)
- * Provides permanent free LLM directory, zero-key free routes, verification testing, and code generation.
+ * Provides permanent free LLM directory, zero-key free routes, verification testing, code generation,
+ * and real-time usage telemetry & rate-limit management.
  */
 
 const fs = require('fs');
@@ -9,6 +10,26 @@ const path = require('path');
 
 const DATA_PATH = path.join(__dirname, 'data', 'free_llm_apis.json');
 const KEYS_PATH = path.join(__dirname, 'data', 'ai_keys.json');
+const USAGE_PATH = path.join(__dirname, 'data', 'provider_usage.json');
+
+// Provider rate limits from awesome-free-llm-apis repository
+const PROVIDER_LIMITS = {
+  gemini:      { maxRequests: 1500, period: 'day', label: '1,500 req/day' },
+  groq:        { maxRequests: 1000, period: 'day', label: '1,000 req/day' },
+  openrouter:  { maxRequests: 50,   period: 'day', label: '50 req/day' },
+  kilo:        { maxRequests: 200,  period: 'hour', label: '200 req/hr (keyless)' },
+  cohere:      { maxRequests: 1000, period: 'month', label: '1,000 req/mo' },
+  aion:        { maxRequests: 100,  period: 'day', label: '20K tok/day · 15 RPM' },
+  cloudflare:  { maxRequests: 500,  period: 'day', label: '10K neurons/day' },
+  llm7:        { maxRequests: 250,  period: 'hour', label: '250 req/hr · 60 RPM' },
+  ovhcloud:    { maxRequests: 120,  period: 'hour', label: '2 req/min' },
+  nvidia:      { maxRequests: 1000, period: 'day', label: 'NVIDIA Dev quota' },
+  zai:         { maxRequests: 200,  period: 'day', label: '1 concurrent req' },
+  gonka:       { maxRequests: 1000, period: 'month', label: '~1M tok/mo' },
+  modelscope:  { maxRequests: 2000, period: 'day', label: '2,000 req/day' },
+  siliconflow: { maxRequests: 500,  period: 'day', label: 'Free tier quota' },
+  local:       { maxRequests: 0,    period: 'unlimited', label: 'Unlimited (RTX 5060)' }
+};
 
 // Provider ID and operational metadata lookup table
 const PROVIDER_METADATA_MAP = {
@@ -118,6 +139,143 @@ const PROVIDER_METADATA_MAP = {
   }
 };
 
+function getTodayString() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function loadUsageData() {
+  const today = getTodayString();
+  const defaultUsage = {
+    date: today,
+    providers: {}
+  };
+
+  try {
+    if (fs.existsSync(USAGE_PATH)) {
+      const parsed = JSON.parse(fs.readFileSync(USAGE_PATH, 'utf8'));
+      if (parsed.date !== today) {
+        // Roll over to new day: keep total stats and history, reset daily counters
+        const rolledProviders = {};
+        for (const [pId, pData] of Object.entries(parsed.providers || {})) {
+          rolledProviders[pId] = {
+            ...pData,
+            requestsToday: 0,
+            tokensToday: 0,
+            yesterdayRequests: pData.requestsToday || 0
+          };
+        }
+        const updated = { date: today, providers: rolledProviders };
+        saveUsageData(updated);
+        return updated;
+      }
+      return parsed;
+    }
+  } catch (e) {
+    console.warn('[FREE_APIS] Usage read warning:', e.message);
+  }
+
+  saveUsageData(defaultUsage);
+  return defaultUsage;
+}
+
+function saveUsageData(data) {
+  try {
+    const dir = path.dirname(USAGE_PATH);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(USAGE_PATH, JSON.stringify(data, null, 2), 'utf8');
+  } catch (e) {
+    console.warn('[FREE_APIS] Usage save error:', e.message);
+  }
+}
+
+/**
+ * Record usage whenever an AI chat turn completes
+ */
+function recordUsage({ providerId = 'local', modelId = '', promptTokens = 0, completionTokens = 0, latencyMs = 0 }) {
+  const pId = providerId.toLowerCase();
+  const usage = loadUsageData();
+  if (!usage.providers[pId]) {
+    usage.providers[pId] = {
+      requestsToday: 0,
+      requestsTotal: 0,
+      tokensToday: 0,
+      tokensTotal: 0,
+      avgLatencyMs: 0,
+      lastUsed: null,
+      lastModel: null
+    };
+  }
+
+  const pStats = usage.providers[pId];
+  pStats.requestsToday = (pStats.requestsToday || 0) + 1;
+  pStats.requestsTotal = (pStats.requestsTotal || 0) + 1;
+
+  const totalToks = (promptTokens || 0) + (completionTokens || 0);
+  pStats.tokensToday = (pStats.tokensToday || 0) + totalToks;
+  pStats.tokensTotal = (pStats.tokensTotal || 0) + totalToks;
+
+  pStats.lastUsed = new Date().toISOString();
+  pStats.lastModel = modelId || pStats.lastModel;
+
+  if (latencyMs > 0) {
+    const prevCount = pStats.requestsToday - 1;
+    const prevAvg = pStats.avgLatencyMs || latencyMs;
+    pStats.avgLatencyMs = prevCount > 0 ? Math.round((prevAvg * prevCount + latencyMs) / pStats.requestsToday) : latencyMs;
+  }
+
+  saveUsageData(usage);
+  return pStats;
+}
+
+/**
+ * Get enriched usage statistics with progress metrics
+ */
+function getUsageStats() {
+  const usage = loadUsageData();
+  const result = {
+    date: usage.date,
+    totalRequestsToday: 0,
+    totalTokensToday: 0,
+    providers: {}
+  };
+
+  for (const [pId, pLimit] of Object.entries(PROVIDER_LIMITS)) {
+    const pData = usage.providers[pId] || {
+      requestsToday: 0,
+      requestsTotal: 0,
+      tokensToday: 0,
+      tokensTotal: 0,
+      avgLatencyMs: 0,
+      lastUsed: null
+    };
+
+    result.totalRequestsToday += pData.requestsToday || 0;
+    result.totalTokensToday += pData.tokensToday || 0;
+
+    const maxReq = pLimit.maxRequests;
+    const reqToday = pData.requestsToday || 0;
+    const percentUsed = maxReq > 0 ? Math.min(100, Math.round((reqToday / maxReq) * 100)) : 0;
+    const remaining = maxReq > 0 ? Math.max(0, maxReq - reqToday) : 'Unlimited';
+
+    result.providers[pId] = {
+      id: pId,
+      requestsToday: reqToday,
+      requestsTotal: pData.requestsTotal || 0,
+      tokensToday: pData.tokensToday || 0,
+      tokensTotal: pData.tokensTotal || 0,
+      maxRequests: maxReq,
+      percentUsed,
+      remaining,
+      quotaLabel: pLimit.label,
+      period: pLimit.period,
+      avgLatencyMs: pData.avgLatencyMs || 0,
+      lastUsed: pData.lastUsed
+    };
+  }
+
+  return result;
+}
+
 function loadStoredKeys() {
   try {
     if (fs.existsSync(KEYS_PATH)) {
@@ -141,11 +299,12 @@ function getRawData() {
 }
 
 /**
- * Returns enriched catalog of all free providers and models
+ * Returns enriched catalog of all free providers, models, and live usage metrics
  */
 function getCatalog() {
   const raw = getRawData();
   const storedKeys = loadStoredKeys();
+  const usageStats = getUsageStats();
 
   const providers = (raw.providers || []).map(p => {
     const keyName = (p.name || '').toLowerCase().trim();
@@ -157,8 +316,16 @@ function getCatalog() {
     };
 
     const provId = meta.id;
-    const hasKey = Boolean(storedKeys[provId] || process.env[meta.env]);
+    const hasKey = Boolean((storedKeys.keys && storedKeys.keys[provId]) || storedKeys[provId] || process.env[meta.env]);
     const isKeyless = Boolean(meta.keyless);
+    const usage = usageStats.providers[provId] || {
+      requestsToday: 0,
+      maxRequests: 0,
+      percentUsed: 0,
+      remaining: 'Unlimited',
+      quotaLabel: 'Free Tier',
+      avgLatencyMs: 0
+    };
 
     return {
       id: provId,
@@ -178,6 +345,7 @@ function getCatalog() {
       isConfigured: hasKey || isKeyless,
       hasKey,
       keyPrefix: meta.keyPrefix || '',
+      usage,
       models: (p.models || []).map(m => {
         const isReasoning = (m.modality || '').toLowerCase().includes('reasoning');
         const isCode = (m.modality || '').toLowerCase().includes('code');
@@ -209,6 +377,8 @@ function getCatalog() {
     totalProviders: providers.length,
     totalModels: providers.reduce((acc, p) => acc + p.models.length, 0),
     keylessProviders: providers.filter(p => p.keyless).length,
+    totalRequestsToday: usageStats.totalRequestsToday,
+    totalTokensToday: usageStats.totalTokensToday,
     providers,
     glossary: raw.glossary || [],
     footnotes: raw.footnotes || {}
@@ -226,7 +396,7 @@ async function testEndpoint(providerId, modelId, providedKey = '') {
   }
 
   const storedKeys = loadStoredKeys();
-  let effectiveKey = providedKey || storedKeys[providerId] || process.env[provider.envVar] || '';
+  let effectiveKey = providedKey || (storedKeys.keys && storedKeys.keys[providerId]) || storedKeys[providerId] || process.env[provider.envVar] || '';
   if (provider.keyless && !effectiveKey) {
     effectiveKey = provider.anonymousKey || 'anonymous';
   }
@@ -274,6 +444,15 @@ async function testEndpoint(providerId, modelId, providedKey = '') {
     if (!reply && json.choices?.[0]?.message?.reasoning) {
       reply = json.choices[0].message.reasoning;
     }
+
+    // Record test usage
+    recordUsage({
+      providerId,
+      modelId: targetModel,
+      promptTokens: json.usage?.prompt_tokens || 10,
+      completionTokens: json.usage?.completion_tokens || 5,
+      latencyMs: latency_ms
+    });
 
     return {
       ok: true,
@@ -375,5 +554,8 @@ module.exports = {
   testEndpoint,
   generateSnippet,
   getKeylessFallback,
-  PROVIDER_METADATA_MAP
+  recordUsage,
+  getUsageStats,
+  PROVIDER_METADATA_MAP,
+  PROVIDER_LIMITS
 };

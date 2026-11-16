@@ -9,10 +9,15 @@ model_backup/
 *.sqlite
 data/*.db
 data/ai_keys.json
+data/provider_usage.json
 ai_keys.json
+provider_usage.json
 Axom V2/data/
 *.lance
 workspace/
+game-world/
+temp_free_apis/
+scratch/
 .research/
 .paper/
 .coord/
