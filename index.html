@@ -746,6 +746,39 @@ details.think .think-body {
   margin-left: 2px;
 }
 
+/* Command Palette Header Trigger */
+.hdr-palette-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px;
+  border-radius: 7px;
+  background: var(--surf);
+  border: 1px solid var(--bd);
+  color: var(--tx2);
+  font: 500 11.5px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  cursor: pointer;
+  transition: all .15s ease;
+  margin-left: 8px;
+}
+.hdr-palette-btn:hover {
+  background: var(--elev);
+  border-color: var(--tx3);
+  color: var(--tx);
+}
+.hdr-palette-btn svg { width: 12px; height: 12px; color: var(--tx3); }
+.hdr-palette-btn kbd {
+  font: 600 9.5px 'JetBrains Mono', monospace;
+  padding: 1px 4px;
+  background: var(--bg);
+  border: 1px solid var(--bd);
+  border-radius: 4px;
+  color: var(--tx3);
+}
+@media (max-width: 768px) {
+  .hdr-palette-btn .hdr-palette-text, .hdr-palette-btn kbd { display: none; }
+}
+
 /* Model Selector in Header & Composer */
 .hdr-model-btn {
   display: inline-flex;
@@ -2792,6 +2825,11 @@ function shell(){
     <header class="hdr">
       <button class="ib" data-act="drawer" aria-label="${t('toggleSidebar')}" title="${t('toggleSidebar')}">${ic('panel')}</button>
       <div class="ttl">${headerTitle}</div>
+      <button class="hdr-palette-btn" data-act="openpalette" title="Command Palette (Ctrl+K)">
+        ${ic('search')}
+        <span class="hdr-palette-text">Commands</span>
+        <kbd>Ctrl K</kbd>
+      </button>
       <span class="sp"></span>
       <button class="hdr-model-btn" data-act="openmodelpicker" title="Select AI Model (Ctrl+M)">
         <span class="hdr-model-dot ${S.model==='auto'?'auto-dot':''}"></span>
@@ -5213,7 +5251,10 @@ document.addEventListener('click',async e=>{
       const outText = (data.stdout || '') + (data.stderr ? ('\n' + data.stderr) : '') || '(Process completed with no console output)';
       term.innerHTML = `<div class="cb-term-head">
         <span class="cb-term-title" style="color:${statusColor}">${ic('zap')} Exit ${data.exitCode ?? 0} · ${dur}ms</span>
-        <button class="ib" data-act="closeterm" style="width:20px;height:20px;color:var(--tx3)">${ic('x')}</button>
+        <div style="display:flex;align-items:center;gap:4px">
+          <button class="ib" data-act="copyterm" title="Copy Output" style="width:20px;height:20px;color:var(--tx3)">${ic('copy')}</button>
+          <button class="ib" data-act="closeterm" title="Close Terminal" style="width:20px;height:20px;color:var(--tx3)">${ic('x')}</button>
+        </div>
       </div>
       <div class="cb-term-body" style="padding:10px 14px;color:#f4f4f5;max-height:220px;overflow-y:auto;white-space:pre-wrap">${esc(outText)}</div>`;
     } catch(err) {
@@ -5224,6 +5265,17 @@ document.addEventListener('click',async e=>{
   }
   else if(a==='closeterm'){
     b.closest('.cb-exec-terminal')?.remove();
+  }
+  else if(a==='copyterm'){
+    const term = b.closest('.cb-exec-terminal');
+    const body = term ? $('.cb-term-body', term)?.textContent || '' : '';
+    if(body){
+      navigator.clipboard.writeText(body);
+      toast('Terminal output copied to clipboard');
+    }
+  }
+  else if(a==='openpalette'){
+    openCommandPalette();
   }
   else if(a==='openpreview'){
     const cb = b.closest('.cb');
@@ -5304,6 +5356,28 @@ document.addEventListener('click',async e=>{
 });
 
 document.addEventListener('keydown',e=>{
+  const k=e.key.toLowerCase(),mod=e.ctrlKey||e.metaKey;
+
+  // Global Command Palette & Overlay Dismissals (active even when modal is open)
+  if(mod && k === 'k'){
+    e.preventDefault();
+    if($('#cmdPalette')){ $('#cmdPalette').remove(); }
+    else { openCommandPalette(); }
+    return;
+  }
+  if(k === 'escape'){
+    if($('#cmdPalette')){ $('#cmdPalette').remove(); return; }
+    if($('#memoryViewerModal')){ $('#memoryViewerModal').remove(); return; }
+    if($('#modelPickerModal')){ $('#modelPickerModal').remove(); return; }
+    closePop();
+    closeDrawer();
+  }
+  if(mod && e.shiftKey && k === 'e'){
+    e.preventDefault();
+    exportChatJson();
+    return;
+  }
+
   // If modal or popover is open, ignore
   if($('.ov') || pop) return;
 
@@ -5329,15 +5403,13 @@ document.addEventListener('keydown',e=>{
     InsideBrowser.navigate(e.target.value);
     return;
   }
-  const k=e.key.toLowerCase(),mod=e.ctrlKey||e.metaKey;
+
   if(mod&&k==='n'){e.preventDefault();newChat();focusInput();}
-  else if(mod&&k==='k'){e.preventDefault();S.col=false;$('#side').classList.remove('col');$('#side').classList.add('open');$('#q').focus()}
   else if(mod&&k==='1'){e.preventDefault();setView('chat');}
   else if(mod&&k==='2'){e.preventDefault();setView('rag');}
   else if(mod&&k==='m'){e.preventDefault();openModelPicker();}
   else if(mod&&e.shiftKey&&k==='f'){e.preventDefault();openFreeApisHub();}
   else if(mod&&k==='/'){e.preventDefault();focusInput();}
-  else if(k==='escape'){closePop();closeDrawer();$('#modelPickerModal')?.remove();}
 });
 matchMedia('(prefers-color-scheme:light)').addEventListener('change',()=>S.theme==='system'&&applyTheme());
 

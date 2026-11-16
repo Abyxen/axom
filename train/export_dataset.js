@@ -81,6 +81,16 @@ const FOUNDATIONAL_EXAMPLES = [
     instruction: "Design an exponential backoff with jitter and circuit breaker pattern for LLM API gateways in Rust.",
     input: "",
     output: "Here is a production-grade Circuit Breaker with exponential backoff and decorrelated jitter in Rust:\n\n```rust\nuse std::time::{Duration, Instant};\nuse std::sync::atomic::{AtomicUsize, Ordering};\nuse std::sync::RwLock;\n\n#[derive(Debug, Clone, Copy, PartialEq, Eq)]\npub enum State { Closed, Open, HalfOpen }\n\npub struct CircuitBreaker {\n    failure_threshold: usize,\n    recovery_timeout: Duration,\n    consecutive_failures: AtomicUsize,\n    state: RwLock<(State, Instant)>,\n}\n\nimpl CircuitBreaker {\n    pub fn new(failure_threshold: usize, recovery_timeout: Duration) -> Self {\n        Self {\n            failure_threshold,\n            recovery_timeout,\n            consecutive_failures: AtomicUsize::new(0),\n            state: RwLock::new((State::Closed, Instant::now())),\n        }\n    }\n\n    pub fn allow_request(&self) -> bool {\n        let mut lock = self.state.write().unwrap();\n        match lock.0 {\n            State::Closed => true,\n            State::Open => {\n                if lock.1.elapsed() >= self.recovery_timeout {\n                    *lock = (State::HalfOpen, Instant::now());\n                    true\n                } else { false }\n            }\n            State::HalfOpen => false,\n        }\n    }\n\n    pub fn on_success(&self) {\n        self.consecutive_failures.store(0, Ordering::Relaxed);\n        let mut lock = self.state.write().unwrap();\n        *lock = (State::Closed, Instant::now());\n    }\n\n    pub fn on_failure(&self) {\n        let fails = self.consecutive_failures.fetch_add(1, Ordering::SeqCst) + 1;\n        if fails >= self.failure_threshold {\n            let mut lock = self.state.write().unwrap();\n            *lock = (State::Open, Instant::now());\n        }\n    }\n}\n```"
+  },
+  {
+    instruction: "How do you run code snippets directly inside the AXOM chat interface?",
+    input: "",
+    output: "Any Python or JavaScript code block generated in chat features an emerald **Run** button (`btn-run-code`) in its action header. Clicking Run executes the snippet within an isolated local sandbox (`POST /api/execute_code`) and dynamically mounts an inline terminal beneath the block, rendering live execution latency, exit code, and stdout/stderr with a 1-click output copy button."
+  },
+  {
+    instruction: "How do you access and navigate the AXOM Command Palette?",
+    input: "",
+    output: "Press **Ctrl+K** (or **Cmd+K** on macOS) or click the **Commands** button in the header to open the fuzzy Command Palette. You can switch models between Auto router and local RTX 5060, toggle RAG studio, inspect permanent Living Brain profile facts, sync your local Obsidian vault (`Documents/Axom_Brain`), or export complete JSON session transcripts with **Ctrl+Shift+E**."
   }
 ];
 
