@@ -850,7 +850,7 @@ button:hover{background:#3f3f46}
           }
         }
 
-        // Direct Cloud Provider Streaming for RAG
+        // Direct Cloud Provider Streaming or Non-streaming for RAG
         if (aiProviders.isCloudModel(effectiveModel)) {
           if (isStream) {
             setCors(res);
@@ -869,6 +869,34 @@ button:hover{background:#3f3f46}
               temperature: 0.2,
               max_tokens: 2048,
               res
+            });
+          } else {
+            let fullReply = '';
+            const mockRes = {
+              write: (chunk) => {
+                const match = chunk.match(/^data: (.*)\n\n$/);
+                if (match) {
+                  try {
+                    const parsed = JSON.parse(match[1]);
+                    if (parsed.text) fullReply += parsed.text;
+                    else if (parsed.type === 'content' && parsed.text) fullReply += parsed.text;
+                    else if (parsed.fullText) fullReply = parsed.fullText;
+                  } catch (e) {}
+                }
+              },
+              end: () => {}
+            };
+            const chatRes = await aiProviders.streamProviderChat({
+              model: effectiveModel,
+              messages: formattedMessages,
+              temperature: 0.2,
+              max_tokens: 2048,
+              res: mockRes
+            });
+            const content = chatRes?.content || fullReply;
+            return sendJson(res, 200, {
+              message: { role: 'assistant', content },
+              citations: chunks
             });
           }
         }

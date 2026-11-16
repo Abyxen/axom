@@ -1135,6 +1135,27 @@
 - **Why It Was Done:**
   - The user set an autonomous 7-hour improvement goal: *"now go and search for the best way to make my ai better and work till i say stop i will be gone for atleast 7 hours work for those 7 hours and let me know what you did make my ai better ui better everything better as much as you can this is a goal set it as a goal"*
 
+
+---
+
+### 45. RAG Engine Grounding Verification & Hybrid Vector Retrieval Optimization
+- **Date:** 2026-11-16
+- **What Was Done:**
+  - **LanceDB Vector Database Ingestion**:
+    - Re-indexed all documents in `data/rag_docs` using LanceDB and Ollama Qwen Embeddings (`qwen3-embedding:0.6b`) with 1024-dimensional dense vectors.
+    - Verified hybrid formula combining 65% dense semantic vector similarity with 35% token-level BM25 lexical keyword matching and exact multi-word phrase bonuses.
+  - **Unified Stream & Non-Streaming RAG Router ([server.js](file:///c:/Users/abira/Documents/axom/server.js#L850-L910))**:
+    - Fixed non-streaming fallback for cloud and local models in `/api/rag/chat`, ensuring automated evaluation pipelines receive structured JSON responses with grounded citations.
+  - **Full Grounding & Zero-Hallucination Evaluation ([scripts/test_rag_eval.py](file:///c:/Users/abira/Documents/axom/scripts/test_rag_eval.py))**:
+    - Executed 3-phase automated grounding test suite:
+      1. PDF Fact Grounding (Hyperion-V4 accelerator 18W TDP, 14,280 FPS, Dr. Kenneth Ward): **PASS**
+      2. Markdown Report Retrieval (Kyber-1024 1,568 bytes, Dilithium-5, Dr. Evelyn Vance Zurich): **PASS**
+      3. Negative Out-of-Domain Zero-Hallucination Query (Martian blueberry pancakes): **PASS (Zero Hallucination)**
+- **How It Was Implemented:**
+  - Files modified: [`server.js`](file:///c:/Users/abira/Documents/axom/server.js), [`data/rag_index_meta.json`](file:///c:/Users/abira/Documents/axom/data/rag_index_meta.json), [`PROJECT_LOG.md`](file:///c:/Users/abira/Documents/axom/PROJECT_LOG.md).
+- **Why It Was Done:**
+  - Autonomous maintenance loop iteration 2: verifying and optimizing document grounding, vector indexing, and zero-hallucination compliance.
+
 ## 🔮 Active & Upcoming Work
 
 ### 43. QLoRA Fine-Tuning Execution (`axom:1.2`)
