@@ -912,9 +912,43 @@
 
 ---
 
+### 38. Chatbot vs Knowledge RAG Switcher, Live Provider Model Discovery, and Auto Task-Based Router (2026-11-16)
+- **What Was Done:**
+  - **Seamless View Switching (AXOM Chatbot <-> Knowledge RAG)**:
+    - Added dual sidebar view tabs (`[ 💬 AXOM Chat ]` and `[ 📚 Knowledge RAG ]`) with active accent indicators.
+    - Added minimalist header view switcher and keyboard shortcuts (`Ctrl+1` for AXOM Chatbot, `Ctrl+2` for Knowledge RAG).
+    - Preserved active state, drafts, and split contexts between regular conversation and grounded document retrieval.
+  - **Dynamic Live Model Discovery for Connected Providers**:
+    - Created `fetchProviderLiveModels(providerId)` with in-memory caching (`MODEL_CACHE_TTL = 10 min`) and on-boot warm-up.
+    - When an API key is connected (e.g., OpenRouter, Groq, Cerebras, DeepSeek, Gemini), AXOM queries the provider's models endpoint in real time to discover all available models (e.g., OpenRouter returns 433 live models, highlighting 14 active free models).
+    - Discovers local Ollama models (`axom:1.1`, `moondream:latest`) automatically.
+    - Exposed `GET /api/models` returning both `models` (array of model IDs) and `data` (rich metadata objects with badges, provider, free tier flags, and descriptions).
+  - **Auto Task-Based Router (`auto` / "⚡ Auto (Best Model)")**:
+    - Designed and implemented `selectBestModelForTask(prompt, options)` in `ai_providers.js`.
+    - Automatically classifies user intents and prompt complexity across domains:
+      - **Code Synthesis & Debugging:** Routes to specialized coder models (e.g., `openrouter/cohere/north-mini-code:free` or Groq/Qwen 2.5 Coder).
+      - **Mathematical, Logical & Deep Reasoning:** Routes to reasoning models (e.g., `openrouter/nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free`, DeepSeek R1 Reasoner).
+      - **Grounded Document Retrieval & RAG:** Routes to large-context models (e.g., `openrouter/baidu/ernie-5.5-flash-preview:free`, Gemini 2.0 Flash).
+      - **Speed & Chit-Chat (< 80 chars):** Routes to ultra-fast inference (e.g., `openrouter/nvidia/nemotron-3.5-lightning:free`, Cerebras Wafer-Scale, Groq LPU).
+      - **Offline / Local Fallback:** Routes to local NVIDIA GeForce RTX 5060 running `axom:1.1`.
+    - Real-time Server-Sent Events (SSE) emit an `auto_route` event (`{ type: 'auto_route', route }`), rendering a live glowing badge in the chat UI indicating which model was chosen and why.
+  - **Model Picker Modal & Interactive Selector**:
+    - Added an interactive model picker trigger to both the application header (`.hdr-model-btn`, shortcut `Ctrl+M`) and the floating composer toolbar (`.comp-model-btn`).
+    - Opens a search-filtered modal displaying models categorized into:
+      - ⚡ Intelligent Routing (`Auto (Best Model)`)
+      - 🖥️ Local Hardware (RTX 5060)
+      - ☁️ Connected Cloud Providers (OpenRouter, Groq, Gemini, DeepSeek, Cerebras, Custom)
+    - Supports live search/filtering by name, provider, or model tag (e.g., "free", "llama", "code").
+- **How It Was Implemented:**
+  - Files modified: [`ai_providers.js`](file:///c:/Users/abira/Documents/axom/ai_providers.js), [`server.js`](file:///c:/Users/abira/Documents/axom/server.js), [`index.html`](file:///c:/Users/abira/Documents/axom/index.html).
+- **Why It Was Done:**
+  - The user requested: *"make it so i can switch between axom chatbot and rag anso add option so i can select what model of ai i wanna use and if connected to the provider it shows all the models it has and an auto mode that finds the best model to do the job"*
+
+---
+
 ## 🔮 Active & Upcoming Work
 
-### 38. QLoRA Fine-Tuning Execution (`axom:1.2`)
+### 39. QLoRA Fine-Tuning Execution (`axom:1.2`)
 - **Goal:** Run the fine-tuning pipeline (`train/train_unsloth_lora.py`) using the generated 500,490-word synthetic training dataset.
 - **Deliverable:** Quantized GGUF weights for Ollama.
 

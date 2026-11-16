@@ -213,7 +213,8 @@ const server = http.createServer(async (req, res) => {
 
   // --- API: Model Listing (Local + Cloud AI Providers) ---
   if (req.method === 'GET' && pathname === '/api/models') {
-    const list = aiProviders.getCombinedModelList();
+    const forceRefresh = req.url.includes('refresh=1');
+    const list = await aiProviders.getCombinedModelListAsync({ force: forceRefresh });
     return sendJson(res, 200, {
       models: list.map(m => m.id),
       data: list
@@ -649,13 +650,21 @@ button:hover{background:#3f3f46}
     req.on('end', async () => {
       try {
         const body = JSON.parse(bodyText || '{}');
-        const requestedModel = (body.model && body.model.trim()) || 'axom:1.1';
         const messages = Array.isArray(body.messages) ? body.messages : [];
         const isStream = body.stream !== false;
         const topK = typeof body.top_k === 'number' ? body.top_k : 4;
 
         const userMsgObj = messages.filter(m => m.role === 'user').slice(-1)[0];
         const lastUserPrompt = userMsgObj ? (typeof userMsgObj.content === 'string' ? userMsgObj.content : '') : '';
+
+        const requestedModel = (body.model && body.model.trim()) || 'auto';
+        let effectiveModel = requestedModel;
+        let autoRoute = null;
+
+        if (requestedModel === 'auto') {
+          autoRoute = aiProviders.selectBestModelForTask(lastUserPrompt, { isRag: true });
+          effectiveModel = autoRoute.selectedModel;
+        }
 
         // Retrieve top grounded chunks using Hybrid LanceDB search
         const chunks = await ragService.searchChunks(lastUserPrompt, topK);
@@ -676,7 +685,7 @@ button:hover{background:#3f3f46}
         }
 
         // Direct Cloud Provider Streaming for RAG
-        if (aiProviders.isCloudModel(requestedModel)) {
+        if (aiProviders.isCloudModel(effectiveModel)) {
           if (isStream) {
             setCors(res);
             res.writeHead(200, {
@@ -684,9 +693,12 @@ button:hover{background:#3f3f46}
               'Cache-Control': 'no-cache, no-transform',
               'Connection': 'keep-alive'
             });
+            if (autoRoute) {
+              res.write(`data: ${JSON.stringify({ type: 'auto_route', route: autoRoute })}\n\n`);
+            }
             res.write(`data: ${JSON.stringify({ type: 'citations', citations: chunks })}\n\n`);
             return await aiProviders.streamProviderChat({
-              model: requestedModel,
+              model: effectiveModel,
               messages: formattedMessages,
               temperature: 0.2,
               max_tokens: 2048,
@@ -700,8 +712,12 @@ button:hover{background:#3f3f46}
           if (!res.writableEnded) controller.abort();
         });
 
+        if (isStream && autoRoute) {
+          res.write(`data: ${JSON.stringify({ type: 'auto_route', route: autoRoute })}\n\n`);
+        }
+
         const ollamaPayload = {
-          model: requestedModel,
+          model: effectiveModel,
           messages: formattedMessages,
           stream: isStream,
           options: {
@@ -783,7 +799,6 @@ button:hover{background:#3f3f46}
     req.on('end', async () => {
       try {
         const body = JSON.parse(bodyText);
-        const requestedModel = (body.model && body.model.trim()) || 'axom:1.1';
         const sessionId = body.session_id || 'default_session';
         const messages = Array.isArray(body.messages) ? body.messages : [];
         const params = body.params || {};
@@ -815,6 +830,19 @@ button:hover{background:#3f3f46}
         const researchModeEnabled = body.research_mode === true || autoResearchNeeded;
         const webSearchEnabled = body.web_search === true || (body.web_mode !== 'offline' && autoSearchNeeded) || researchModeEnabled;
         const agentModeEnabled = webSearchEnabled || researchModeEnabled || autoMcpNeeded || body.agent_mode === true;
+
+        const requestedModel = (body.model && body.model.trim()) || 'auto';
+        let effectiveModel = requestedModel;
+        let autoRoute = null;
+
+        if (requestedModel === 'auto') {
+          autoRoute = aiProviders.selectBestModelForTask(lastUserPrompt, {
+            isRag: false,
+            hasWebSearch: webSearchEnabled,
+            hasAttachments: Boolean(body.attachments && body.attachments.length)
+          });
+          effectiveModel = autoRoute.selectedModel;
+        }
 
         const now = new Date();
         const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -875,7 +903,7 @@ CRITICAL OPERATIONAL PRINCIPLES:
         });
 
         // --- DIRECT CLOUD AI DISTRIBUTOR ROUTING (Groq, OpenRouter, Gemini, Cerebras, DeepSeek) ---
-        if (aiProviders.isCloudModel(requestedModel)) {
+        if (aiProviders.isCloudModel(effectiveModel)) {
           // If web search is needed or toggled, pre-ground with Google search results
           if ((webSearchEnabled || autoSearchNeeded) && lastUserPrompt) {
             try {
@@ -903,8 +931,12 @@ CRITICAL OPERATIONAL PRINCIPLES:
               'Connection': 'keep-alive'
             });
 
+            if (autoRoute) {
+              res.write(`data: ${JSON.stringify({ type: 'auto_route', route: autoRoute })}\n\n`);
+            }
+
             return await aiProviders.streamProviderChat({
-              model: requestedModel,
+              model: effectiveModel,
               messages: formattedMessages,
               temperature: typeof params.temperature === 'number' ? params.temperature : 0.4,
               max_tokens: Math.max(typeof params.max_tokens === 'number' ? params.max_tokens : 2048, 2048),
@@ -969,7 +1001,7 @@ CRITICAL OPERATIONAL PRINCIPLES:
             availableTools.push(...mcpClient.MCP_TOOLS);
 
             const turnPayload = {
-              model: requestedModel,
+              model: effectiveModel,
               messages: formattedMessages,
               tools: turn < MAX_AGENT_TURNS ? availableTools : undefined,
               stream: false,
@@ -1135,7 +1167,7 @@ CRITICAL OPERATIONAL PRINCIPLES:
 
         // --- DIRECT STREAMING (Ultra-fast direct pipeline when web search is toggled off) ---
         const ollamaPayload = {
-          model: requestedModel,
+          model: effectiveModel,
           messages: formattedMessages,
           stream: isStream,
           options: {
@@ -1175,7 +1207,7 @@ CRITICAL OPERATIONAL PRINCIPLES:
 
           if (finalReply) {
             db.logChatMessage(sessionId, 'assistant', finalReply);
-            reviewer.scheduleSessionReview(sessionId, 15000, requestedModel, OLLAMA_BASE);
+            reviewer.scheduleSessionReview(sessionId, 15000, effectiveModel, OLLAMA_BASE);
           }
 
           return sendJson(res, 200, data);
@@ -1189,7 +1221,11 @@ CRITICAL OPERATIONAL PRINCIPLES:
           'Connection': 'keep-alive'
         });
 
-        return pipeOllamaStream(ollamaRes, res, sessionId, requestedModel);
+        if (autoRoute) {
+          res.write(`data: ${JSON.stringify({ type: 'auto_route', route: autoRoute })}\n\n`);
+        }
+
+        return pipeOllamaStream(ollamaRes, res, sessionId, effectiveModel);
       } catch (err) {
         if (err.name === 'AbortError') return res.end();
         console.error('Chat error:', err);
@@ -1245,10 +1281,14 @@ server.listen(PORT, HOST, () => {
   console.log(`   Living Brain Architecture: ACTIVE`);
   console.log(`=========================================`);
 
-  // Pre-load Axom 1.1 into GPU VRAM
+  // Pre-load Axom 1.1 into GPU VRAM & warm up live model registry
   fetch(`${OLLAMA_BASE}/api/generate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ model: 'axom:1.1', keep_alive: -1 })
   }).catch(() => {});
+
+  aiProviders.getCombinedModelListAsync({ force: true }).then(models => {
+    console.log(`[SERVER] Model registry initialized (${models.length} models ready).`);
+  }).catch(e => console.warn('[SERVER] Model registry warm-up warning:', e.message));
 });

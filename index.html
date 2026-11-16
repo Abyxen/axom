@@ -464,60 +464,349 @@ details.think .think-body {
 .header-btn.on{background:rgba(255,81,47,.12);color:var(--ac);border-color:var(--ac)}
 .header-btn.on svg{color:var(--ac)}
 
-/* ---- RAG Knowledge Studio Styles ---- */
-.nav-modes {
+/* ---- Dual View Mode Switcher (Chatbot <-> Knowledge RAG) ---- */
+.side-modes {
   display: flex;
   gap: 4px;
   background: var(--input);
   border: 1px solid var(--bd);
-  border-radius: 6px;
+  border-radius: 9px;
   padding: 3px;
   margin-bottom: 12px;
 }
-.side.col .nav-modes {
+.side.col .side-modes {
   flex-direction: column;
   padding: 2px;
 }
-.mode-btn {
+.side-mode-btn {
   flex: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 6px 10px;
-  border-radius: 4px;
-  font: 500 11px 'JetBrains Mono', monospace;
+  padding: 7px 8px;
+  border-radius: 7px;
+  font: 500 11.5px Inter, -apple-system, sans-serif;
   color: var(--tx2);
-  transition: all .18s var(--ease);
+  transition: all .15s ease;
   cursor: pointer;
+  border: 0;
+  background: transparent;
   white-space: nowrap;
 }
-.side.col .mode-btn {
-  padding: 8px 0;
-}
-.side.col .mode-btn span {
+.side.col .side-mode-btn span {
   display: none;
 }
-.mode-btn:hover {
+.side-mode-btn:hover {
   background: var(--elev);
   color: var(--tx);
 }
-.mode-btn.on {
-  background: var(--ac);
-  color: #fff;
+.side-mode-btn.on {
+  background: rgba(59,130,246,.15);
+  color: #60a5fa;
   font-weight: 600;
-  box-shadow: 0 1px 6px rgba(255,81,47,.25);
+  box-shadow: 0 1px 4px rgba(0,0,0,.2);
 }
-.rag-pill {
-  font-size: 8.5px;
-  background: rgba(255,255,255,.2);
-  padding: 1px 4px;
-  border-radius: 3px;
-  letter-spacing: .05em;
+.side-mode-btn svg {
+  width: 13px;
+  height: 13px;
 }
-.mode-btn.on .rag-pill {
-  background: rgba(0,0,0,.25);
-  color: #fff;
+.side-mode-btn .rag-counter {
+  font: 600 9.5px 'JetBrains Mono', monospace;
+  background: rgba(59,130,246,.25);
+  color: #93c5fd;
+  padding: 1px 5px;
+  border-radius: 4px;
+  margin-left: 2px;
+}
+
+/* Model Selector in Header & Composer */
+.hdr-model-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 10px;
+  border-radius: 7px;
+  background: var(--surf);
+  border: 1px solid var(--bd);
+  color: var(--tx);
+  font: 500 11.5px 'JetBrains Mono', monospace;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.hdr-model-btn:hover {
+  background: var(--elev);
+  border-color: #3b82f6;
+  box-shadow: 0 0 12px rgba(59,130,246,.2);
+}
+.hdr-model-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 6px rgba(16,185,129,.7);
+  flex-shrink: 0;
+}
+.hdr-model-dot.auto-dot {
+  background: #38bdf8;
+  box-shadow: 0 0 8px rgba(56,189,248,.8);
+  animation: pulseGlow 1.5s infinite ease-in-out;
+}
+.hdr-model-chevron svg {
+  width: 11px;
+  height: 11px;
+  color: var(--tx3);
+}
+.comp-model-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px;
+  background: var(--surf);
+  border: 1px solid var(--bd);
+  border-radius: 6px;
+  font: 500 11px 'JetBrains Mono', monospace;
+  color: var(--tx2);
+  cursor: pointer;
+  transition: all .15s ease;
+  user-select: none;
+}
+.comp-model-btn:hover {
+  background: var(--elev);
+  color: var(--tx);
+  border-color: #3b82f6;
+}
+.comp-model-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+  flex-shrink: 0;
+}
+.comp-model-dot.auto-dot {
+  background: #38bdf8;
+  box-shadow: 0 0 6px rgba(56,189,248,.8);
+}
+.comp-model-chev {
+  font-size: 8px;
+  color: var(--tx3);
+  margin-left: 1px;
+}
+
+/* Model Picker Modal & Cards */
+.model-picker-modal {
+  width: min(660px, 94vw);
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+.model-search-box {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 16px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--bd);
+}
+.model-search-box svg {
+  width: 14px;
+  height: 14px;
+  color: var(--tx3);
+  flex-shrink: 0;
+}
+.model-search-box input {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  color: var(--tx);
+  font: 12.5px Inter, -apple-system, sans-serif;
+}
+.model-list-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.model-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.model-group-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 600 10.5px 'JetBrains Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--tx3);
+  padding: 2px 4px;
+}
+.model-group-title svg {
+  width: 13px;
+  height: 13px;
+  color: var(--tx3);
+}
+.prov-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #64748b;
+  flex-shrink: 0;
+}
+.prov-dot.online {
+  background: #10b981;
+  box-shadow: 0 0 6px rgba(16,185,129,.7);
+}
+.prov-count {
+  margin-left: auto;
+  font: 500 10px 'JetBrains Mono', monospace;
+  color: var(--tx3);
+}
+.model-cards-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.model-card-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 12px;
+  background: var(--surf);
+  border: 1px solid var(--bd);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.model-card-item:hover {
+  background: var(--elev);
+  border-color: #3b82f6;
+  transform: translateY(-1px);
+}
+.model-card-item.selected {
+  background: rgba(59,130,246,.12);
+  border-color: rgba(59,130,246,.45);
+  box-shadow: 0 0 12px rgba(59,130,246,.15);
+}
+.model-card-item.featured {
+  background: linear-gradient(135deg, rgba(59,130,246,.12) 0%, rgba(6,182,212,.08) 100%);
+  border-color: rgba(59,130,246,.35);
+}
+.model-card-item.key-needed {
+  opacity: .75;
+  border-style: dashed;
+}
+.model-card-info {
+  flex: 1;
+  min-width: 0;
+}
+.model-card-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.model-card-name {
+  font: 600 12.5px Inter, -apple-system, sans-serif;
+  color: var(--tx);
+}
+.model-card-desc {
+  font: 11px Inter, sans-serif;
+  color: var(--tx3);
+  margin: 3px 0 0;
+  line-height: 1.4;
+}
+.model-free-note {
+  font: 500 10.5px 'JetBrains Mono', monospace;
+  color: #34d399;
+  display: block;
+  margin-top: 2px;
+}
+.model-bolt {
+  font-size: 13px;
+  color: #38bdf8;
+}
+.model-tag {
+  font: 600 9px 'JetBrains Mono', monospace;
+  padding: 1.5px 5.5px;
+  border-radius: 4px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.model-tag.free {
+  background: rgba(16,185,129,.15);
+  color: #34d399;
+  border: 1px solid rgba(16,185,129,.3);
+}
+.model-tag.best {
+  background: rgba(59,130,246,.2);
+  color: #60a5fa;
+  border: 1px solid rgba(59,130,246,.4);
+}
+.model-tag.local {
+  background: rgba(168,85,247,.15);
+  color: #c084fc;
+  border: 1px solid rgba(168,85,247,.3);
+}
+.model-ctx {
+  font: 500 9.5px 'JetBrains Mono', monospace;
+  color: var(--tx3);
+  background: var(--input);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+.model-card-right {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.model-check-icon {
+  color: #3b82f6;
+  display: flex;
+}
+.model-check-icon svg {
+  width: 16px;
+  height: 16px;
+}
+.model-radio-icon {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1.5px solid var(--bd);
+}
+.key-needed-text {
+  font: 600 10.5px 'JetBrains Mono', monospace;
+  color: #60a5fa;
+}
+
+/* Auto-routing transparent badge in messages */
+.auto-route-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(59,130,246,.1);
+  border: 1px solid rgba(59,130,246,.25);
+  border-radius: 6px;
+  font: 500 11px 'JetBrains Mono', monospace;
+  color: #93c5fd;
+  margin-bottom: 8px;
+  animation: fade .2s ease;
+}
+.auto-route-badge .route-bolt {
+  color: #38bdf8;
+}
+.auto-route-badge strong {
+  color: #ffffff;
+}
+.auto-route-badge .route-desc {
+  color: var(--tx2);
+  font-size: 10.5px;
 }
 .rag-side-info {
   padding: 10px 4px;
@@ -1201,6 +1490,7 @@ const RagApi = {
       headers: { 'Content-Type': 'application/json' },
       signal,
       body: JSON.stringify({
+        model: S.model || 'auto',
         messages: messages.map(m => ({ role: m.role, content: m.text })),
         stream: true,
         top_k: 4
@@ -1236,8 +1526,9 @@ let ragRun = null, ragDocs = [];
 
 /* ---- state ---- */
 const D=864e5,MAXF=24000;
-let S={convs:[],cur:null,api:'',model:'axom:1.1',lang:'pt',web:true,theme:'dark',col:false,enterSends:true,showThinking:false,effort:'fast',gen:{temperature:.7,top_k:50,max_tokens:512,seed:-1,stop:'',stream:true},view:'chat',ragMsgs:[]};
+let S={convs:[],cur:null,api:'',model:'auto',lang:'pt',web:true,theme:'dark',col:false,enterSends:true,showThinking:false,effort:'fast',gen:{temperature:.7,top_k:50,max_tokens:512,seed:-1,stop:'',stream:true},view:'chat',ragMsgs:[]};
 try{const j=JSON.parse(localStorage.getItem('axom-v2'));if(j)S={...S,...j,gen:{...S.gen,...j.gen}}}catch(e){}
+if(!S.model) S.model = 'auto';
 if(!S.lang) S.lang = 'pt';
 if(!S.effort) S.effort = 'fast';
 if(S.web===undefined) S.web = true;
@@ -1250,14 +1541,50 @@ let models=[],query='',atts=[],run=null,pop=null,fresh=-1;
 const cur=()=>S.convs.find(c=>c.id===S.cur);
 
 function getCurrentModelName(){
+  if(!S.model || S.model === 'auto') return 'Auto (Best Model)';
   const found = models.find(m => m.id === S.model);
   if(found) return found.name || found.id;
-  if(S.model === 'axom:1.1') return 'Axom v1.1';
-  return S.model || 'Axom v1.1';
+  if(S.model === 'axom:1.1') return 'Axom v1.1 (RTX 5060)';
+  return S.model;
 }
+
+function getCurrentModelShortName(){
+  if(!S.model || S.model === 'auto') return 'Auto';
+  const found = models.find(m => m.id === S.model);
+  if(found) {
+    if(found.isAuto) return 'Auto';
+    if(found.id.startsWith('openrouter/')) {
+      const parts = found.id.replace('openrouter/', '').split('/');
+      return parts[parts.length - 1].replace(':free', '');
+    }
+    if(found.id.startsWith('groq/')) return found.id.replace('groq/', '');
+    if(found.id.startsWith('gemini/')) return found.id.replace('gemini/', '');
+    if(found.id.startsWith('cerebras/')) return found.id.replace('cerebras/', '');
+    if(found.id.startsWith('deepseek/')) return found.id.replace('deepseek/', '');
+    return found.name || found.id;
+  }
+  if(S.model === 'axom:1.1') return 'Axom v1.1';
+  return S.model;
+}
+
 function updateHeaderModel(){
   const el = document.querySelector('.hdr-model-name');
   if(el) el.textContent = getCurrentModelName();
+  const dot = document.querySelector('.hdr-model-dot');
+  if(dot) dot.classList.toggle('auto-dot', !S.model || S.model === 'auto');
+  updateComposerModel();
+}
+
+function updateComposerModel(){
+  const el = document.querySelector('.comp .comp-model-name');
+  if(el) el.textContent = getCurrentModelShortName();
+  const dot = document.querySelector('.comp .comp-model-dot');
+  if(dot) dot.classList.toggle('auto-dot', !S.model || S.model === 'auto');
+
+  const ragEl = document.querySelector('.rag-cbox-foot .comp-model-name');
+  if(ragEl) ragEl.textContent = getCurrentModelShortName();
+  const ragDot = document.querySelector('.rag-cbox-foot .comp-model-dot');
+  if(ragDot) ragDot.classList.toggle('auto-dot', !S.model || S.model === 'auto');
 }
 
 /* ---- i18n dictionary ---- */
@@ -1432,10 +1759,10 @@ const I18N = {
     lossLabel: "Loss",
     speedLabel: "Speed",
     checkpointsLabel: "Checkpoints",
-    modeChat: "AI Chat",
-    modeRag: "RAG Vault",
-    navChat: "AI Companion",
-    navRag: "Knowledge Vault",
+    modeChat: "AXOM Chat",
+    modeRag: "Knowledge RAG",
+    navChat: "AXOM Chat",
+    navRag: "Knowledge RAG",
     ragVaultTitle: "Knowledge Vault",
     ragUploadDoc: "Upload",
     ragReindex: "Re-Index",
@@ -1606,10 +1933,10 @@ const I18N = {
     btnSyncObsidian: "Sincronizar Cofre",
     btnSyncingObsidian: "A sincronizar...",
     btnSyncedObsidian: "Cofre Sincronizado",
-    modeChat: "Chat IA",
-    modeRag: "Cofre RAG",
-    navChat: "Companheiro IA",
-    navRag: "Cofre de Documentos",
+    modeChat: "AXOM Chat",
+    modeRag: "Knowledge RAG",
+    navChat: "AXOM Chat",
+    navRag: "Knowledge RAG",
     ragVaultTitle: "Cofre de Documentos",
     ragUploadDoc: "Carregar",
     ragReindex: "Reindexar",
@@ -1943,6 +2270,14 @@ function shell(){
     </button>
     <button class="ib side-collapse-btn" data-act="collapse" title="${t('toggleSidebar')}">${ic('panel')}</button>
   </div>
+  <div class="side-modes" role="tablist">
+    <button class="side-mode-btn ${!isRag?'on':''}" data-act="setview" data-v="chat" title="Switch to AXOM Chatbot (Ctrl+1)">
+      ${ic('chat')}<span>AXOM Chat</span>
+    </button>
+    <button class="side-mode-btn ${isRag?'on':''}" data-act="setview" data-v="rag" title="Switch to Knowledge Vault (Ctrl+2)">
+      ${ic('book')}<span>Knowledge RAG</span><span class="rag-counter">${ragDocs.length}</span>
+    </button>
+  </div>
   ${!isRag ? `
     <button class="row new-chat" data-act="new" title="${t('newChatTitle')}">${ic('plus')}<span class="lbl">${t('newChat')}</span><kbd>Ctrl+N</kbd></button>
     <div class="search">${ic('search')}<input id="q" placeholder="${t('searchPlaceholder')}" aria-label="${t('searchAria')}" value="${esc(query)}"><kbd>Ctrl+K</kbd></div>
@@ -1975,13 +2310,14 @@ function shell(){
       <button class="ib" data-act="drawer" aria-label="${t('toggleSidebar')}" title="${t('toggleSidebar')}">${ic('panel')}</button>
       <div class="ttl">${headerTitle}</div>
       <span class="sp"></span>
-      <button class="hdr-model-btn" data-act="openmodelsettings" title="${t('currentModelBadge')}">
-        <span class="hdr-model-dot"></span>
+      <button class="hdr-model-btn" data-act="openmodelpicker" title="Select AI Model (Ctrl+M)">
+        <span class="hdr-model-dot ${S.model==='auto'?'auto-dot':''}"></span>
         <span class="hdr-model-name">${esc(getCurrentModelName())}</span>
+        <span class="hdr-model-chevron">${ic('chevron')}</span>
       </button>
       <div class="hdr-view-switch" role="tablist">
-        <button class="hdr-view-btn ${!isRag?'on':''}" data-act="setview" data-v="chat">${ic('chat')}<span>${t('modeChat')}</span></button>
-        <button class="hdr-view-btn ${isRag?'on':''}" data-act="setview" data-v="rag">${ic('book')}<span>${t('modeRag')}</span><span class="rag-pill">VAULT</span></button>
+        <button class="hdr-view-btn ${!isRag?'on':''}" data-act="setview" data-v="chat" title="AXOM Chatbot (Ctrl+1)">${ic('chat')}<span>${t('modeChat')}</span></button>
+        <button class="hdr-view-btn ${isRag?'on':''}" data-act="setview" data-v="rag" title="Knowledge Vault Grounding (Ctrl+2)">${ic('book')}<span>${t('modeRag')}</span><span class="rag-pill">${ragDocs.length} DOCS</span></button>
       </div>
       <div class="lang-switch" role="group" aria-label="Language / Idioma">
         <button class="lang-btn ${S.lang==='en'?'on':''}" data-act="setlang" data-l="en" title="English">EN</button>
@@ -1998,6 +2334,11 @@ function shell(){
             <button class="ib" data-act="attach" aria-label="${t('attachTitle')}" title="${t('attachTitle')}">${ic('clip')}</button>
             <button class="ib mic-btn" id="micBtn" data-act="voice" aria-label="${t('voiceTitle')}" title="${t('voiceTitle')}">${ic('mic')}</button>
             <button class="web-btn ${S.web?'on':''}" id="webBtn" data-act="toggleweb" aria-label="${t('webTitle')}" title="${t('webTitle')}">${ic('globe')}<span>${t('webBadge')}</span></button>
+            <button class="comp-model-btn" data-act="openmodelpicker" title="Select AI Model">
+              <span class="comp-model-dot ${S.model==='auto'?'auto-dot':''}"></span>
+              <span class="comp-model-name">${esc(getCurrentModelShortName())}</span>
+              <span class="comp-model-chev">▾</span>
+            </button>
             <span class="sp"></span>
             <button class="send" id="send" data-act="send" aria-label="${t('send')}" title="${t('send')}">${ic('up')}</button>
           </div>
@@ -2098,6 +2439,11 @@ function ragStudioHTML(){
         <div class="rag-cbox" id="ragCbox">
           <textarea id="ragInp" rows="1" placeholder="${t('ragInputPlaceholder')}" aria-label="RAG Question" maxlength="16000"></textarea>
           <div class="rag-cbox-foot">
+            <button class="comp-model-btn" data-act="openmodelpicker" title="Select AI Model">
+              <span class="comp-model-dot ${S.model==='auto'?'auto-dot':''}"></span>
+              <span class="comp-model-name">${esc(getCurrentModelShortName())}</span>
+              <span class="comp-model-chev">▾</span>
+            </button>
             <span class="rag-ground-note">Strict Grounding · Temp 0.2 · Zero Hallucination</span>
             <button class="send" id="ragSend" data-act="ragsend" aria-label="${t('send')}" title="${t('send')}">${ic('up')}</button>
           </div>
@@ -2184,8 +2530,11 @@ function drawRagMsgs(){
     const citationsHtml = renderCitationsBarHTML(m.citations);
     const loadingHtml = isLive && !m.text ? `<div class="compute-loading"><svg class="spin-circle" viewBox="0 0 24 24" width="15" height="15"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.5" stroke-opacity="0.25" fill="none"/><path d="M12 3a9 9 0 0 1 9 9" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg><span>Searching knowledge vault...</span></div>` : '';
 
+    const autoRouteRender = m.autoRoute ? `<div class="auto-route-badge"><span class="route-bolt">⚡</span><span class="route-title">Auto-routed: <strong>${esc(m.autoRoute.selectedModelName)}</strong></span><span class="route-sep">·</span><span class="route-desc">${esc(m.autoRoute.reason)}</span></div>` : '';
+
     return `<div class="rag-msg assistant" data-i="${i}">
       <div class="rag-msg-author">${t('axom')} · GROUNDED</div>
+      ${autoRouteRender}
       ${citationsHtml ? `<div class="rag-citations-bar">${citationsHtml}</div>` : ''}
       ${loadingHtml}
       <div class="rag-msg-content">${md(m.text)}</div>
@@ -2304,7 +2653,13 @@ async function sendRag(prompt){
   try{
     const msgsToSend = S.ragMsgs.slice(0, -1);
     for await (const ev of RagApi.streamChat({ query: prompt, messages: msgsToSend, signal: ragRun.signal })){
-      if(ev.type === 'citations'){
+      if(ev.type === 'auto_route'){
+        asstMsg.autoRoute = ev.route;
+        const routeBar = document.createElement('div');
+        routeBar.className = 'auto-route-badge';
+        routeBar.innerHTML = `<span class="route-bolt">⚡</span><span class="route-title">Auto-routed: <strong>${esc(ev.route.selectedModelName)}</strong></span><span class="route-sep">·</span><span class="route-desc">${esc(ev.route.reason)}</span>`;
+        targetMsgEl?.insertBefore(routeBar, targetMsgEl.querySelector('.rag-citations-bar') || targetMsgEl.querySelector('.compute-loading') || bodyEl);
+      } else if(ev.type === 'citations'){
         asstMsg.citations = ev.citations || [];
         const citBar = targetMsgEl?.querySelector('.rag-citations-bar') || (() => {
           const div = document.createElement('div');
@@ -2526,7 +2881,8 @@ function msgHTML(m,i,last){
   const thinkRender=(S.showThinking && m.think)?`<details class="think think-trace"><summary class="think-summary"><span class="think-icon">${ic('code')}</span><span class="think-title">${t('thinking')} · ${(m.thinkMs/1e3).toFixed(1)}s</span><span class="think-chevron">${ic('chevron')}</span></summary><div class="think-body">${esc(m.think)}</div></details>`:'';
   const loadingIndicator = isComputing ? `<div class="compute-loading"><svg class="spin-circle" viewBox="0 0 24 24" width="15" height="15"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.5" stroke-opacity="0.25" fill="none"/><path d="M12 3a9 9 0 0 1 9 9" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg><span>${t('thinking')}...</span></div>` : '';
 
-  return`<div class="msg${cls}" data-i="${i}"><div class="who">${t('axom')}</div>${thinkRender}${toolsRender}${loadingIndicator}<div class="bd">${md(m.text)}</div>
+  const autoRouteRender = m.autoRoute ? `<div class="auto-route-badge"><span class="route-bolt">⚡</span><span class="route-title">Auto-routed: <strong>${esc(m.autoRoute.selectedModelName)}</strong></span><span class="route-sep">·</span><span class="route-desc">${esc(m.autoRoute.reason)}</span></div>` : '';
+  return`<div class="msg${cls}" data-i="${i}"><div class="who">${t('axom')}</div>${autoRouteRender}${thinkRender}${toolsRender}${loadingIndicator}<div class="bd">${md(m.text)}</div>
   ${m.err?`<div class="err" role="alert"><span>${esc(m.err)}</span><button class="btn" data-act="retry">${t('retry')}</button></div>`:''}
   ${run&&last?'':`<div class="acts"><button class="ib" data-act="copymsg" aria-label="${t('copy')}" title="${t('copy')}">${ic('copy')}</button>${last?`<button class="ib" data-act="retry" aria-label="${t('regenerate')}" title="${t('regenerate')}">${ic('redo')}</button>`:''}<button class="ib ${m.fb==='up'?'on':''}" data-act="fb" data-v="up" aria-label="${t('goodResp')}">${ic('up2')}</button><button class="ib ${m.fb==='dn'?'on':''}" data-act="fb" data-v="dn" aria-label="${t('badResp')}">${ic('dn')}</button></div>`}</div>`;
 }
@@ -2811,6 +3167,16 @@ async function generate(c){
     if(!el) return;
     el.classList.add('live');
 
+    if(m.autoRoute){
+      let routeEl = $('.auto-route-badge', msgEl);
+      if(!routeEl){
+        routeEl = document.createElement('div');
+        routeEl.className = 'auto-route-badge';
+        msgEl.insertBefore(routeEl, msgEl.querySelector('.think') || msgEl.querySelector('.tools-wrap') || msgEl.querySelector('.compute-loading') || el);
+      }
+      routeEl.innerHTML = `<span class="route-bolt">⚡</span><span class="route-title">Auto-routed: <strong>${esc(m.autoRoute.selectedModelName)}</strong></span><span class="route-sep">·</span><span class="route-desc">${esc(m.autoRoute.reason)}</span>`;
+    }
+
     if(S.showThinking && m.think){
       let thinkEl = $('.think', msgEl);
       if(!thinkEl){
@@ -2850,7 +3216,10 @@ async function generate(c){
 
   try {
     for await (const ev of Axom.stream({ messages: c.msgs.slice(0, -1), signal: controller.signal })) {
-      if(ev.type === 'tool_start'){
+      if(ev.type === 'auto_route'){
+        m.autoRoute = ev.route;
+        if(!raf) raf = requestAnimationFrame(paint);
+      } else if(ev.type === 'tool_start'){
         m.tools.push({ id: ev.id, name: ev.name, args: ev.args, status: 'running' });
         if(!raf) raf = requestAnimationFrame(paint);
       } else if(ev.type === 'tool_end'){
@@ -2989,20 +3358,153 @@ async function fetchSettingsData(){
 }
 
 function renderModelOptions(selectedModel) {
-  const list = models.length ? models : [{ id: 'axom:1.1', name: 'Axom v1.1', provider: 'local', providerName: 'AXOM Local Engine' }];
+  const list = models.length ? models : [
+    { id: 'auto', name: 'Auto (Intelligent Task Routing)', isAuto: true, badge: 'BEST MODEL' },
+    { id: 'axom:1.1', name: 'Axom v1.1', provider: 'local', providerName: 'AXOM Local Engine' }
+  ];
   const groups = {};
   for (const m of list) {
-    const pName = m.providerName || (m.provider === 'local' ? 'AXOM Local Engine' : 'Cloud AI Models');
+    let pName = m.isAuto ? '⚡ Auto-Router' : (m.providerName || (m.provider === 'local' ? 'AXOM Local Engine' : 'Cloud AI Models'));
     if (!groups[pName]) groups[pName] = [];
     groups[pName].push(m);
   }
   return Object.entries(groups).map(([groupName, groupModels]) => {
     const opts = groupModels.map(m => {
-      const freeTag = m.free_tier_note ? ` [${m.free_tier_note}]` : '';
-      return `<option value="${esc(m.id)}" ${m.id === selectedModel ? 'selected' : ''}>${esc(m.name || m.id)}${esc(freeTag)}</option>`;
+      const freeTag = m.badge ? ` [${m.badge}]` : (m.free_tier_note ? ` [${m.free_tier_note}]` : '');
+      const isSel = (m.id === selectedModel) || (!selectedModel && m.isAuto);
+      return `<option value="${esc(m.id)}" ${isSel ? 'selected' : ''}>${esc(m.name || m.id)}${esc(freeTag)}</option>`;
     }).join('');
     return `<optgroup label="${esc(groupName)}">${opts}</optgroup>`;
   }).join('');
+}
+
+async function openModelPicker(){
+  closePop();
+  $('#modelPickerModal')?.remove();
+
+  let modelList = models;
+  if(!modelList || !modelList.length){
+    try {
+      modelList = await Axom.models();
+      models = modelList;
+    } catch(e){}
+  }
+
+  const o = document.createElement('div');
+  o.className = 'ov model-picker-ov';
+  o.id = 'modelPickerModal';
+
+  const renderCard = (m) => {
+    const isSelected = S.model === m.id || (!S.model && m.id === 'auto');
+    const badgeHtml = m.badge ? `<span class="model-tag ${m.isAuto?'best':(m.isFree?'free':(m.isLocal?'local':''))}">${esc(m.badge)}</span>` : '';
+    const ctxHtml = m.context ? `<span class="model-ctx">${esc(m.context)}</span>` : '';
+    const isKeyNeeded = m.badge === 'KEY NEEDED' || m.isConfigured === false;
+    const clickAttr = isKeyNeeded ? `data-act="settings" data-tab="providers"` : `data-act="selectmodel" data-m="${esc(m.id)}"`;
+
+    return `<div class="model-card-item ${isSelected?'selected':''} ${m.isAuto?'featured':''} ${isKeyNeeded?'key-needed':''}" ${clickAttr} title="${esc(m.description || m.name)}">
+      <div class="model-card-info">
+        <div class="model-card-head">
+          ${m.isAuto ? `<span class="model-bolt">⚡</span>` : ''}
+          <span class="model-card-name">${esc(m.name)}</span>
+          ${badgeHtml}
+          ${ctxHtml}
+        </div>
+        ${m.description ? `<p class="model-card-desc">${esc(m.description)}</p>` : ''}
+        ${m.freeTierNote ? `<span class="model-free-note">${esc(m.freeTierNote)}</span>` : ''}
+      </div>
+      <div class="model-card-right">
+        ${isKeyNeeded ? `<span class="key-needed-text">Setup Key &rarr;</span>` : (isSelected ? `<span class="model-check-icon">${ic('check')}</span>` : `<span class="model-radio-icon"></span>`)}
+      </div>
+    </div>`;
+  };
+
+  const autoModel = modelList.find(m => m.id === 'auto') || { id: 'auto', name: 'Auto (Intelligent Task Routing)', badge: 'BEST MODEL', isAuto: true, description: 'Automatically routes to the best model for code, reasoning, speed, or context.' };
+  const localModels = modelList.filter(m => m.isLocal);
+
+  const providersMap = new Map();
+  for(const m of modelList){
+    if(m.isLocal || m.isAuto) continue;
+    const prov = m.provider || 'cloud';
+    if(!providersMap.has(prov)) providersMap.set(prov, { name: m.providerName || prov, models: [] });
+    providersMap.get(prov).models.push(m);
+  }
+
+  let providersHtml = '';
+  for(const [pId, pData] of providersMap.entries()){
+    const hasConfigured = pData.models.some(m => m.isConfigured !== false);
+    providersHtml += `<div class="model-group" data-provider="${esc(pId)}">
+      <div class="model-group-title">
+        <span class="prov-dot ${hasConfigured?'online':''}"></span>
+        <span>${esc(pData.name)}</span>
+        <span class="prov-count">${pData.models.length} models</span>
+      </div>
+      <div class="model-cards-grid">
+        ${pData.models.map(renderCard).join('')}
+      </div>
+    </div>`;
+  }
+
+  o.innerHTML = `<div class="modal model-picker-modal">
+    <div class="mh">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="color:var(--ac);display:flex">${ic('cpu')}</span>
+        <span>${t('selectModel') || 'Select AI Model'}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button class="ib" data-act="refreshmodels" title="Refresh live models from connected providers">${ic('refresh')}</button>
+        <button class="ib" data-act="settings" data-tab="providers" title="Configure AI Provider Keys">${ic('gear')}</button>
+        <button class="ib" data-act="closemodelpicker" title="Close">${ic('x')}</button>
+      </div>
+    </div>
+    <div class="model-search-box">
+      ${ic('search')}
+      <input type="text" id="modelSearchInput" placeholder="Filter models by name, capability, or provider..." autofocus autocomplete="off">
+    </div>
+    <div class="model-list-scroll" id="modelListScroll">
+      <div class="model-group" data-group="auto">
+        <div class="model-group-title">⚡ Intelligent Task Routing</div>
+        <div class="model-cards-grid">
+          ${renderCard(autoModel)}
+        </div>
+      </div>
+
+      <div class="model-group" data-group="local">
+        <div class="model-group-title">${ic('cpu')} Local Neural Hardware (RTX 5060)</div>
+        <div class="model-cards-grid">
+          ${localModels.map(renderCard).join('')}
+        </div>
+      </div>
+
+      ${providersHtml}
+    </div>
+  </div>`;
+
+  o.addEventListener('click', e => {
+    if(e.target === o){
+      o.remove();
+      focusInput();
+    }
+  });
+
+  document.body.appendChild(o);
+
+  const searchInput = $('#modelSearchInput', o);
+  if(searchInput){
+    searchInput.focus();
+    searchInput.addEventListener('input', () => {
+      const q = searchInput.value.toLowerCase().trim();
+      const cards = $$('.model-card-item', o);
+      cards.forEach(card => {
+        const text = card.textContent.toLowerCase();
+        const match = !q || text.includes(q);
+        card.style.display = match ? 'flex' : 'none';
+      });
+      $$('.model-group', o).forEach(grp => {
+        const visible = $$('.model-card-item', grp).some(c => c.style.display !== 'none');
+        grp.style.display = visible ? 'flex' : 'none';
+      });
+    });
+  }
 }
 
 async function settings(tab='account'){
@@ -3296,19 +3798,56 @@ document.addEventListener('change',e=>{
   }
 });
 
+function setView(v){
+  if(v !== 'chat' && v !== 'rag') v = 'chat';
+  S.view = v;
+  save();
+  if(S.view === 'rag' && !ragDocs.length){
+    loadRagDocs();
+  }
+  shell();
+  focusInput();
+  toast(S.view === 'rag' ? 'Knowledge RAG' : 'AXOM Chat');
+}
+
 /* ---- actions ---- */
 document.addEventListener('click',async e=>{
   const b=e.target.closest('[data-act]');if(!e.target.closest('.pop'))closePop();if(!b)return;
   const a=b.dataset.act,id=b.dataset.id,c=cur();
   // Non-blocking multi-tasking: allow navigation anytime
   if(a==='setview'){
-    S.view = b.dataset.v || 'chat';
-    save();
-    if(S.view === 'rag' && !ragDocs.length){
-      loadRagDocs();
+    setView(b.dataset.v || 'chat');
+    return;
+  }
+  else if(a==='openmodelpicker'){
+    openModelPicker();
+    return;
+  }
+  else if(a==='closemodelpicker'){
+    $('#modelPickerModal')?.remove();
+    focusInput();
+    return;
+  }
+  else if(a==='refreshmodels'){
+    toast('Discovering models from connected providers...');
+    Axom.models(true).then(m => {
+      models = m;
+      $('#modelPickerModal')?.remove();
+      openModelPicker();
+      toast(`Discovered ${m.length} models`);
+    });
+    return;
+  }
+  else if(a==='selectmodel'){
+    const mId = b.dataset.m || b.closest('[data-m]')?.dataset.m;
+    if(mId){
+      S.model = mId;
+      save();
+      updateHeaderModel();
+      $('#modelPickerModal')?.remove();
+      toast('Active Model: ' + getCurrentModelName());
+      focusInput();
     }
-    shell();
-    toast(S.view === 'rag' ? t('navRag') : t('navChat'));
     return;
   }
   else if(a==='ragupload'){
@@ -3543,7 +4082,11 @@ document.addEventListener('keydown',e=>{
   const k=e.key.toLowerCase(),mod=e.ctrlKey||e.metaKey;
   if(mod&&k==='n'){e.preventDefault();newChat();focusInput();}
   else if(mod&&k==='k'){e.preventDefault();S.col=false;$('#side').classList.remove('col');$('#side').classList.add('open');$('#q').focus()}
-  else if(mod&&k==='/'){e.preventDefault();$('#inp').focus()}else if(k==='escape'){closePop();closeDrawer()}
+  else if(mod&&k==='1'){e.preventDefault();setView('chat');}
+  else if(mod&&k==='2'){e.preventDefault();setView('rag');}
+  else if(mod&&k==='m'){e.preventDefault();openModelPicker();}
+  else if(mod&&k==='/'){e.preventDefault();focusInput();}
+  else if(k==='escape'){closePop();closeDrawer();$('#modelPickerModal')?.remove();}
 });
 matchMedia('(prefers-color-scheme:light)').addEventListener('change',()=>S.theme==='system'&&applyTheme());
 
@@ -3577,7 +4120,7 @@ document.addEventListener('click', e => {
 applyTheme();shell();InsideBrowser.init();loadRagDocs();focusInput();
 Axom.models().then(m=>{
   models=m;
-  if(m.length&&!m.some(x=>x.id===S.model))S.model=m[0].id;
+  if(!S.model) S.model='auto';
   updateHeaderModel();
   save();
   updSend();
