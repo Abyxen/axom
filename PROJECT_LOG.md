@@ -1273,6 +1273,28 @@
 - **Why It Was Done:**
   - Scheduled autonomous maintenance check (iteration 7) enhancing composer telemetry and command palette navigation ergonomics.
 
+---
+
+### 51. Living Brain Memory Inspector Modal & Command Palette Integration (Iteration 8)
+- **Date:** 2026-11-16
+- **What Was Done:**
+  - **Living Brain Memory Profile Inspector Modal ([index.html](file:///c:/Users/abira/Documents/axom/index.html))**:
+    - Implemented `openMemoryViewer()` allowing visual inspection of all 8 persistent profile memory facts stored in SQLite.
+    - Displays structured cards for each memory record (key name, category badge, and formatted fact value) with 1-click deletion (`data-act-delmem`) invoking `POST /api/memory/actions` with confirmation dialogs.
+    - Includes a 1-click **"Sync to Obsidian"** button that synchronizes modified state to `Axom_Brain`.
+    - Preserves Settings minimalism: cleanly isolated within the developer Command Palette (`Ctrl+K`) without adding bloat back to the 3-tab Settings modal.
+  - **Command Palette Action Registration**:
+    - Added **"Inspect Living Brain Facts & Profile"** command to `openCommandPalette()`.
+  - **Living Brain Verification**:
+    - Executed `test_suite.ps1`: 100% PASS across all 7 steps (health, active profile, preference injection, transcript persistence, SQLite mutation, cross-session recall).
+  - **Daemon Health**:
+    - Ollama daemon (`task-6447`): 6.5 hours continuous uptime on local RTX 5060 GPU (`127.0.0.1:11434`).
+    - AXOM Server (`task-7865`): Active and healthy on port 8000.
+- **How It Was Implemented:**
+  - Files modified: [`index.html`](file:///c:/Users/abira/Documents/axom/index.html), [`PROJECT_LOG.md`](file:///c:/Users/abira/Documents/axom/PROJECT_LOG.md).
+- **Why It Was Done:**
+  - Scheduled autonomous maintenance check (iteration 8) giving power-users full inspectability over long-term neural memory facts without violating the minimalist Settings modal constraint.
+
 ## 🔮 Active & Upcoming Work
 
 ### 43. QLoRA Fine-Tuning Execution (`axom:1.2`)
