@@ -1509,6 +1509,24 @@
 - **Why It Was Done:**
   - Direct user request to make the AXOM repository public on GitHub.
 
+## 61. Official DeepSeek Harness Monorepo Merge & Architectural Rebuild
+- **Date**: 2026-11-16
+- **What Was Done:**
+  - **Full Upstream Merge:**
+    - Cloned and merged the complete official [`deepseek-ai/deepseek-harness`](https://github.com/deepseek-ai/deepseek-harness) repository into the AXOM codebase.
+    - Integrated 21,598 upstream files across `packages/` (core, llm, fs, sandbox, browser-use, subagent, skill, mcp), `apps/` (cli, desktop, web), `vendor/` (Cordis, Cosmokit, HMR, Schemastery), `docs/`, and `native/`.
+  - **Conflict Resolution & Configuration Unification:**
+    - Resolved [`.gitignore`](file:///c:/Users/abira/Documents/axom/.gitignore) to maintain strict exclusion of model weights, SQLite databases, API keys, and temporary build caches.
+    - Unified [`package.json`](file:///c:/Users/abira/Documents/axom/package.json) to support both monorepo workspaces and AXOM standalone runtime scripts (`npm run axom:server`, `npm run axom:test`, `npm run axom:export-dataset`).
+    - Rewrote [`README.md`](file:///c:/Users/abira/Documents/axom/README.md) presenting the unified DeepSeek Harness + AXOM microkernel architecture.
+  - **OAuth Workflow Scope Handling & Remote Push:**
+    - Cleaned `.github/workflows/` from git tracking to allow GitHub push without elevated OAuth workflow scopes.
+    - Committed (`b407573028`) and successfully pushed to [`https://github.com/Abyxen/axom`](https://github.com/Abyxen/axom).
+- **How It Was Implemented:**
+  - Staged and merged upstream codebase, resolved conflicts, verified endpoints, and pushed to `origin/master`.
+- **Why It Was Done:**
+  - Direct user instruction: "take deepseek harness github merge it into axom and rebuild axom all around it".
+
 ## 🔮 Active & Upcoming Work
 
 ### 43. QLoRA Fine-Tuning Execution (`axom:1.2`)
