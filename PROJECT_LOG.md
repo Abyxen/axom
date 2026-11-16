@@ -1253,6 +1253,26 @@
 - **Why It Was Done:**
   - Autonomous maintenance loop iteration 6: unifying memory vault actions into developer shortcuts, hardening icon rendering, and verifying memory integrity.
 
+---
+
+### 50. Prompt Token Estimation Pill, Command Palette Viewport Tracking & Maintenance Check (Iteration 7)
+- **Date:** 2026-11-16
+- **What Was Done:**
+  - **Prompt Token Estimation Pill ([index.html](file:///c:/Users/abira/Documents/axom/index.html))**:
+    - Added a live token estimation pill (`.prompt-tok-counter`) directly inside the composer tools bar next to the send button.
+    - Dynamically computes approximate token length (`~N tok`) as the user types prompts exceeding 12 characters, hiding cleanly when empty to preserve interface minimalism.
+  - **Command Palette Viewport Tracking**:
+    - Enhanced keyboard navigation in `openCommandPalette()`: added `scrollIntoView({ block: 'nearest' })` on ArrowUp and ArrowDown actions, ensuring selected commands remain in the viewport when traversing long lists.
+  - **Living Brain Verification**:
+    - Executed `test_suite.ps1`: 100% PASS across all 7 steps (health, active profile, preference injection, transcript persistence, SQLite mutation, cross-session recall).
+  - **Daemon Health**:
+    - Ollama daemon (`task-6447`): 6.0 hours continuous uptime on local RTX 5060 GPU (`127.0.0.1:11434`).
+    - AXOM Server (`task-7865`): Active and healthy on port 8000.
+- **How It Was Implemented:**
+  - Files modified: [`index.html`](file:///c:/Users/abira/Documents/axom/index.html), [`PROJECT_LOG.md`](file:///c:/Users/abira/Documents/axom/PROJECT_LOG.md).
+- **Why It Was Done:**
+  - Scheduled autonomous maintenance check (iteration 7) enhancing composer telemetry and command palette navigation ergonomics.
+
 ## 🔮 Active & Upcoming Work
 
 ### 43. QLoRA Fine-Tuning Execution (`axom:1.2`)

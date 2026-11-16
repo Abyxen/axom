@@ -426,6 +426,21 @@ details.think .think-body {
 .spin-circle{animation:spin .85s linear infinite}
 
 
+
+.prompt-tok-counter {
+  font: 500 10px 'JetBrains Mono', monospace;
+  color: var(--tx3);
+  padding: 2.5px 6px;
+  background: var(--surf);
+  border: 1px solid var(--bd);
+  border-radius: 4px;
+  display: none;
+  user-select: none;
+  letter-spacing: .2px;
+  line-height: 1;
+  align-self: center;
+}
+
 /* floating scroll-to-bottom button */
 .scroll-bottom-btn {
   position: absolute;
@@ -2807,6 +2822,7 @@ function shell(){
               <span class="comp-model-chev">▾</span>
             </button>
             <span class="sp"></span>
+            <span class="prompt-tok-counter" id="tokCounter"></span>
             <button class="send" id="send" data-act="send" aria-label="${t('send')}" title="${t('send')}">${ic('up')}</button>
           </div>
         </div>
@@ -3472,6 +3488,19 @@ function updSend(){
   const isCurRunning = S.cur && activeRuns.has(S.cur);
   const hasText = !!(i && i.value.trim()) || atts.length > 0;
 
+  const tokEl = $('#tokCounter');
+  if (tokEl && i) {
+    const chars = i.value.trim().length;
+    if (chars > 12) {
+      const approxTok = Math.round(chars / 3.8);
+      tokEl.textContent = `~${approxTok} tok`;
+      tokEl.style.display = 'inline-block';
+    } else {
+      tokEl.textContent = '';
+      tokEl.style.display = 'none';
+    }
+  }
+
   if (isCurRunning && !hasText) {
     b.innerHTML = ic('stop');
     b.dataset.act = 'stop';
@@ -3992,10 +4021,12 @@ function openCommandPalette() {
       e.preventDefault();
       selectedIdx = (selectedIdx + 1) % (filtered.length || 1);
       renderList();
+      $('.cmd-palette-item.selected', o)?.scrollIntoView({ block: 'nearest' });
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       selectedIdx = (selectedIdx - 1 + filtered.length) % (filtered.length || 1);
       renderList();
+      $('.cmd-palette-item.selected', o)?.scrollIntoView({ block: 'nearest' });
     } else if (e.key === 'Enter') {
       e.preventDefault();
       if (filtered[selectedIdx]) {
