@@ -25,6 +25,7 @@ const subagents = require('./subagents');
 const localTools = require('./local_tools');
 const freeApisService = require('./free_apis_service');
 const { harness, getHarnessStatus, SEAMS } = require('./harness');
+const universalFileGenerator = require('./universal_file_generator');
 
 const PORT = 8000;
 const HOST = '127.0.0.1';
@@ -861,6 +862,94 @@ button:hover{background:#3f3f46}
     return sendJson(res, 200, { files: list });
   }
 
+  // --- API: Universal File Download Endpoint ---
+  if (req.method === 'GET' && pathname === '/api/files/download') {
+    const rawPath = parsedUrl.searchParams.get('path') || parsedUrl.searchParams.get('file');
+    if (!rawPath) {
+      return sendJson(res, 400, { error: 'path query parameter is required' });
+    }
+
+    const safePath = universalFileGenerator.resolveSafePath(rawPath);
+    if (!fs.existsSync(safePath) || !fs.statSync(safePath).isFile()) {
+      return sendJson(res, 404, { error: `File not found: ${rawPath}` });
+    }
+
+    const stats = fs.statSync(safePath);
+    const mimeType = universalFileGenerator.getMimeType(safePath);
+    const filename = path.basename(safePath);
+
+    setCors(res);
+    res.writeHead(200, {
+      'Content-Type': mimeType,
+      'Content-Length': stats.size,
+      'Content-Disposition': `attachment; filename="${encodeURIComponent(filename)}"`,
+      'Cache-Control': 'no-cache'
+    });
+
+    const stream = fs.createReadStream(safePath);
+    stream.pipe(res);
+    return;
+  }
+
+  // --- API: Open File/Directory in Windows Explorer ---
+  if (req.method === 'POST' && pathname === '/api/files/open') {
+    let bodyText = '';
+    req.on('data', chunk => { bodyText += chunk; });
+    req.on('end', () => {
+      try {
+        const body = JSON.parse(bodyText || '{}');
+        const rawPath = body.path || body.filePath;
+        if (!rawPath) return sendJson(res, 400, { error: 'path is required' });
+
+        const safePath = universalFileGenerator.resolveSafePath(rawPath);
+        if (!fs.existsSync(safePath)) {
+          return sendJson(res, 404, { error: `Path does not exist: ${safePath}` });
+        }
+
+        const { exec } = require('node:child_process');
+        const isFile = fs.statSync(safePath).isFile();
+        const cmd = isFile ? `explorer.exe /select,"${safePath}"` : `explorer.exe "${safePath}"`;
+        exec(cmd, (err) => {
+          if (err) {
+            return sendJson(res, 500, { error: err.message });
+          }
+          return sendJson(res, 200, { success: true, message: `Opened: ${safePath}` });
+        });
+      } catch (err) {
+        return sendJson(res, 500, { error: err.message });
+      }
+    });
+    return;
+  }
+
+  // --- API: Direct File Generation Endpoint ---
+  if (req.method === 'POST' && pathname === '/api/files/generate') {
+    let bodyText = '';
+    req.on('data', chunk => { bodyText += chunk; });
+    req.on('end', async () => {
+      try {
+        const body = JSON.parse(bodyText || '{}');
+        if (!body.filePath && !body.path && !body.file_path) {
+          return sendJson(res, 400, { error: 'filePath is required' });
+        }
+        const result = await universalFileGenerator.generateFile({
+          filePath: body.filePath || body.path || body.file_path,
+          fileType: body.fileType || body.file_type,
+          content: body.content || '',
+          title: body.title,
+          author: body.author,
+          files: body.files,
+          base64Data: body.base64Data || body.base64_data,
+          sourceDir: body.sourceDir || body.source_dir
+        });
+        return sendJson(res, 200, result);
+      } catch (err) {
+        return sendJson(res, 500, { error: err.message });
+      }
+    });
+    return;
+  }
+
   // --- API: RAG (Retrieval Augmented Generation) Knowledge Vault ---
 
   if (req.method === 'GET' && pathname === '/api/rag/documents') {
@@ -1091,6 +1180,49 @@ button:hover{background:#3f3f46}
   return keywords.some(k => p.includes(k));
 }
 
+async function autoExtractAndSaveCode(text, prompt = '') {
+  if (!text) return [];
+  const codeBlockRegex = /```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g;
+  let match;
+  const createdFiles = [];
+
+  while ((match = codeBlockRegex.exec(text)) !== null) {
+    const lang = (match[1] || '').toLowerCase();
+    const code = match[2];
+    if (!code || code.trim().length < 5) continue;
+
+    let detectedPath = '';
+    const firstLine = code.split('\n')[0].trim();
+    const pathMatch = firstLine.match(/(?:path|file):\s*([^\s*-->]+)/i);
+    if (pathMatch) {
+      detectedPath = pathMatch[1].trim();
+    } else {
+      const pLower = (prompt || '').toLowerCase();
+      if (pLower.includes('calculator') && (lang === 'html' || code.includes('<!DOCTYPE') || code.includes('<html'))) {
+        detectedPath = 'Desktop/Calculator/index.html';
+      } else if (pLower.includes('desktop')) {
+        const ext = lang ? `.${lang}` : '.txt';
+        detectedPath = `Desktop/generated_file_${Date.now()}${ext}`;
+      } else {
+        const ext = lang ? `.${lang}` : '.txt';
+        detectedPath = `workspace/generated_${Date.now()}${ext}`;
+      }
+    }
+
+    try {
+      const fileRes = await universalFileGenerator.generateFile({
+        filePath: detectedPath,
+        content: code
+      });
+      createdFiles.push(fileRes);
+    } catch (e) {
+      console.warn('[SERVER] Auto-extract file save error:', e.message);
+    }
+  }
+
+  return createdFiles;
+}
+
 // --- API: Chat Completion (Streaming SSE & Non-Streaming JSON) ---
   if (req.method === 'POST' && pathname === '/api/chat') {
     let bodyText = '';
@@ -1172,7 +1304,8 @@ CRITICAL OPERATIONAL RULES:
 2. Temporal Awareness: The current year is 2026. For questions regarding recent events, current weather, active technologies, or real-time data, actively query using the available tools before finalizing your answer.
 3. Exact Precision: For mathematical calculations or algorithms, execute code via the calculate_or_eval tool internally, but present ONLY the clean final result to the user.
 4. System & Memory: Use system_info for hardware status and search_living_memory for stored notes and user facts. When referencing known facts, people, or preferences from your living memory, speak naturally and definitively. NEVER say "Based on your profile", "According to your known list", "In your records", or "From your background data". Answer directly (e.g., "Zazi is a gay girl." or "She is a gay girl.").
-5. Output Style: Zero decorative emojis. Crisp, direct, and focused answers using GitHub-flavored Markdown.`;
+5. Output Style: Zero decorative emojis. Crisp, direct, and focused answers using GitHub-flavored Markdown.
+6. Autonomous File & Folder Generation: When asked to create, write, or generate files (such as HTML pages, calculators, scripts, PDFs, ZIP archives) or folders on Desktop or workspace, ALWAYS execute the appropriate tool (write_file, generate_file, create_folder). For multi-page reports or documents, generate a PDF using generate_file with file_type: 'pdf'. For multi-file packages or archives, use generate_file with file_type: 'zip'.`;
 
         const researchDirective = researchModeEnabled ? researchSkills.getResearchDirective() : '';
         const webDirective = (webSearchEnabled || researchModeEnabled)
@@ -1329,12 +1462,12 @@ CRITICAL OPERATIONAL PRINCIPLES:
               tools: turn < MAX_AGENT_TURNS ? availableTools : undefined,
               stream: false,
               options: {
-                num_ctx: 16384,
+                num_ctx: 32768,
                 temperature: typeof params.temperature === 'number' ? params.temperature : 0.4,
                 repeat_penalty: 1.1,
                 top_p: 0.9,
                 top_k: 40,
-                num_predict: Math.max(typeof params.max_tokens === 'number' ? params.max_tokens : 2048, 2048),
+                num_predict: Math.max(typeof params.max_tokens === 'number' ? params.max_tokens : 8192, 8192),
                 stop: Array.isArray(params.stop) ? params.stop : []
               }
             };
@@ -1348,6 +1481,75 @@ CRITICAL OPERATIONAL PRINCIPLES:
 
             if (!turnRes.ok) {
               const errDetail = await turnRes.text().catch(() => '');
+              const isToolTruncation = turnRes.status === 500 && (
+                errDetail.includes('invalid tool call arguments') ||
+                errDetail.includes('unexpected end of JSON input') ||
+                errDetail.includes('llama-server returned invalid tool call')
+              );
+
+              if (isToolTruncation) {
+                console.warn('[SERVER] Ollama 500 tool argument truncation caught. Auto-recovering via direct file generation...');
+                if (isStream && !headersSent) {
+                  setCors(res);
+                  res.writeHead(200, {
+                    'Content-Type': 'text/event-stream; charset=utf-8',
+                    'Cache-Control': 'no-cache, no-transform',
+                    'Connection': 'keep-alive'
+                  });
+                  headersSent = true;
+                }
+                if (isStream) {
+                  res.write(`data: ${JSON.stringify({ type: 'status', message: 'Generating file directly...' })}\n\n`);
+                }
+
+                const recoveryMessages = [
+                  ...formattedMessages,
+                  {
+                    role: 'user',
+                    content: 'A token truncation occurred on tool arguments. Please provide the complete file content directly inside a markdown code block (e.g. ```html ... ```). Specify the destination path on the first line (e.g. <!-- path: Desktop/Calculator/index.html -->).'
+                  }
+                ];
+
+                try {
+                  const recRes = await fetch(`${OLLAMA_BASE}/api/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      model: effectiveModel,
+                      messages: recoveryMessages,
+                      stream: false,
+                      options: {
+                        num_ctx: 32768,
+                        temperature: 0.3,
+                        num_predict: 8192
+                      }
+                    }),
+                    signal: controller.signal
+                  });
+
+                  if (recRes.ok) {
+                    const recData = await recRes.json();
+                    let recText = (recData.message?.content || '').replace(/^<\/think>\s*/i, '').trim();
+                    if (!recText && recData.message?.thinking) recText = recData.message.thinking;
+
+                    const savedFiles = await autoExtractAndSaveCode(recText, lastUserPrompt);
+                    if (savedFiles && savedFiles.length > 0) {
+                      for (const sf of savedFiles) {
+                        if (isStream) {
+                          res.write(`data: ${JSON.stringify({ type: 'file_download_ready', file: sf })}\n\n`);
+                        }
+                      }
+                      recText += '\n\n' + savedFiles.map(f => `**File Generated:** [${f.file_name}](${f.download_url}) (${f.size_bytes} bytes at \`${f.relative_path}\`)`).join('\n');
+                    }
+
+                    finalReply = recText;
+                    break;
+                  }
+                } catch (recErr) {
+                  console.error('[SERVER] Recovery attempt failed:', recErr);
+                }
+              }
+
               if (headersSent) {
                 res.write(`data: ${JSON.stringify({ type: 'error', message: errDetail })}\n\n`);
                 return res.end();
@@ -1418,6 +1620,9 @@ CRITICAL OPERATIONAL PRINCIPLES:
 
                 if (isStream) {
                   res.write(`data: ${JSON.stringify({ type: 'tool_end', id: callId, name: toolName, result: toolResult })}\n\n`);
+                  if (toolResult && toolResult.download_url) {
+                    res.write(`data: ${JSON.stringify({ type: 'file_download_ready', file: toolResult })}\n\n`);
+                  }
                 }
 
                 const payloadStr = typeof toolResult === 'string' ? toolResult : JSON.stringify(toolResult);
@@ -1489,12 +1694,12 @@ CRITICAL OPERATIONAL PRINCIPLES:
           messages: formattedMessages,
           stream: isStream,
           options: {
-            num_ctx: 16384,
+            num_ctx: 32768,
             temperature: typeof params.temperature === 'number' ? params.temperature : 0.4,
             repeat_penalty: 1.1,
             top_p: 0.9,
             top_k: 40,
-            num_predict: Math.max(typeof params.max_tokens === 'number' ? params.max_tokens : 2048, 2048),
+            num_predict: Math.max(typeof params.max_tokens === 'number' ? params.max_tokens : 8192, 8192),
             stop: Array.isArray(params.stop) ? params.stop : []
           }
         };

@@ -133,6 +133,17 @@ const ConsumerToolsPlugin = {
           } else if (toolName === 'write_file' && ctx.has('filesystem')) {
             const fsService = ctx.get('filesystem');
             result = await fsService.writeFile(toolArgs.file_path || toolArgs.path || toolArgs.filename, toolArgs.content || '');
+          } else if (toolName === 'generate_file' && ctx.has('filesystem')) {
+            const fsService = ctx.get('filesystem');
+            result = await fsService.generateFile({
+              filePath: toolArgs.file_path || toolArgs.path || toolArgs.filename,
+              fileType: toolArgs.file_type,
+              content: toolArgs.content || '',
+              title: toolArgs.title,
+              files: toolArgs.files,
+              base64Data: toolArgs.base64_data || toolArgs.base64Data,
+              sourceDir: toolArgs.source_dir || toolArgs.sourceDir
+            });
           } else if (toolName === 'read_file' && ctx.has('filesystem')) {
             const fsService = ctx.get('filesystem');
             const content = await fsService.readFile(toolArgs.file_path || toolArgs.path);

@@ -403,6 +403,27 @@ details.think .think-body {
 .chip-badge{background:var(--ac);color:#ffffff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;letter-spacing:.05em}
 .chip .x{width:18px;height:18px}.chip .x svg{width:12px;height:12px}
 
+/* Universal File Download Card */
+.file-download-cards-container{margin:8px 0}
+.file-download-card{display:flex;align-items:center;justify-content:space-between;gap:14px;background:var(--surf);border:1px solid var(--bd);border-left:3px solid var(--ac);border-radius:8px;padding:9px 13px;margin:7px 0;box-shadow:0 2px 10px rgba(0,0,0,.15);transition:border-color .15s ease,background .15s ease}
+.file-download-card:hover{border-color:var(--bd-focus);background:var(--elev)}
+.fdc-left{display:flex;align-items:center;gap:12px;min-width:0;flex:1}
+.fdc-icon-badge{width:36px;height:36px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;text-transform:uppercase;flex-shrink:0}
+.fdc-icon-badge.pdf{background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.3)}
+.fdc-icon-badge.zip,.fdc-icon-badge.tar,.fdc-icon-badge.rar{background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.3)}
+.fdc-icon-badge.html,.fdc-icon-badge.htm{background:rgba(59,130,246,.15);color:#3b82f6;border:1px solid rgba(59,130,246,.3)}
+.fdc-icon-badge.code{background:rgba(16,185,129,.15);color:#10b981;border:1px solid rgba(16,185,129,.3)}
+.fdc-icon-badge.doc{background:rgba(168,85,247,.15);color:#a855f7;border:1px solid rgba(168,85,247,.3)}
+.fdc-info{min-width:0;flex:1}
+.fdc-name{font-size:13px;font-weight:600;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fdc-meta{font-size:10.5px;color:var(--tx3);font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:6px;margin-top:2px}
+.fdc-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.fdc-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:6px;font-size:11.5px;font-weight:500;cursor:pointer;text-decoration:none;transition:all .15s ease}
+.fdc-btn.download-btn{background:var(--ac);color:#ffffff;border:1px solid var(--ac)}
+.fdc-btn.download-btn:hover{background:var(--ach);box-shadow:0 2px 8px rgba(59,130,246,.35)}
+.fdc-btn.reveal-btn{background:var(--surf);color:var(--tx2);border:1px solid var(--bd)}
+.fdc-btn.reveal-btn:hover{background:var(--elev-hover);color:var(--tx);border-color:var(--tx3)}
+
 /* modal & popover */
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(6px);display:grid;place-items:center;z-index:50;padding:16px;animation:fade .2s}
 .modal{background:var(--bg2);border:1px solid var(--bd);border-radius:14px;box-shadow:0 24px 60px rgba(0,0,0,.65),0 0 0 1px rgba(255,255,255,.06);width:min(680px,100%);max-height:86vh;display:flex;flex-direction:column;animation:pop .2s var(--ease);overflow:hidden}
@@ -3469,6 +3490,114 @@ function toolsTraceHTML(tools, isOpen=false){
   </details>`;
 }
 
+function formatFileSize(bytes){
+  if(!bytes || bytes <= 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const idx = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, idx)).toFixed(1)) + ' ' + sizes[idx];
+}
+
+function renderFilesCardsHTML(m){
+  const files = [];
+  const seenPaths = new Set();
+
+  if(Array.isArray(m.filesGenerated)){
+    for(const f of m.filesGenerated){
+      const p = f.relative_path || f.file_path;
+      if(p && !seenPaths.has(p)){
+        seenPaths.add(p);
+        files.push(f);
+      }
+    }
+  }
+
+  if(Array.isArray(m.tools)){
+    for(const t of m.tools){
+      const res = t.result;
+      if(res && res.download_url){
+        const p = res.relative_path || res.file_path;
+        if(p && !seenPaths.has(p)){
+          seenPaths.add(p);
+          files.push(res);
+        }
+      }
+    }
+  }
+
+  if(m.text){
+    const linkRegex = /\[(?:File Generated:\s*)?([^\]]+)\]\(((\/api\/files\/download\?path=([^\)]+)))\)/gi;
+    let match;
+    while((match = linkRegex.exec(m.text)) !== null){
+      const fName = match[1];
+      const dUrl = match[2];
+      const relPath = decodeURIComponent(match[4]);
+      if(!seenPaths.has(relPath)){
+        seenPaths.add(relPath);
+        files.push({
+          file_name: fName,
+          relative_path: relPath,
+          download_url: dUrl,
+          file_type: relPath.split('.').pop() || 'file',
+          size_bytes: 0
+        });
+      }
+    }
+  }
+
+  if(files.length === 0) return '';
+
+  return `<div class="file-download-cards-container">` + files.map(f => {
+    const ext = (f.file_type || (f.file_name||'').split('.').pop() || 'txt').toLowerCase();
+    let badgeCls = 'doc';
+    if(['pdf'].includes(ext)) badgeCls = 'pdf';
+    else if(['zip','tar','tgz','rar','7z','gz'].includes(ext)) badgeCls = 'zip';
+    else if(['html','htm'].includes(ext)) badgeCls = 'html';
+    else if(['js','ts','py','rs','cpp','c','json','css'].includes(ext)) badgeCls = 'code';
+
+    const displaySize = f.size_bytes ? formatFileSize(f.size_bytes) : '';
+    const metaParts = [ext.toUpperCase()];
+    if(displaySize) metaParts.push(displaySize);
+    if(f.relative_path) metaParts.push(esc(f.relative_path));
+
+    return `<div class="file-download-card">
+      <div class="fdc-left">
+        <div class="fdc-icon-badge ${badgeCls}">${esc(ext.slice(0, 4))}</div>
+        <div class="fdc-info">
+          <div class="fdc-name" title="${esc(f.file_name || ext)}">${esc(f.file_name || ext)}</div>
+          <div class="fdc-meta">${metaParts.join(' • ')}</div>
+        </div>
+      </div>
+      <div class="fdc-actions">
+        <a href="${esc(f.download_url)}" download="${esc(f.file_name || 'download')}" class="fdc-btn download-btn">
+          <svg viewBox="0 0 24 24" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>Download</span>
+        </a>
+        <button class="fdc-btn reveal-btn" onclick="revealFile('${esc(f.relative_path || f.file_path || f.file_name)}')">
+          <svg viewBox="0 0 24 24" width="14" height="14"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          <span>Reveal</span>
+        </button>
+      </div>
+    </div>`;
+  }).join('') + `</div>`;
+}
+
+window.revealFile = async function(filePath){
+  try{
+    const res = await fetch('/api/files/open', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: filePath })
+    });
+    const data = await res.json();
+    if(!data.success && data.error){
+      alert('Could not reveal file: ' + data.error);
+    }
+  }catch(err){
+    alert('Failed to reveal file: ' + err.message);
+  }
+};
+
 function msgHTML(m,i,last){
   const cls=i===fresh?' in':'';
   // Automatically intercept un-tagged Thinking Process blocks
@@ -3484,6 +3613,7 @@ function msgHTML(m,i,last){
   const isLive = isCurRunning && last;
   const isComputing = isLive && !m.text;
   const toolsRender=(m.tools&&m.tools.length)?toolsTraceHTML(m.tools,false):'';
+  const filesRender=renderFilesCardsHTML(m);
   const thinkRender=(S.showThinking && m.think)?`<details class="think think-trace"><summary class="think-summary"><span class="think-icon">${ic('code')}</span><span class="think-title">${t('thinking')} · ${(m.thinkMs/1e3).toFixed(1)}s</span><span class="think-chevron">${ic('chevron')}</span></summary><div class="think-body">${esc(m.think)}</div></details>`:'';
   const liveStatusMsg = m.agentStatus || (`${t('thinking')}...`);
   const loadingIndicator = isComputing ? `<div class="compute-loading"><svg class="spin-circle" viewBox="0 0 24 24" width="15" height="15"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.5" stroke-opacity="0.25" fill="none"/><path d="M12 3a9 9 0 0 1 9 9" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg><span class="agent-live-status">${esc(liveStatusMsg)}</span></div>` : '';
@@ -3495,7 +3625,7 @@ function msgHTML(m,i,last){
   const tps = Math.max(1, Math.round(approxToks / Math.max(sec, 0.1)));
   const telemetryBar = (!isLive && m.text) ? `<div class="msg-telemetry-bar"><span class="t-pill fast">⚡ ${tps} tok/s</span><span class="t-pill">${sec.toFixed(1)}s</span><span class="t-pill">${esc(m.modelUsed || (m.autoRoute?.selectedModelName) || S.model || 'axom:1.1')}</span></div>` : '';
   const autoRouteRender = m.autoRoute ? `<div class="auto-route-badge"><span class="route-bolt">⚡</span><span class="route-title">Auto-routed: <strong>${esc(m.autoRoute.selectedModelName)}</strong></span><span class="route-sep">·</span><span class="route-desc">${esc(m.autoRoute.reason)}</span></div>` : '';
-  return`<div class="msg${cls}" data-i="${i}"><div class="who">${t('axom')}</div>${autoRouteRender}${failoverRender}${thinkRender}${toolsRender}${loadingIndicator}<div class="bd">${md(m.text)}</div>${telemetryBar}
+  return`<div class="msg${cls}" data-i="${i}"><div class="who">${t('axom')}</div>${autoRouteRender}${failoverRender}${thinkRender}${toolsRender}${filesRender}${loadingIndicator}<div class="bd">${md(m.text)}</div>${telemetryBar}
   ${m.err?`<div class="err" role="alert"><span>${esc(m.err)}</span><button class="btn" data-act="retry">${t('retry')}</button></div>`:''}
   ${isCurRunning&&last?'':`<div class="acts"><button class="ib" data-act="copymsg" aria-label="${t('copy')}" title="${t('copy')}">${ic('copy')}</button><button class="ib" data-act="speakmsg" data-i="${i}" title="Read Aloud">${ic('volume')}</button>${last?`<button class="ib" data-act="retry" aria-label="${t('regenerate')}" title="${t('regenerate')}">${ic('redo')}</button>`:''}<button class="ib ${m.fb==='up'?'on':''}" data-act="fb" data-v="up" aria-label="${t('goodResp')}">${ic('up2')}</button><button class="ib ${m.fb==='dn'?'on':''}" data-act="fb" data-v="dn" aria-label="${t('badResp')}">${ic('dn')}</button></div>`}</div>`;
 }
@@ -3930,6 +4060,10 @@ async function generate(c){
         m.agentStatus = `Completed: ${ev.name}`;
         const tObj = m.tools.find(x => x.id === ev.id) || m.tools.find(x => x.status === 'running') || m.tools.at(-1);
         if(tObj){ tObj.status = 'done'; tObj.result = ev.result; }
+        if(!raf) raf = requestAnimationFrame(paint);
+      } else if(ev.type === 'file_download_ready'){
+        if (!m.filesGenerated) m.filesGenerated = [];
+        m.filesGenerated.push(ev.file);
         if(!raf) raf = requestAnimationFrame(paint);
       } else if(ev.type === 'think'){
         m.think += (ev.text || '');

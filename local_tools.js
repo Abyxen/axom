@@ -1,29 +1,16 @@
 /**
  * AXOM Local System & File Execution Tools
  * Enables autonomous agentic file creation, folder management, and local execution.
+ * Integrated with Universal File Generator (PDF, ZIP, TAR, HTML, JSON, CSV, Markdown, Binary).
  */
 
 const fs = require('node:fs');
 const path = require('node:path');
 const { exec } = require('node:child_process');
+const universalFileGenerator = require('./universal_file_generator');
 
-const USER_DESKTOP = path.join(process.env.USERPROFILE || 'C:\\Users\\abira', 'Desktop');
-
-function resolveSafePath(inputPath) {
-  if (!inputPath) return process.cwd();
-  let clean = inputPath.trim().replace(/^['"]|['"]$/g, '');
-
-  if (/^(desktop[\/\\]|~\/desktop)/i.test(clean)) {
-    clean = clean.replace(/^(desktop[\/\\]|~\/desktop[\/\\]?)/i, '');
-    return path.join(USER_DESKTOP, clean);
-  }
-
-  if (path.isAbsolute(clean)) {
-    return clean;
-  }
-
-  return path.join(process.cwd(), clean);
-}
+const USER_DESKTOP = universalFileGenerator.USER_DESKTOP;
+const resolveSafePath = universalFileGenerator.resolveSafePath;
 
 const LOCAL_SYSTEM_TOOLS = [
   {
@@ -47,13 +34,13 @@ const LOCAL_SYSTEM_TOOLS = [
     type: 'function',
     function: {
       name: 'write_file',
-      description: 'Create or overwrite a file with specified text content on Desktop or workspace.',
+      description: 'Create or overwrite a file with specified text content on Desktop or workspace. Supports all text formats (HTML, JS, CSS, Python, Rust, Markdown, JSON, CSV, etc.) and provides a direct download link.',
       parameters: {
         type: 'object',
         properties: {
           file_path: {
             type: 'string',
-            description: 'Target file path (e.g. "Desktop/Calculator/calculator.html").'
+            description: 'Target file path (e.g. "Desktop/Calculator/index.html" or "workspace/report.md").'
           },
           content: {
             type: 'string',
@@ -61,6 +48,47 @@ const LOCAL_SYSTEM_TOOLS = [
           }
         },
         required: ['file_path', 'content']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'generate_file',
+      description: 'Generate any file format on Desktop or workspace: styled PDF documents, compressed ZIP/TAR archives, HTML web pages, code files, CSV, or binary files. Automatically creates parent directories and provides direct download cards.',
+      parameters: {
+        type: 'object',
+        properties: {
+          file_path: {
+            type: 'string',
+            description: 'Destination file path (e.g. "Desktop/document.pdf", "Desktop/bundle.zip", "Desktop/Calculator/index.html").'
+          },
+          file_type: {
+            type: 'string',
+            enum: ['pdf', 'zip', 'tar', 'html', 'json', 'csv', 'markdown', 'text', 'binary'],
+            description: 'Type of file to generate.'
+          },
+          title: {
+            type: 'string',
+            description: 'Title for the document or report (especially for PDF generation).'
+          },
+          content: {
+            type: 'string',
+            description: 'Text or markdown content for the file.'
+          },
+          files: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                path: { type: 'string' },
+                content: { type: 'string' }
+              }
+            },
+            description: 'List of files to pack inside an archive (for zip/tar).'
+          }
+        },
+        required: ['file_path']
       }
     }
   },
@@ -94,25 +122,31 @@ async function executeLocalTool(toolName, args = {}) {
         success: true,
         action: 'create_folder',
         path: targetDir,
+        relative_path: universalFileGenerator.getRelativeAlias(targetDir),
         message: `Successfully created folder at: ${targetDir}`
       };
     }
 
-    if (toolName === 'write_file') {
-      const targetPath = resolveSafePath(args.file_path || args.path || args.filename);
+    if (toolName === 'write_file' || toolName === 'generate_file') {
+      const targetPath = args.file_path || args.path || args.filename;
+      const fileType = args.file_type;
       const content = args.content || '';
-      const parentDir = path.dirname(targetPath);
-      if (!fs.existsSync(parentDir)) {
-        fs.mkdirSync(parentDir, { recursive: true });
-      }
-      fs.writeFileSync(targetPath, content, 'utf8');
-      return {
-        success: true,
-        action: 'write_file',
-        path: targetPath,
-        bytes: Buffer.byteLength(content, 'utf8'),
-        message: `Successfully wrote file (${Buffer.byteLength(content, 'utf8')} bytes) at: ${targetPath}`
-      };
+      const title = args.title;
+      const files = args.files;
+      const base64Data = args.base64_data || args.base64Data;
+      const sourceDir = args.source_dir || args.sourceDir;
+
+      const genResult = await universalFileGenerator.generateFile({
+        filePath: targetPath,
+        fileType,
+        content,
+        title,
+        files,
+        base64Data,
+        sourceDir
+      });
+
+      return genResult;
     }
 
     if (toolName === 'read_file') {
@@ -125,6 +159,7 @@ async function executeLocalTool(toolName, args = {}) {
         success: true,
         action: 'read_file',
         path: targetPath,
+        relative_path: universalFileGenerator.getRelativeAlias(targetPath),
         content: text.length > 10000 ? text.slice(0, 10000) + '... [truncated]' : text
       };
     }
