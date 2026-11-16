@@ -1693,15 +1693,11 @@ const I18N = {
     genStopped: "*Generation stopped.*",
     genStoppedUnexpected: "Generation stopped unexpectedly.",
     settingsTitle: "Settings",
-    tabAccount: "Account",
-    tabBrain: "Brain",
     tabAppearance: "Appearance",
     tabGeneration: "Generation",
     tabProviders: "AI Providers",
-    tabTraining: "Training",
-    tabAbout: "About",
     provTitle: "Cloud AI Distributors & Free APIs",
-    provSub: "Connect free API keys from top AI cloud providers (Groq, OpenRouter, Google Gemini, Cerebras, DeepSeek) to chat with state-of-the-art models with zero GPU load.",
+    provSub: "Connect free API keys from OpenRouter (100% free models) and Google Gemini (AI Studio free tier) for automated smart routing alongside local Axom v1.1.",
     statusConnected: "Connected",
     statusNotConfigured: "Not Set",
     getKey: "Get Free Key",
@@ -1892,13 +1888,9 @@ const I18N = {
     genStopped: "*Geração interrompida.*",
     genStoppedUnexpected: "A geração parou inesperadamente.",
     settingsTitle: "Configurações",
-    tabAccount: "Conta",
-    tabBrain: "Cérebro",
     tabAppearance: "Aparência",
     tabGeneration: "Geração",
     tabProviders: "Provedores de IA",
-    tabTraining: "Treino",
-    tabAbout: "Sobre",
     provTitle: "Distribuidores de IA na Nuvem & APIs Gratuitas",
     provSub: "Ligue chaves de API gratuitas dos principais provedores (Groq, OpenRouter, Google Gemini, Cerebras, DeepSeek) para conversar com modelos de ponta sem sobrecarga de GPU.",
     statusConnected: "Ligado",
@@ -3354,124 +3346,79 @@ async function fetchSettingsData(){
 }
 
 function renderModelOptions(selectedModel) {
-  const list = models.length ? models : [
-    { id: 'auto', name: 'Auto (Intelligent Task Routing)', isAuto: true, badge: 'BEST MODEL' },
-    { id: 'axom:1.1', name: 'Axom v1.1', provider: 'local', providerName: 'AXOM Local Engine' }
-  ];
-  const groups = {};
-  for (const m of list) {
-    let pName = m.isAuto ? '⚡ Auto-Router' : (m.providerName || (m.provider === 'local' ? 'AXOM Local Engine' : 'Cloud AI Models'));
-    if (!groups[pName]) groups[pName] = [];
-    groups[pName].push(m);
-  }
-  return Object.entries(groups).map(([groupName, groupModels]) => {
-    const opts = groupModels.map(m => {
-      const freeTag = m.badge ? ` [${m.badge}]` : (m.free_tier_note ? ` [${m.free_tier_note}]` : '');
-      const isSel = (m.id === selectedModel) || (!selectedModel && m.isAuto);
-      return `<option value="${esc(m.id)}" ${isSel ? 'selected' : ''}>${esc(m.name || m.id)}${esc(freeTag)}</option>`;
-    }).join('');
-    return `<optgroup label="${esc(groupName)}">${opts}</optgroup>`;
-  }).join('');
+  const isAuto = !selectedModel || selectedModel === 'auto';
+  return `
+    <option value="auto" ${isAuto ? 'selected' : ''}>⚡ Auto (Best Model) [SMART ROUTING]</option>
+    <option value="axom:1.1" ${selectedModel === 'axom:1.1' ? 'selected' : ''}>🖥️ Axom v1.1 (RTX 5060) [LOCAL & PRIVATE]</option>
+  `;
 }
 
 async function openModelPicker(){
   closePop();
   $('#modelPickerModal')?.remove();
 
-  let modelList = models;
-  if(!modelList || !modelList.length){
-    try {
-      modelList = await Axom.models();
-      models = modelList;
-    } catch(e){}
-  }
-
   const o = document.createElement('div');
   o.className = 'ov model-picker-ov';
   o.id = 'modelPickerModal';
 
-  const renderCard = (m) => {
-    const isSelected = S.model === m.id || (!S.model && m.id === 'auto');
-    const badgeHtml = m.badge ? `<span class="model-tag ${m.isAuto?'best':(m.isFree?'free':(m.isLocal?'local':''))}">${esc(m.badge)}</span>` : '';
-    const ctxHtml = m.context ? `<span class="model-ctx">${esc(m.context)}</span>` : '';
-    const isKeyNeeded = m.badge === 'KEY NEEDED' || m.isConfigured === false;
-    const clickAttr = isKeyNeeded ? `data-act="settings" data-tab="providers"` : `data-act="selectmodel" data-m="${esc(m.id)}"`;
+  const isAutoSelected = !S.model || S.model === 'auto';
+  const isLocalSelected = S.model === 'axom:1.1';
 
-    return `<div class="model-card-item ${isSelected?'selected':''} ${m.isAuto?'featured':''} ${isKeyNeeded?'key-needed':''}" ${clickAttr} title="${esc(m.description || m.name)}">
-      <div class="model-card-info">
-        <div class="model-card-head">
-          ${m.isAuto ? `<span class="model-bolt">⚡</span>` : ''}
-          <span class="model-card-name">${esc(m.name)}</span>
-          ${badgeHtml}
-          ${ctxHtml}
-        </div>
-        ${m.description ? `<p class="model-card-desc">${esc(m.description)}</p>` : ''}
-        ${m.freeTierNote ? `<span class="model-free-note">${esc(m.freeTierNote)}</span>` : ''}
-      </div>
-      <div class="model-card-right">
-        ${isKeyNeeded ? `<span class="key-needed-text">Setup Key &rarr;</span>` : (isSelected ? `<span class="model-check-icon">${ic('check')}</span>` : `<span class="model-radio-icon"></span>`)}
-      </div>
-    </div>`;
-  };
-
-  const autoModel = modelList.find(m => m.id === 'auto') || { id: 'auto', name: 'Auto (Intelligent Task Routing)', badge: 'BEST MODEL', isAuto: true, description: 'Automatically routes to the best model for code, reasoning, speed, or context.' };
-  const localModels = modelList.filter(m => m.isLocal);
-
-  const providersMap = new Map();
-  for(const m of modelList){
-    if(m.isLocal || m.isAuto) continue;
-    const prov = m.provider || 'cloud';
-    if(!providersMap.has(prov)) providersMap.set(prov, { name: m.providerName || prov, models: [] });
-    providersMap.get(prov).models.push(m);
-  }
-
-  let providersHtml = '';
-  for(const [pId, pData] of providersMap.entries()){
-    const hasConfigured = pData.models.some(m => m.isConfigured !== false);
-    providersHtml += `<div class="model-group" data-provider="${esc(pId)}">
-      <div class="model-group-title">
-        <span class="prov-dot ${hasConfigured?'online':''}"></span>
-        <span>${esc(pData.name)}</span>
-        <span class="prov-count">${pData.models.length} models</span>
-      </div>
-      <div class="model-cards-grid">
-        ${pData.models.map(renderCard).join('')}
-      </div>
-    </div>`;
-  }
-
-  o.innerHTML = `<div class="modal model-picker-modal">
+  o.innerHTML = `<div class="modal model-picker-modal" style="max-width:540px">
     <div class="mh">
       <div style="display:flex;align-items:center;gap:8px">
         <span style="color:var(--ac);display:flex">${ic('cpu')}</span>
         <span>${t('selectModel') || 'Select AI Model'}</span>
       </div>
       <div style="display:flex;align-items:center;gap:6px">
-        <button class="ib" data-act="refreshmodels" title="Refresh live models from connected providers">${ic('refresh')}</button>
-        <button class="ib" data-act="settings" data-tab="providers" title="Configure AI Provider Keys">${ic('gear')}</button>
+        <button class="ib" data-act="settings" data-tab="providers" title="Configure Free AI Provider Keys (OpenRouter / Gemini)">${ic('gear')}</button>
         <button class="ib" data-act="closemodelpicker" title="Close">${ic('x')}</button>
       </div>
     </div>
-    <div class="model-search-box">
-      ${ic('search')}
-      <input type="text" id="modelSearchInput" placeholder="Filter models by name, capability, or provider..." autofocus autocomplete="off">
-    </div>
-    <div class="model-list-scroll" id="modelListScroll">
-      <div class="model-group" data-group="auto">
-        <div class="model-group-title">⚡ Intelligent Task Routing</div>
-        <div class="model-cards-grid">
-          ${renderCard(autoModel)}
+    <div class="model-list-scroll" id="modelListScroll" style="padding:16px;gap:12px">
+      <div class="model-card-item ${isAutoSelected ? 'selected featured' : ''}" data-act="selectmodel" data-m="auto" style="padding:14px 16px">
+        <div class="model-card-info">
+          <div class="model-card-head">
+            <span class="model-bolt">⚡</span>
+            <span class="model-card-name" style="font-size:14px">Auto (Best Model)</span>
+            <span class="model-tag best">SMART ROUTER</span>
+            <span class="model-tag free">100% FREE</span>
+          </div>
+          <p class="model-card-desc" style="font-size:11.5px;margin-top:5px;line-height:1.45">
+            Intelligently autoselects the best model for the task: answers greetings instantly without thinking delays, performs deep reasoning for complex logic, surfs Google for real-time web facts, and routes across local Axom, OpenRouter Free models, and Google Gemini.
+          </p>
+          <span class="model-free-note" style="margin-top:6px">⚡ Dynamic Intelligence · Zero Manual Toggling</span>
+        </div>
+        <div class="model-card-right">
+          ${isAutoSelected ? `<span class="model-check-icon">${ic('check')}</span>` : `<span class="model-radio-icon"></span>`}
         </div>
       </div>
 
-      <div class="model-group" data-group="local">
-        <div class="model-group-title">${ic('cpu')} Local Neural Hardware (RTX 5060)</div>
-        <div class="model-cards-grid">
-          ${localModels.map(renderCard).join('')}
+      <div class="model-card-item ${isLocalSelected ? 'selected' : ''}" data-act="selectmodel" data-m="axom:1.1" style="padding:14px 16px">
+        <div class="model-card-info">
+          <div class="model-card-head">
+            <span style="display:flex;color:var(--ac)">${ic('cpu')}</span>
+            <span class="model-card-name" style="font-size:14px">Axom v1.1 (RTX 5060)</span>
+            <span class="model-tag local">LOCAL HARDWARE</span>
+            <span class="model-tag free">PRIVATE & OFFLINE</span>
+          </div>
+          <p class="model-card-desc" style="font-size:11.5px;margin-top:5px;line-height:1.45">
+            Runs 100% locally on your NVIDIA GeForce RTX 5060 Laptop GPU. High-speed private inference, zero external API calls, living memory access, and zero data leaves your local machine.
+          </p>
+          <span class="model-free-note" style="margin-top:6px;color:#60a5fa">🖥️ Dedicated Local RTX 5060 Hardware Acceleration</span>
+        </div>
+        <div class="model-card-right">
+          ${isLocalSelected ? `<span class="model-check-icon">${ic('check')}</span>` : `<span class="model-radio-icon"></span>`}
         </div>
       </div>
 
-      ${providersHtml}
+      <div style="margin-top:4px;padding:10px 14px;background:var(--surf);border:1px solid var(--bd);border-radius:8px;display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="prov-dot online"></span>
+          <span style="font-size:11.5px;color:var(--tx2)">Free Cloud Providers: <strong>OpenRouter</strong> &middot; <strong>Google Gemini</strong></span>
+        </div>
+        <button class="btn" data-act="settings" data-tab="providers" style="font-size:11px;padding:4px 10px">Keys &rarr;</button>
+      </div>
     </div>
   </div>`;
 
@@ -3483,24 +3430,6 @@ async function openModelPicker(){
   });
 
   document.body.appendChild(o);
-
-  const searchInput = $('#modelSearchInput', o);
-  if(searchInput){
-    searchInput.focus();
-    searchInput.addEventListener('input', () => {
-      const q = searchInput.value.toLowerCase().trim();
-      const cards = $$('.model-card-item', o);
-      cards.forEach(card => {
-        const text = card.textContent.toLowerCase();
-        const match = !q || text.includes(q);
-        card.style.display = match ? 'flex' : 'none';
-      });
-      $$('.model-group', o).forEach(grp => {
-        const visible = $$('.model-card-item', grp).some(c => c.style.display !== 'none');
-        grp.style.display = visible ? 'flex' : 'none';
-      });
-    });
-  }
 }
 
 async function settings(tab='appearance'){
@@ -3533,46 +3462,36 @@ async function settings(tab='appearance'){
        <p class="prov-sub">${t('provSub')}</p>
      </div>
      <div class="prov-list">
-       ${(activeProviders.length ? activeProviders : [
-         { id: 'groq', name: 'Groq Cloud', free_tier: '14,400 req/day · 300+ tok/s', key_url: 'https://console.groq.com/keys', key_prefix: 'gsk_', has_key: false, models: ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'mixtral-8x7b-32768'] },
-         { id: 'openrouter', name: 'OpenRouter (Free Hub)', free_tier: 'Free Models: DeepSeek R1, Llama 3.3', key_url: 'https://openrouter.ai/keys', key_prefix: 'sk-or-v1-', has_key: false, models: ['deepseek/deepseek-r1:free', 'meta-llama/llama-3.3-70b-instruct:free', 'qwen/qwen-2.5-coder-32b-instruct:free'] },
-         { id: 'gemini', name: 'Google Gemini (AI Studio)', free_tier: '1,500 req/day · 1M Context', key_url: 'https://aistudio.google.com/app/apikey', key_prefix: 'AIzaSy', has_key: false, models: ['gemini-2.5-flash', 'gemini-2.5-pro'] },
-         { id: 'cerebras', name: 'Cerebras Cloud', free_tier: '1M tokens/day · 2,000+ tok/s', key_url: 'https://cloud.cerebras.ai/', key_prefix: 'csk-', has_key: false, models: ['llama-3.3-70b', 'llama3.1-8b'] },
-         { id: 'deepseek', name: 'DeepSeek Cloud', free_tier: 'Direct DeepSeek API (V3/R1)', key_url: 'https://platform.deepseek.com/api_keys', key_prefix: 'sk-', has_key: false, models: ['deepseek-chat', 'deepseek-reasoner'] },
-         { id: 'custom', name: 'Custom OpenAI-Compatible Proxy', free_tier: 'Self-Hosted / Proxy', key_url: '', key_prefix: '', has_key: false, models: [] }
-       ]).map(p => {
-         const isConfigured = p.has_key;
-         const statusBadge = isConfigured 
-           ? `<span class="prov-pill green">${t('statusConnected')}</span>` 
-           : `<span class="prov-pill dim">${t('statusNotConfigured')}</span>`;
-         const modelTags = (p.models || []).map(m => `<span class="prov-model-tag">${esc(m)}</span>`).join('');
-         return `
-           <div class="prov-card" data-provider="${esc(p.id)}">
-             <div class="prov-card-top">
-               <div class="prov-card-name">
-                 <span>${esc(p.name)}</span>
-                 ${statusBadge}
-               </div>
-               ${p.key_url ? `<a href="${esc(p.key_url)}" target="_blank" rel="noopener" class="prov-link">${t('getKey')} &nearr;</a>` : ''}
-             </div>
-             <div class="prov-desc">${esc(p.free_tier || '')}</div>
-             ${modelTags ? `<div class="prov-models-row">${modelTags}</div>` : ''}
-             ${p.id === 'custom' ? `
-               <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
-                 <input type="text" class="prov-input" data-custom-url placeholder="Endpoint (e.g. http://localhost:11434/v1)" value="${esc(p.base_url || '')}">
-                 <input type="text" class="prov-input" data-custom-model placeholder="Model ID (e.g. llama3)" value="${esc(p.custom_model || '')}">
-               </div>
-             ` : ''}
-             <div class="prov-input-row">
-               <input type="password" class="prov-input" data-key-input="${esc(p.id)}" placeholder="${isConfigured ? esc(p.masked_key || '••••••••') : (p.key_prefix ? p.key_prefix + '...' : t('enterApiKey'))}" value="${isConfigured ? esc(p.masked_key || '') : ''}">
-               <button type="button" class="prov-btn-test" data-act-test="${esc(p.id)}" ${!isConfigured ? 'disabled' : ''}>${t('testConnection')}</button>
-             </div>
-             <div class="prov-test-status" data-test-status="${esc(p.id)}" style="font-size:10px;font-family:'JetBrains Mono',monospace;margin-top:5px;display:none"></div>
-           </div>
-         `;
-       }).join('')}
-     </div>
-     <div class="prov-save-bar">
+        ${(activeProviders.length ? activeProviders : [
+          { id: 'openrouter', name: 'OpenRouter (Free Hub)', free_tier: '100% Free Models: Nemotron 3.5 Lightning, North Mini Code, Nemotron Nano Reasoning', key_url: 'https://openrouter.ai/keys', key_prefix: 'sk-or-v1-', has_key: false, models: ['nvidia/nemotron-3.5-lightning:free', 'cohere/north-mini-code:free', 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free'] },
+          { id: 'gemini', name: 'Google Gemini (AI Studio)', free_tier: '1,500 req/day · 1M Context Window · Free Tier', key_url: 'https://aistudio.google.com/app/apikey', key_prefix: 'AIzaSy', has_key: false, models: ['gemini-2.5-flash', 'gemini-2.5-pro'] }
+        ]).filter(p => p.id === 'openrouter' || p.id === 'gemini').map(p => {
+          const isConfigured = p.has_key;
+          const statusBadge = isConfigured 
+            ? `<span class="prov-pill green">${t('statusConnected')}</span>` 
+            : `<span class="prov-pill dim">${t('statusNotConfigured')}</span>`;
+          const modelTags = (p.models || []).map(m => `<span class="prov-model-tag">${esc(m)}</span>`).join('');
+          return `
+            <div class="prov-card" data-provider="${esc(p.id)}">
+              <div class="prov-card-top">
+                <div class="prov-card-name">
+                  <span>${esc(p.name)}</span>
+                  ${statusBadge}
+                </div>
+                ${p.key_url ? `<a href="${esc(p.key_url)}" target="_blank" rel="noopener" class="prov-link">${t('getKey')} &nearr;</a>` : ''}
+              </div>
+              <div class="prov-desc">${esc(p.free_tier || '')}</div>
+              ${modelTags ? `<div class="prov-models-row">${modelTags}</div>` : ''}
+              <div class="prov-input-row">
+                <input type="password" class="prov-input" data-key-input="${esc(p.id)}" placeholder="${isConfigured ? esc(p.masked_key || '••••••••') : (p.key_prefix ? p.key_prefix + '...' : t('enterApiKey'))}" value="${isConfigured ? esc(p.masked_key || '') : ''}">
+                <button type="button" class="prov-btn-test" data-act-test="${esc(p.id)}" ${!isConfigured ? 'disabled' : ''}>${t('testConnection')}</button>
+              </div>
+              <div class="prov-test-status" data-test-status="${esc(p.id)}" style="font-size:10px;font-family:'JetBrains Mono',monospace;margin-top:5px;display:none"></div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+      <div class="prov-save-bar">
        <span style="font-size:11px;color:var(--tx3);font-family:'JetBrains Mono',monospace">${t('keysStoredLocally')}</span>
        <button id="btn-save-providers" class="btn pri" style="padding:7px 16px;font-size:11px;font-weight:600">${t('saveProviders')}</button>
      </div>
@@ -4011,6 +3930,16 @@ document.addEventListener('click', e => {
 });
 
 applyTheme();shell();InsideBrowser.init();loadRagDocs();focusInput();
+window.addEventListener('load', focusInput);
+window.addEventListener('focus', focusInput);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) focusInput(); });
+document.addEventListener('click', e => {
+  const isInteractive = e.target.closest('button, a, input, textarea, select, details, [data-act], .modal, .pop, .cb');
+  const hasSelection = window.getSelection && window.getSelection().toString().length > 0;
+  if (!isInteractive && !hasSelection) {
+    focusInput();
+  }
+}, true);
 Axom.models().then(m=>{
   models=m;
   if(!S.model) S.model='auto';

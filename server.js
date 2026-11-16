@@ -18,6 +18,7 @@ const researchSkills = require('./research_skills');
 const mcpClient = require('./mcp_client');
 const ragService = require('./rag_service');
 const aiProviders = require('./ai_providers');
+const { isBasicPrompt } = aiProviders;
 const axomSkills = require('./axom_skills');
 
 const PORT = 8000;
@@ -58,7 +59,7 @@ function sendJson(res, statusCode, data) {
   res.end(JSON.stringify(data));
 }
 
-async function pipeOllamaStream(ollamaRes, res, sessionId, requestedModel) {
+async function pipeOllamaStream(ollamaRes, res, sessionId, requestedModel, isBasic = false) {
   const reader = ollamaRes.body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
@@ -86,7 +87,7 @@ async function pipeOllamaStream(ollamaRes, res, sessionId, requestedModel) {
       if (textChunk.includes('</think>')) {
         inThinkTag = false;
         const parts = textChunk.split('</think>');
-        if (parts[0]) {
+        if (parts[0] && !isBasic) {
           gatheredThinking += parts[0];
           res.write(`data: ${JSON.stringify({ type: 'think', text: parts[0] })}\n\n`);
         }
@@ -97,8 +98,10 @@ async function pipeOllamaStream(ollamaRes, res, sessionId, requestedModel) {
           res.write(`data: ${JSON.stringify({ text: rest })}\n\n`);
         }
       } else {
-        gatheredThinking += textChunk;
-        res.write(`data: ${JSON.stringify({ type: 'think', text: textChunk })}\n\n`);
+        if (!isBasic) {
+          gatheredThinking += textChunk;
+          res.write(`data: ${JSON.stringify({ type: 'think', text: textChunk })}\n\n`);
+        }
       }
       return;
     }
@@ -125,13 +128,13 @@ async function pipeOllamaStream(ollamaRes, res, sessionId, requestedModel) {
       if (!line.trim()) continue;
       try {
         const parsed = JSON.parse(line);
-        if (parsed.message?.thinking) {
+        if (parsed.message?.thinking && !isBasic) {
           gatheredThinking += parsed.message.thinking;
           res.write(`data: ${JSON.stringify({ type: 'think', text: parsed.message.thinking })}\n\n`);
         }
         processChunk(parsed.message?.content || '');
         if (parsed.done) {
-          if (!hasContent && gatheredThinking) {
+          if (!hasContent && gatheredThinking && !isBasic) {
             fullAssistantReply = gatheredThinking;
             res.write(`data: ${JSON.stringify({ text: gatheredThinking })}\n\n`);
           }
@@ -839,13 +842,16 @@ button:hover{background:#3f3f46}
 
         const userMsgObj = messages.filter(m => m.role === 'user').slice(-1)[0];
         const lastUserPrompt = userMsgObj ? (typeof userMsgObj.content === 'string' ? userMsgObj.content : '') : '';
-        const autoSearchNeeded = browser.isWebSearchNeeded(lastUserPrompt);
-        const autoResearchNeeded = researchSkills.isResearchTask(lastUserPrompt);
-        const autoMcpNeeded = isMcpTaskNeeded(lastUserPrompt);
+        const isBasic = isBasicPrompt(lastUserPrompt);
 
-        const researchModeEnabled = body.research_mode === true || autoResearchNeeded;
-        const webSearchEnabled = body.web_search === true || (body.web_mode !== 'offline' && autoSearchNeeded) || researchModeEnabled;
-        const agentModeEnabled = webSearchEnabled || researchModeEnabled || autoMcpNeeded || body.agent_mode === true;
+        // Automated intelligence: basic greetings never trigger web search or deep thinking overhead
+        const autoSearchNeeded = !isBasic && browser.isWebSearchNeeded(lastUserPrompt);
+        const autoResearchNeeded = !isBasic && researchSkills.isResearchTask(lastUserPrompt);
+        const autoMcpNeeded = !isBasic && isMcpTaskNeeded(lastUserPrompt);
+
+        const researchModeEnabled = !isBasic && (body.research_mode === true || autoResearchNeeded);
+        const webSearchEnabled = !isBasic && (body.web_search === true || (body.web_mode !== 'offline' && autoSearchNeeded) || researchModeEnabled);
+        const agentModeEnabled = !isBasic && (webSearchEnabled || researchModeEnabled || autoMcpNeeded || body.agent_mode === true);
 
         const requestedModel = (body.model && body.model.trim()) || 'auto';
         let effectiveModel = requestedModel;
@@ -889,7 +895,11 @@ CRITICAL OPERATIONAL PRINCIPLES:
    - Zero decorative emojis in all assistant responses.`
           : '';
 
-        const fullDirective = `${temporalDirective}${webDirective}${researchDirective}`;
+        const casualDirective = isBasic
+          ? '\n\n# DIRECT CASUAL MANDATE: The user prompt is a casual greeting or brief chit-chat. Answer directly, warmly, and concisely in 1 sentence. NEVER output internal thinking blocks, essays, calculation steps, or web lookups.'
+          : '';
+
+        const fullDirective = `${temporalDirective}${webDirective}${researchDirective}${casualDirective}`;
 
         const formattedMessages = [];
         let systemInjected = false;
@@ -957,6 +967,7 @@ CRITICAL OPERATIONAL PRINCIPLES:
               temperature: typeof params.temperature === 'number' ? params.temperature : 0.4,
               max_tokens: Math.max(typeof params.max_tokens === 'number' ? params.max_tokens : 2048, 2048),
               res,
+              isBasic,
               onFinish: (fullReply) => {
                 if (fullReply) {
                   db.logChatMessage(sessionId, 'assistant', fullReply);
@@ -984,6 +995,7 @@ CRITICAL OPERATIONAL PRINCIPLES:
               temperature: typeof params.temperature === 'number' ? params.temperature : 0.4,
               max_tokens: Math.max(typeof params.max_tokens === 'number' ? params.max_tokens : 2048, 2048),
               res: mockRes,
+              isBasic,
               onFinish: (fullReply) => {
                 if (fullReply) {
                   db.logChatMessage(sessionId, 'assistant', fullReply);
@@ -1244,7 +1256,7 @@ CRITICAL OPERATIONAL PRINCIPLES:
           res.write(`data: ${JSON.stringify({ type: 'auto_route', route: autoRoute })}\n\n`);
         }
 
-        return pipeOllamaStream(ollamaRes, res, sessionId, effectiveModel);
+        return pipeOllamaStream(ollamaRes, res, sessionId, effectiveModel, isBasic);
       } catch (err) {
         if (err.name === 'AbortError') return res.end();
         console.error('Chat error:', err);

@@ -424,6 +424,11 @@ function isWebSearchNeeded(text) {
   if (!text || typeof text !== 'string') return false;
   const q = text.toLowerCase().trim();
 
+  // Basic chit-chat / greetings never need web search
+  if (q.length <= 40 && /^(hi|hello|hey|yo|sup|hiya|howdy|good\s+(morning|afternoon|evening|day)|how\s+are\s+you|what'?s\s+up|who\s+are\s+you|ola|olá|oi|tudo\s+bem|como\s+vai)\b[\s!.?]*$/i.test(q)) {
+    return false;
+  }
+
   // Pattern 1: Meteorological, Weather & Climate (typo-tolerant: weathert, wheather, wether, temperat*, etc.)
   const weatherPattern = /\b(weathert?|wheather|wether|forecast[s]?|temperat[a-z]*|temp|climate|rain[a-z]*|snow[a-z]*|sunny|wind[a-z]*|humid[a-z]*|celsius|fahrenheit|degrees|radar|storm[s]?|tempo|clima|temperatura[s]?|previs[aã]o|chuva[s]?|chover|chovendo|sol|ensolarado|vento[s]?|ventando|humidade|umidade|graus)\b/i;
   if (weatherPattern.test(q)) return true;

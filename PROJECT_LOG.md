@@ -1018,9 +1018,43 @@
 
 ---
 
+### 41. Automated Dynamic Intelligence, Free-Only API Routing, & Two-Option Model Streamlining (2026-11-16)
+- **What Was Done:**
+  - **Automated Dynamic Intelligence & Zero-Overhead Casual Greetings**:
+    - Built heuristic detector (`isBasicPrompt`) that recognizes casual chit-chat and greetings ("hi", "hello", "hey", "how are you", etc.) and bypasses internal thinking tags (`<think>...</think>`, SSE `type: 'think'`) and Google web searching completely.
+    - Casual greetings respond with near-zero latency in a warm, concise, single sentence with zero thinking bloat or search delays.
+    - Deep reasoning (`type: 'think'`) automatically triggers only when mathematical proofs, complex logic, or algorithmic questions are detected.
+    - Live web search and grounding automatically triggers only when current real-time events, weather, stock prices, or URLs are requested.
+  - **Streamlined Two-Option Model Architecture**:
+    - Restructured the model catalog across UI header, composer button, modal selector, and backend to present strictly **TWO** distinct choices:
+      1. `auto`: **⚡ Auto (Best Model)** — autonomously evaluates the user's prompt and routes between local Axom v1.1, OpenRouter Free models, or Google Gemini.
+      2. `axom:1.1`: **🖥️ Axom v1.1 (RTX 5060)** — 100% private, offline, dedicated hardware neural inference on the NVIDIA GeForce RTX 5060 Laptop GPU.
+  - **Free-Only API Provider Gating**:
+    - Restricted the AI Providers backend and Settings UI to 100% free options:
+      1. **OpenRouter (Free Hub)**: Zero-cost ($0.00) models (`nvidia/nemotron-3.5-lightning:free`, `cohere/north-mini-code:free`, `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free`, `baidu/ernie-5.5-flash-preview:free`).
+      2. **Google Gemini (AI Studio)**: Free tier with 1,500 req/day and 1M token context window.
+    - Completely purged paid/obsolete providers (Groq, Cerebras, DeepSeek, and custom proxy) from provider configuration and UI.
+  - **Purged Unwanted Settings Tabs & Suggestion Options**:
+    - Completely removed `About`, `Training`, `Brain`, and `Account` tabs from the Settings dialog, leaving strictly `Appearance`, `Generation`, and `AI Providers`.
+    - Removed suggestion option pills (`[Discover arXiv Papers]`, `[3-Gate Gap Dossier]`, `[Literature Triage Matrix]`, `[Socratic Design Brief]`).
+  - **Continuous Direct Typing & Multi-Tasking UX**:
+    - Added instant autofocus listeners on page entry (`DOMContentLoaded`, `load`, `focus`, `visibilitychange`).
+    - Added smart global typing interception so typing anywhere immediately redirects focus into the message box without requiring a mouse click.
+    - Refocused click handler so clicking anywhere in the chat area (outside buttons/links) automatically refocuses the input box.
+    - Kept input box and sidebar conversations fully active during background generation so users can type follow-ups or switch between chats seamlessly while responses stream.
+- **How It Was Implemented:**
+  - Files modified: [`server.js`](file:///c:/Users/abira/Documents/axom/server.js), [`ai_providers.js`](file:///c:/Users/abira/Documents/axom/ai_providers.js), [`browser_service.js`](file:///c:/Users/abira/Documents/axom/browser_service.js), [`index.html`](file:///c:/Users/abira/Documents/axom/index.html).
+- **Why It Was Done:**
+  - The user requested:
+    1. *"remove about ,training,brain and account"*
+    2. *"mke it so it has the best intelligence like if its basic like hi it doesnt think it only thinks and goes online to surf web if it s needed and all make it automated and also in api only add free options and only add models like axom,openrouter,or google and it autoselects the model only two options one axom and another called auto"*
+    3. *"make it so whenever i enter the site i can type directly and dont have o click with mmouse and smme while i amm talking to it i should be always be able to write unless i click sommehwre else and also mmake itt so i can do other things while itts working and generating like change the chat and all basically everything"*
+
+---
+
 ## 🔮 Active & Upcoming Work
 
-### 41. QLoRA Fine-Tuning Execution (`axom:1.2`)
+### 42. QLoRA Fine-Tuning Execution (`axom:1.2`)
 - **Goal:** Run the fine-tuning pipeline (`train/train_unsloth_lora.py`) using the generated 500,490-word synthetic training dataset.
 - **Deliverable:** Quantized GGUF weights for Ollama.
 

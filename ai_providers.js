@@ -15,36 +15,20 @@ const path = require('path');
 const KEYS_FILE = path.join(__dirname, 'data', 'ai_keys.json');
 
 const PROVIDER_METADATA = {
-  groq: {
-    id: 'groq',
-    name: 'Groq',
-    tagline: 'Ultra-Fast LPU Inference (Free Tier)',
-    badge: '1,000 - 14,400 REQ/DAY FREE',
-    keyUrl: 'https://console.groq.com/keys',
-    baseUrl: 'https://api.groq.com/openai/v1',
-    description: 'Custom Language Processing Unit (LPU) hardware providing hundreds of tokens per second. High free daily rate limits on Meta Llama and Google Gemma models.',
-    envKey: 'GROQ_API_KEY',
-    models: [
-      { id: 'groq/llama-3.3-70b-versatile', rawId: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B Versatile (Groq LPU)' },
-      { id: 'groq/llama-3.1-8b-instant', rawId: 'llama-3.1-8b-instant', name: 'Llama 3.1 8B Instant (Groq LPU)' },
-      { id: 'groq/mixtral-8x7b-32768', rawId: 'mixtral-8x7b-32768', name: 'Mixtral 8x7B (Groq LPU - 32k)' },
-      { id: 'groq/gemma2-9b-it', rawId: 'gemma2-9b-it', name: 'Gemma 2 9B IT (Groq LPU)' }
-    ]
-  },
   openrouter: {
     id: 'openrouter',
-    name: 'OpenRouter',
+    name: 'OpenRouter (Free Hub)',
     tagline: 'Multi-Model Free Tier Gateway',
-    badge: 'ROTATING FREE TIER MODELS',
+    badge: '100% FREE MODELS',
     keyUrl: 'https://openrouter.ai/keys',
     baseUrl: 'https://openrouter.ai/api/v1',
-    description: 'A single unified API key for dozens of models with completely free access ($0.00) using :free model tags, including DeepSeek R1, Llama 3.3, and Qwen 2.5 Coder.',
+    description: 'A single unified free API key with completely free access ($0.00) using :free models including Nemotron, Llama 3.3, Cohere Code, and Ernie Flash.',
     envKey: 'OPENROUTER_API_KEY',
     models: [
-      { id: 'openrouter/deepseek/deepseek-r1:free', rawId: 'deepseek/deepseek-r1:free', name: 'DeepSeek R1 Reasoner (OpenRouter Free)' },
-      { id: 'openrouter/meta-llama/llama-3.3-70b-instruct:free', rawId: 'meta-llama/llama-3.3-70b-instruct:free', name: 'Llama 3.3 70B Instruct (OpenRouter Free)' },
-      { id: 'openrouter/google/gemini-2.0-flash-exp:free', rawId: 'google/gemini-2.0-flash-exp:free', name: 'Gemini 2.0 Flash (OpenRouter Free)' },
-      { id: 'openrouter/qwen/qwen-2.5-coder-32b-instruct:free', rawId: 'qwen/qwen-2.5-coder-32b-instruct:free', name: 'Qwen 2.5 Coder 32B (OpenRouter Free)' }
+      { id: 'openrouter/nvidia/nemotron-3.5-lightning:free', rawId: 'nvidia/nemotron-3.5-lightning:free', name: 'Nemotron 3.5 Lightning (Free)' },
+      { id: 'openrouter/nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free', rawId: 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free', name: 'Nemotron Nano Reasoning (Free)' },
+      { id: 'openrouter/cohere/north-mini-code:free', rawId: 'cohere/north-mini-code:free', name: 'Cohere North Mini Code (Free)' },
+      { id: 'openrouter/baidu/ernie-5.5-flash-preview:free', rawId: 'baidu/ernie-5.5-flash-preview:free', name: 'Ernie 5.5 Flash Large Context (Free)' }
     ]
   },
   gemini: {
@@ -54,52 +38,12 @@ const PROVIDER_METADATA = {
     badge: '1,500 REQ/DAY FREE',
     keyUrl: 'https://aistudio.google.com/app/apikey',
     baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai',
-    description: 'Generous 1,500 requests/day for Flash models with 1,000,000+ token context window. Supports native OpenAI-compatible API format.',
+    description: 'Generous 1,500 requests/day free tier for Flash models with 1,000,000+ token context window. Supports native OpenAI-compatible API format.',
     envKey: 'GEMINI_API_KEY',
     models: [
       { id: 'gemini/gemini-2.0-flash', rawId: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash (Google AI Studio)' },
-      { id: 'gemini/gemini-1.5-flash', rawId: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash (Google AI Studio)' },
-      { id: 'gemini/gemini-1.5-pro', rawId: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro (Google AI Studio)' }
+      { id: 'gemini/gemini-1.5-flash', rawId: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash (Google AI Studio)' }
     ]
-  },
-  cerebras: {
-    id: 'cerebras',
-    name: 'Cerebras',
-    tagline: 'World-Record 2,000+ Tokens/Sec',
-    badge: '1,000,000 FREE TOKENS/DAY',
-    keyUrl: 'https://cloud.cerebras.ai',
-    baseUrl: 'https://api.cerebras.ai/v1',
-    description: 'Wafer-scale engine with extreme throughput (often >2,000 tokens/sec). Offers a free developer quota of 1,000,000 tokens per day without a credit card.',
-    envKey: 'CEREBRAS_API_KEY',
-    models: [
-      { id: 'cerebras/llama-3.3-70b', rawId: 'llama-3.3-70b', name: 'Llama 3.3 70B (Cerebras 2,000+ tok/s)' },
-      { id: 'cerebras/llama3.1-8b', rawId: 'llama3.1-8b', name: 'Llama 3.1 8B (Cerebras Ultra-Fast)' }
-    ]
-  },
-  deepseek: {
-    id: 'deepseek',
-    name: 'DeepSeek',
-    tagline: 'Direct DeepSeek-R1 & V3 API',
-    badge: 'REASONING & HIGH EFFICIENCY',
-    keyUrl: 'https://platform.deepseek.com/api_keys',
-    baseUrl: 'https://api.deepseek.com/v1',
-    description: 'Direct API connection for DeepSeek-R1 (chain-of-thought mathematical and coding reasoning) and DeepSeek-V3.',
-    envKey: 'DEEPSEEK_API_KEY',
-    models: [
-      { id: 'deepseek/deepseek-chat', rawId: 'deepseek-chat', name: 'DeepSeek V3 (Chat)' },
-      { id: 'deepseek/deepseek-reasoner', rawId: 'deepseek-reasoner', name: 'DeepSeek R1 (Reasoner)' }
-    ]
-  },
-  custom: {
-    id: 'custom',
-    name: 'Custom / Local Proxy',
-    tagline: 'Any OpenAI-Compatible Endpoint',
-    badge: 'LOCAL / LM STUDIO / VLLM / PROXY',
-    keyUrl: '',
-    baseUrl: '',
-    description: 'Connect any OpenAI-compatible local server (LM Studio, vLLM, LocalAI) or custom reverse proxy.',
-    envKey: 'CUSTOM_AI_KEY',
-    models: []
   }
 };
 
@@ -251,11 +195,8 @@ function saveProvidersConfig(payload = {}) {
 
 const MODEL_CACHE_TTL = 10 * 60 * 1000; // 10 minutes cache
 const providerModelCache = {
-  groq: { timestamp: 0, models: [] },
   openrouter: { timestamp: 0, models: [] },
   gemini: { timestamp: 0, models: [] },
-  cerebras: { timestamp: 0, models: [] },
-  deepseek: { timestamp: 0, models: [] },
   local: { timestamp: 0, models: [] }
 };
 
@@ -490,82 +431,40 @@ async function fetchLocalOllamaModels() {
 }
 
 /**
- * Asynchronously fetch combined model list including live models from connected providers
+ * Check if input is a simple greeting or casual chitchat
  */
-async function getCombinedModelListAsync({ force = false } = {}) {
-  if (force) {
-    for (const k in providerModelCache) {
-      providerModelCache[k] = { timestamp: 0, models: [] };
+function isBasicPrompt(text) {
+  if (!text || typeof text !== 'string') return true;
+  const t = text.trim().toLowerCase();
+  if (t.length <= 40) {
+    if (/^(hi|hello|hey|yo|sup|hiya|howdy|good\s+(morning|afternoon|evening|day)|how\s+are\s+you|what'?s\s+up|who\s+are\s+you|ola|olá|oi|tudo\s+bem|como\s+vai)\b[\s!.?]*$/i.test(t)) {
+      return true;
     }
   }
-
-  const status = getProviderStatusList();
-  const models = [
-    {
-      id: 'auto',
-      name: 'Auto (Intelligent Task Routing)',
-      provider: 'auto',
-      providerName: '⚡ Auto-Router',
-      isAuto: true,
-      badge: 'BEST MODEL',
-      description: 'Automatically analyzes your prompt and routes to the best model for code, reasoning, context, or speed.'
-    }
-  ];
-
-  // 1. Local models
-  const localModels = await fetchLocalOllamaModels();
-  models.push(...localModels);
-
-  // 2. Providers
-  for (const prov of status.providers) {
-    if (prov.id === 'custom' && prov.isConfigured && prov.customModel) {
-      models.push({
-        id: `custom/${prov.customModel}`,
-        name: `${prov.customModel} (Custom Proxy)`,
-        provider: 'custom',
-        providerName: 'Custom / Proxy',
-        badge: 'CUSTOM',
-        isLocal: false,
-        isConfigured: true
-      });
-      continue;
-    }
-
-    if (prov.isConfigured) {
-      const pModels = await fetchProviderLiveModels(prov.id);
-      models.push(...pModels);
-    } else {
-      const meta = PROVIDER_METADATA[prov.id];
-      if (meta && Array.isArray(meta.models)) {
-        for (const m of meta.models) {
-          models.push({
-            id: m.id,
-            name: m.name,
-            provider: prov.id,
-            providerName: prov.name,
-            badge: 'KEY NEEDED',
-            isLocal: false,
-            isConfigured: false
-          });
-        }
-      }
-    }
-  }
-
-  return models;
+  return false;
 }
 
-function getCombinedModelList() {
-  const status = getProviderStatusList();
-  const models = [
+/**
+ * Asynchronously fetch combined model list - exactly two user choices: auto and axom:1.1
+ */
+async function getCombinedModelListAsync({ force = false } = {}) {
+  // Pre-warm provider model cache in background for auto-routing
+  if (force || !providerModelCache.openrouter.models.length) {
+    fetchProviderLiveModels('openrouter').catch(() => {});
+  }
+  if (force || !providerModelCache.gemini.models.length) {
+    fetchProviderLiveModels('gemini').catch(() => {});
+  }
+
+  return [
     {
       id: 'auto',
-      name: 'Auto (Intelligent Task Routing)',
+      name: 'Auto (Best Model)',
       provider: 'auto',
       providerName: '⚡ Auto-Router',
       isAuto: true,
       badge: 'BEST MODEL',
-      description: 'Automatically routes to the best model for coding, reasoning, speed, or high context.'
+      description: 'Automatically analyzes your prompt. If simple (like "hi"), replies instantly without thinking or web search. If complex or real-time, autonomously routes to Axom, OpenRouter Free, or Google Gemini.'
     },
     {
       id: 'axom:1.1',
@@ -574,53 +473,39 @@ function getCombinedModelList() {
       providerName: 'AXOM Local Engine',
       badge: 'RTX 5060',
       isLocal: true,
-      isConfigured: true
+      isConfigured: true,
+      description: '100% private and offline neural inference running locally on your NVIDIA GeForce RTX 5060.'
     }
   ];
+}
 
-  for (const prov of status.providers) {
-    const cached = providerModelCache[prov.id]?.models;
-    if (prov.isConfigured && cached && cached.length) {
-      models.push(...cached);
-      continue;
+function getCombinedModelList() {
+  return [
+    {
+      id: 'auto',
+      name: 'Auto (Best Model)',
+      provider: 'auto',
+      providerName: '⚡ Auto-Router',
+      isAuto: true,
+      badge: 'BEST MODEL',
+      description: 'Automatically analyzes your prompt. If simple (like "hi"), replies instantly without thinking or web search. If complex or real-time, autonomously routes to Axom, OpenRouter Free, or Google Gemini.'
+    },
+    {
+      id: 'axom:1.1',
+      name: 'Axom v1.1 (Local Hardware RTX 5060)',
+      provider: 'local',
+      providerName: 'AXOM Local Engine',
+      badge: 'RTX 5060',
+      isLocal: true,
+      isConfigured: true,
+      description: '100% private and offline neural inference running locally on your NVIDIA GeForce RTX 5060.'
     }
-
-    const meta = PROVIDER_METADATA[prov.id];
-    if (prov.id === 'custom' && prov.isConfigured && prov.customModel) {
-      models.push({
-        id: `custom/${prov.customModel}`,
-        name: `${prov.customModel} (Custom Proxy)`,
-        provider: 'custom',
-        providerName: 'Custom / Proxy',
-        badge: 'CUSTOM',
-        isLocal: false,
-        isConfigured: true
-      });
-      continue;
-    }
-
-    if (meta && Array.isArray(meta.models)) {
-      for (const m of meta.models) {
-        models.push({
-          id: m.id,
-          name: m.name,
-          provider: prov.id,
-          providerName: prov.name,
-          context: m.context,
-          freeTierNote: m.freeTierNote,
-          badge: prov.isConfigured ? (m.badge || 'CLOUD') : 'KEY NEEDED',
-          isLocal: false,
-          isConfigured: prov.isConfigured
-        });
-      }
-    }
-  }
-
-  return models;
+  ];
 }
 
 /**
  * Intelligent task-based model router
+ * Routes strictly among Axom v1.1 (Local RTX 5060), OpenRouter (Free), and Google Gemini.
  */
 function selectBestModelForTask(prompt = '', options = {}) {
   const { isRag = false, hasWebSearch = false, hasAttachments = false } = options;
@@ -631,6 +516,38 @@ function selectBestModelForTask(prompt = '', options = {}) {
     const found = status.providers.find(p => p.id === pId);
     return Boolean(found && found.isConfigured);
   };
+
+  // 0. Basic Greetings & Simple Casual Chitchat (No thinking, instant response)
+  if (isBasicPrompt(prompt)) {
+    if (isProvOk('openrouter')) {
+      return {
+        selectedModel: 'openrouter/nvidia/nemotron-3.5-lightning:free',
+        selectedModelName: 'Nemotron 3.5 Lightning (Free)',
+        providerName: 'OpenRouter Free Tier',
+        category: 'instant',
+        isBasic: true,
+        reason: 'Instant reply without thinking or web search'
+      };
+    }
+    if (isProvOk('gemini')) {
+      return {
+        selectedModel: 'gemini/gemini-2.0-flash',
+        selectedModelName: 'Gemini 2.0 Flash',
+        providerName: 'Google Gemini',
+        category: 'instant',
+        isBasic: true,
+        reason: 'Instant reply without thinking or web search'
+      };
+    }
+    return {
+      selectedModel: 'axom:1.1',
+      selectedModelName: 'Axom v1.1',
+      providerName: 'AXOM Local Engine',
+      category: 'instant',
+      isBasic: true,
+      reason: 'Local RTX 5060 instant response'
+    };
+  }
 
   // 1. High Context & Grounded Documents (RAG, long inputs, or attachments)
   if (isRag || prompt.length > 4000 || hasAttachments) {
@@ -644,22 +561,13 @@ function selectBestModelForTask(prompt = '', options = {}) {
       };
     }
     if (isProvOk('openrouter')) {
-      const freeModel = providerModelCache.openrouter?.models?.find(m => m.isFree)?.id;
+      const freeModel = providerModelCache.openrouter?.models?.find(m => m.isFree && (m.id.includes('ernie') || m.id.includes('llama') || m.id.includes('gemma')))?.id;
       return {
-        selectedModel: freeModel || 'openrouter/meta-llama/llama-3.3-70b-instruct:free',
-        selectedModelName: 'Llama 3.3 70B (OpenRouter)',
+        selectedModel: freeModel || 'openrouter/baidu/ernie-5.5-flash-preview:free',
+        selectedModelName: 'Ernie 5.5 Flash (Free)',
         providerName: 'OpenRouter Free Tier',
         category: 'context',
         reason: 'Large context window with grounded document reasoning'
-      };
-    }
-    if (isProvOk('groq')) {
-      return {
-        selectedModel: 'groq/llama-3.3-70b-versatile',
-        selectedModelName: 'Llama 3.3 70B Versatile',
-        providerName: 'Groq LPU Cloud',
-        category: 'context',
-        reason: 'Large versatile context for grounded synthesis'
       };
     }
     return {
@@ -680,7 +588,7 @@ function selectBestModelForTask(prompt = '', options = {}) {
   ];
   if (codePatterns.some(p => p.test(lower))) {
     if (isProvOk('openrouter')) {
-      const coderModel = providerModelCache.openrouter?.models?.find(m => m.id.includes('code'))?.id
+      const coderModel = providerModelCache.openrouter?.models?.find(m => m.id.includes('code') || m.id.includes('coder'))?.id
         || 'openrouter/cohere/north-mini-code:free';
       return {
         selectedModel: coderModel,
@@ -690,22 +598,13 @@ function selectBestModelForTask(prompt = '', options = {}) {
         reason: 'High-density code syntax and algorithmic intelligence'
       };
     }
-    if (isProvOk('groq')) {
+    if (isProvOk('gemini')) {
       return {
-        selectedModel: 'groq/llama-3.3-70b-versatile',
-        selectedModelName: 'Llama 3.3 70B Versatile',
-        providerName: 'Groq LPU Cloud',
+        selectedModel: 'gemini/gemini-2.0-flash',
+        selectedModelName: 'Gemini 2.0 Flash',
+        providerName: 'Google Gemini (AI Studio)',
         category: 'code',
-        reason: '70B versatile reasoning for algorithmic and software tasks'
-      };
-    }
-    if (isProvOk('deepseek')) {
-      return {
-        selectedModel: 'deepseek/deepseek-reasoner',
-        selectedModelName: 'DeepSeek R1 Reasoner',
-        providerName: 'DeepSeek Cloud',
-        category: 'code',
-        reason: 'Chain-of-thought code verification'
+        reason: 'High-speed code synthesis and algorithmic problem solving'
       };
     }
     return {
@@ -724,15 +623,6 @@ function selectBestModelForTask(prompt = '', options = {}) {
     /\b(dossier|scientific peer review|literature matrix)\b/
   ];
   if (mathPatterns.some(p => p.test(lower))) {
-    if (isProvOk('deepseek')) {
-      return {
-        selectedModel: 'deepseek/deepseek-reasoner',
-        selectedModelName: 'DeepSeek R1 Reasoner',
-        providerName: 'DeepSeek Cloud',
-        category: 'reasoning',
-        reason: 'Chain-of-thought mathematical proof & deep reasoning'
-      };
-    }
     if (isProvOk('openrouter')) {
       const reasonerModel = providerModelCache.openrouter?.models?.find(m => m.id.includes('reasoning') || m.id.includes('r1'))?.id
         || 'openrouter/nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free';
@@ -744,13 +634,13 @@ function selectBestModelForTask(prompt = '', options = {}) {
         reason: 'Full chain-of-thought mathematical & logical reasoning'
       };
     }
-    if (isProvOk('groq')) {
+    if (isProvOk('gemini')) {
       return {
-        selectedModel: 'groq/llama-3.3-70b-versatile',
-        selectedModelName: 'Llama 3.3 70B Versatile',
-        providerName: 'Groq LPU Cloud',
+        selectedModel: 'gemini/gemini-2.0-flash',
+        selectedModelName: 'Gemini 2.0 Flash',
+        providerName: 'Google Gemini (AI Studio)',
         category: 'reasoning',
-        reason: '70B complex inference & structured analysis'
+        reason: 'Deep multi-step analytical reasoning'
       };
     }
     return {
@@ -762,47 +652,29 @@ function selectBestModelForTask(prompt = '', options = {}) {
     };
   }
 
-  // 4. Ultra-Fast Chit-Chat, Short Queries, Translations, Greetings
+  // 4. Ultra-Fast Chit-Chat, Short Queries, Translations (< 80 chars)
   if (prompt.length < 80) {
-    if (isProvOk('cerebras')) {
-      return {
-        selectedModel: 'cerebras/llama3.1-8b',
-        selectedModelName: 'Llama 3.1 8B (Cerebras)',
-        providerName: 'Cerebras Wafer-Scale',
-        category: 'speed',
-        reason: '2,000+ tokens/sec extreme throughput'
-      };
-    }
-    if (isProvOk('groq')) {
-      return {
-        selectedModel: 'groq/llama-3.1-8b-instant',
-        selectedModelName: 'Llama 3.1 8B Instant',
-        providerName: 'Groq LPU Cloud',
-        category: 'speed',
-        reason: 'Sub-100ms ultra-fast streaming response'
-      };
-    }
     if (isProvOk('openrouter')) {
       return {
         selectedModel: 'openrouter/nvidia/nemotron-3.5-lightning:free',
         selectedModelName: 'Nemotron 3.5 Lightning (Free)',
         providerName: 'OpenRouter Free Tier',
         category: 'speed',
-        reason: 'Ultra-fast cloud response'
+        reason: 'Sub-50ms ultra-fast cloud response'
+      };
+    }
+    if (isProvOk('gemini')) {
+      return {
+        selectedModel: 'gemini/gemini-2.0-flash',
+        selectedModelName: 'Gemini 2.0 Flash',
+        providerName: 'Google Gemini (AI Studio)',
+        category: 'speed',
+        reason: 'Ultra-fast low-latency cloud inference'
       };
     }
   }
 
-  // 5. Default General Routing (Best Available Cloud or Local)
-  if (isProvOk('groq')) {
-    return {
-      selectedModel: 'groq/llama-3.3-70b-versatile',
-      selectedModelName: 'Llama 3.3 70B Versatile',
-      providerName: 'Groq LPU Cloud',
-      category: 'general',
-      reason: 'High-capability 70B general intelligence'
-    };
-  }
+  // 5. Default General Routing (Best Available Free Cloud or Local)
   if (isProvOk('openrouter')) {
     const generalModel = providerModelCache.openrouter?.models?.find(m => m.isFree && !m.id.includes('code') && !m.id.includes('reasoning'))?.id
       || 'openrouter/nvidia/nemotron-3.5-lightning:free';
@@ -941,7 +813,7 @@ async function testProviderConnection(providerId, apiKey, customBaseUrl = '', cu
 /**
  * Universal OpenAI-compatible streaming chat completion for cloud distributors
  */
-async function streamProviderChat({ model, modelId, messages, temperature, max_tokens, params = {}, res, signal, onChunk, onThink, onFinish }) {
+async function streamProviderChat({ model, modelId, messages, temperature, max_tokens, params = {}, res, signal, isBasic = false, onChunk, onThink, onFinish }) {
   const chosenModel = model || modelId;
   const resolved = resolveProvider(chosenModel);
   if (!resolved) {
@@ -1071,7 +943,8 @@ async function streamProviderChat({ model, modelId, messages, temperature, max_t
             if (!delta) continue;
 
             // Check for reasoning / thinking tokens (DeepSeek-R1 / QwQ)
-            if (delta.reasoning_content || delta.reasoning) {
+            // If prompt is basic chit-chat, suppress thinking completely for instant reply
+            if (!isBasic && (delta.reasoning_content || delta.reasoning)) {
               const rChunk = delta.reasoning_content || delta.reasoning;
               fullReasoning += rChunk;
               if (res && typeof res.write === 'function') {
@@ -1081,11 +954,17 @@ async function streamProviderChat({ model, modelId, messages, temperature, max_t
             }
 
             if (delta.content) {
-              fullText += delta.content;
-              if (res && typeof res.write === 'function') {
-                res.write(`data: ${JSON.stringify({ type: 'content', text: delta.content })}\n\n`);
+              let cleanContent = delta.content;
+              if (isBasic) {
+                cleanContent = cleanContent.replace(/<think>[\s\S]*?<\/think>/gi, '').replace(/<\/?think>/gi, '');
               }
-              if (onChunk) onChunk(delta.content);
+              if (cleanContent) {
+                fullText += cleanContent;
+                if (res && typeof res.write === 'function') {
+                  res.write(`data: ${JSON.stringify({ type: 'content', text: cleanContent })}\n\n`);
+                }
+                if (onChunk) onChunk(cleanContent);
+              }
             }
           } catch (e) {
             // Ignore partial or unparseable SSE line
@@ -1123,5 +1002,6 @@ module.exports = {
   isCloudModel,
   resolveProvider,
   testProviderConnection,
-  streamProviderChat
+  streamProviderChat,
+  isBasicPrompt
 };
