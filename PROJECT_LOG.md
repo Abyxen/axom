@@ -890,9 +890,31 @@
 
 ---
 
+### 37. UI Redesign to Antigravity Aesthetic & Suggestion Options Removal (2026-11-16)
+- **What Was Done:**
+  - **Eliminated Brutalist Bloat & Suggestion Clutter**:
+    - Removed the harsh retro `Anton` poster font, 0px sharp brutalist corners, 8px drop shadows, fake barcodes, and oversized slogans.
+    - Completely purged suggestion prompt chips (`[Discover arXiv Papers]`, `[3-Gate Gap Dossier]`, `[Literature Triage Matrix]`, `[Socratic Design Brief]`) and unused sample grids from the codebase.
+    - Removed redundant sidebar mode switchers to focus the navigation strictly on conversation history.
+  - **Implemented Antigravity-Inspired Aesthetic**:
+    - **Obsidian & Carbon Palette**: Deep dark slate surfaces (`#0b0c0e`, `#111216`, `#16171d`, `#1e2029`) with hairline borders (`#232530`).
+    - **Typography**: Clean proportional `Inter` (400/500/600/700) for UI hierarchy and `JetBrains Mono` for code, tags, and metrics.
+    - **Signature Electric Blue / Cyan Glow**: Accent color modernized from harsh orange to electric blue (`#3b82f6` / `#06b6d4`) with subtle ambient glow effects.
+    - **Sleek Sidebar**: Glowing gradient emblem mark, "AXOM v1.1" branding, pill-shaped New Chat button (`Ctrl+N`), clean search field (`Ctrl+K`), and a refined user profile card at the base.
+    - **Minimalist Header (54px)**: Breadcrumb path, interactive active model status pill with live green indicator, dual-view switcher (`[AI Companion]` / `[Knowledge Vault]`), and language switch (EN/PT).
+    - **Antigravity Hero Welcome Screen**: Centered floating emblem with radial blue glow, elegant greeting (*"How can I help you today?"*), subtitle (*"Autonomous intelligence, local neural reasoning, and research workflows."*), and status chips (`RTX 5060`, `Living Brain`, `Private & Local`).
+    - **Floating Composer Box**: Curved container (radius 14px) with subtle ambient shadow, glow focus state, integrated Auto Web toggle, voice mic button, file attach button, and circular send trigger.
+    - **Modern Modal & Settings**: Frosted backdrop blur (`backdrop-filter: blur(6px)`), curved corners (14px), modern tabs, and refined provider cards.
+- **How It Was Implemented:**
+  - Files modified: [`index.html`](file:///c:/Users/abira/Documents/axom/index.html).
+- **Why It Was Done:**
+  - The user requested: *"make my ui better remove unnecessary things and all make my ui like yours antigravity"* and attached the suggestion options pill image for removal.
+
+---
+
 ## 🔮 Active & Upcoming Work
 
-### 37. QLoRA Fine-Tuning Execution (`axom:1.2`)
+### 38. QLoRA Fine-Tuning Execution (`axom:1.2`)
 - **Goal:** Run the fine-tuning pipeline (`train/train_unsloth_lora.py`) using the generated 500,490-word synthetic training dataset.
 - **Deliverable:** Quantized GGUF weights for Ollama.
 
