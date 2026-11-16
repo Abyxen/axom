@@ -1527,6 +1527,24 @@
 - **Why It Was Done:**
   - Direct user instruction: "take deepseek harness github merge it into axom and rebuild axom all around it".
 
+## 62. Repository Optimization & DeepSeek Harness Core Specialization
+- **Date**: 2026-11-16
+- **What Was Done:**
+  - **Pruned 21,500+ Unnecessary Upstream Development Artifacts:**
+    - Removed upstream test recordings, benchmark suites, internal monorepo packages, and multi-language documentation (`packages/`, `apps/`, `vendor/`, `native/`, `python/`, `benchmarks/`, `website/`, `snapshots/`, `docs/`, `.agents/`, `.claude/`, `.github/`, `patches/`).
+    - Cleaned up obsolete Python prototype (`Axom V2/`) and static HTML test (`game-world/`).
+    - Removed upstream build and lint configs (`vitest.*`, `tsconfig.*`, `.oxlintrc*`, `Makefile`, `pnpm-workspace.yaml`, etc.).
+  - **Preserved & Specialized DeepSeek Harness Core Microkernel:**
+    - Retained the complete Cordis microkernel core under [`harness/`](file:///c:/Users/abira/Documents/axom/harness) with Three-Role Capability Seams (`MODEL`, `MEMORY`, `FILESYSTEM`, `SANDBOX`, `BROWSER`, `SUBAGENTS`) and modular provider plugins.
+  - **Cleaned Package Configuration:**
+    - Streamlined [`package.json`](file:///c:/Users/abira/Documents/axom/package.json) to a clean, modern package definition for AXOM powered by DeepSeek Harness.
+  - **Updated Documentation & Structure:**
+    - Rewrote [`README.md`](file:///c:/Users/abira/Documents/axom/README.md) with clean architectural flowcharts and optimized directory maps.
+- **How It Was Implemented:**
+  - Executed automated cleanup, updated configuration, staged changes, and verified endpoints.
+- **Why It Was Done:**
+  - Direct user request: "by merging i meant use deepseek harness as my core and build onto it optimize the folder and remove unnecesary things".
+
 ## 🔮 Active & Upcoming Work
 
 ### 43. QLoRA Fine-Tuning Execution (`axom:1.2`)
