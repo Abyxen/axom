@@ -413,6 +413,51 @@ if (req.method === 'POST' && pathname === '/api/free-apis/snippet') {
     return;
   }
 
+  // --- API: Automatic Conversation Titling ---
+  if (req.method === 'POST' && pathname === '/api/conversation/title') {
+    let bodyText = '';
+    req.on('data', chunk => { bodyText += chunk; });
+    req.on('end', async () => {
+      try {
+        const body = JSON.parse(bodyText || '{}');
+        const userPrompt = (body.prompt || body.text || '').trim();
+        const assistantResponse = (body.response || '').trim();
+        if (!userPrompt) {
+          return sendJson(res, 400, { ok: false, error: 'prompt is required' });
+        }
+
+        const titlePrompt = `Generate a concise, professional 3 to 5 word title for a conversation that begins with the following exchange.\nDo NOT include quotation marks, formatting, punctuation, or filler words. Output ONLY the title text.\n\nUser: ${userPrompt.slice(0, 300)}\nAssistant: ${assistantResponse.slice(0, 300)}`;
+
+        let generatedTitle = '';
+        try {
+          const titleRes = await fetch('http://127.0.0.1:11434/api/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              model: 'axom:1.1',
+              prompt: titlePrompt,
+              stream: false,
+              options: { temperature: 0.3, num_predict: 24 }
+            })
+          });
+          if (titleRes.ok) {
+            const data = await titleRes.json();
+            generatedTitle = (data.response || '').replace(/["'#*`]/g, '').trim();
+          }
+        } catch (e) {}
+
+        if (!generatedTitle || generatedTitle.length < 3 || generatedTitle.length > 50) {
+          generatedTitle = userPrompt.split('\n')[0].replace(/[^a-zA-Z0-9\s-]/g, '').trim().slice(0, 35);
+        }
+
+        return sendJson(res, 200, { ok: true, title: generatedTitle });
+      } catch (err) {
+        return sendJson(res, 500, { ok: false, error: err.message });
+      }
+    });
+    return;
+  }
+
   // --- API: Memories & Permanent Profile State ---
   if (req.method === 'GET' && (pathname === '/api/memories' || pathname === '/api/memory/profile')) {
     const rows = db.getAllProfileMemory();

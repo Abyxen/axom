@@ -1214,6 +1214,27 @@
 - **Why It Was Done:**
   - Scheduled autonomous maintenance check (iteration 4) during the user's 7-hour absence to ensure daemon uptime, profile memory integrity, dataset quality, and zero regressions.
 
+---
+
+### 48. Autonomous Titling Engine, JSON Transcript Export & Conversation Organization
+- **Date:** 2026-11-16
+- **What Was Done:**
+  - **Autonomous Conversation Titling Endpoint ([server.js](file:///c:/Users/abira/Documents/axom/server.js))**:
+    - Added [`POST /api/conversation/title`](file:///c:/Users/abira/Documents/axom/server.js) endpoint that processes the initial user prompt and assistant response to generate a concise, professional 3 to 5 word topic title.
+    - Uses local Ollama model (`axom:1.1`) with a strict single-line output constraint, zero quotation marks, and a regex fallback heuristic.
+  - **Background Client Auto-Titling ([index.html](file:///c:/Users/abira/Documents/axom/index.html))**:
+    - Integrated background auto-titling into `generate()` upon completion of the first conversation exchange (`msgs.length === 2`).
+    - Dynamically updates `c.title`, persists to storage, and refreshes both the sidebar list (`#list`) and top navigation header (`.hdr .ttl`) without re-rendering the chat stream.
+  - **Manual 1-Click "Auto-Title" & "Export JSON" Actions**:
+    - Added **"Auto-Title"** button to the conversation popover menu in [`index.html`](file:///c:/Users/abira/Documents/axom/index.html) allowing users to re-title any existing conversation on demand.
+    - Added **"Export JSON"** button to export complete structured conversation histories (including timestamps, metadata, and role turns) for use in fine-tuning, evals, and external archiving.
+  - **Living Brain Test Verification**:
+    - Ran `test_suite.ps1`: 100% PASS on all 7 verification steps (health check, profile state, live inference, raw logging, memory reviewer, SQLite mutation, cross-session recall).
+- **How It Was Implemented:**
+  - Files modified: [`server.js`](file:///c:/Users/abira/Documents/axom/server.js), [`index.html`](file:///c:/Users/abira/Documents/axom/index.html), [`PROJECT_LOG.md`](file:///c:/Users/abira/Documents/axom/PROJECT_LOG.md).
+- **Why It Was Done:**
+  - Scheduled autonomous maintenance check (iteration 5) improving chat organization, exportability, and developer convenience.
+
 ## 🔮 Active & Upcoming Work
 
 ### 43. QLoRA Fine-Tuning Execution (`axom:1.2`)

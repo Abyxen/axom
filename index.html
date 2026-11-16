@@ -3789,6 +3789,28 @@ async function generate(c){
     updSend();
     focusInput();
   }
+  // Asynchronous background title synthesis on first exchange
+  if(c.msgs.length === 2 && m.text && !m.err){
+    const uMsg = c.msgs[0];
+    if(uMsg && uMsg.text){
+      fetch('/api/conversation/title', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: uMsg.text, response: m.text.slice(0, 300) })
+      }).then(r => r.json()).then(res => {
+        if(res.ok && res.title && res.title.length >= 3){
+          c.title = res.title;
+          save();
+          const list = $('#list');
+          if(list) list.innerHTML = sideHTML();
+          const headerTtl = $('.hdr .ttl');
+          if(headerTtl && S.cur === c.id && S.view !== 'rag') {
+            headerTtl.innerHTML = `${t('workspacePrefix')} <b>/ ${esc(c.title)}</b>`;
+          }
+        }
+      }).catch(()=>{});
+    }
+  }
 }
 
 /* ---- voice dictation (speech-to-text) ---- */
@@ -4910,9 +4932,48 @@ document.addEventListener('click',async e=>{
   else if(a==='rmfile'){atts.splice(+b.dataset.i,1);drawAtts();updSend()}
   else if(a==='settings')settings(b.dataset?.tab || 'appearance');
   else if(a==='openmodelsettings')settings('providers');
-  else if(a==='menu'){e.stopPropagation();const v=S.convs.find(x=>x.id===id);popover(b,`<button data-act="rename" data-id="${id}">${t('rename')}</button><button data-act="pinc" data-id="${id}">${v.pinned?t('unpin'):t('pin')}</button><button data-act="exp" data-id="${id}">${t('exportMd')}</button><div class="sep"></div><button style="color:var(--err)" data-act="del" data-id="${id}">${t('del')}</button>`)}
+  else if(a==='menu'){e.stopPropagation();const v=S.convs.find(x=>x.id===id);popover(b,`<button data-act="rename" data-id="${id}">${t('rename')}</button><button data-act="autotitle" data-id="${id}">Auto-Title</button><button data-act="pinc" data-id="${id}">${v.pinned?t('unpin'):t('pin')}</button><button data-act="exp" data-id="${id}">${t('exportMd')}</button><button data-act="expjson" data-id="${id}">Export JSON</button><div class="sep"></div><button style="color:var(--err)" data-act="del" data-id="${id}">${t('del')}</button>`)}
   else if(a==='rename'){const v=S.convs.find(x=>x.id===id),rName=await dialog({title:t('renameTitle'),input:v.title,ok:t('rename')});if(rName?.trim()){v.title=rName.trim();save();shell()}}
   else if(a==='pinc'){const v=S.convs.find(x=>x.id===id);v.pinned=!v.pinned;save();$('#list').innerHTML=sideHTML()}
+  else if(a==='autotitle'){
+    const v=S.convs.find(x=>x.id===id);
+    if(v && v.msgs.length >= 2){
+      const uTurn = v.msgs.find(m => m.role === 'user');
+      const aTurn = v.msgs.find(m => m.role === 'assistant');
+      if(uTurn){
+        toast('Synthesizing title...');
+        try {
+          const tr = await fetch('/api/conversation/title', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: uTurn.text, response: aTurn?.text || '' })
+          });
+          const td = await tr.json();
+          if(td.ok && td.title){
+            v.title = td.title;
+            save();
+            $('#list').innerHTML = sideHTML();
+            if(S.cur === id) shell();
+            toast('Title: ' + td.title);
+          }
+        } catch(e) {
+          toast('Failed to generate title');
+        }
+      }
+    }
+  }
+  else if(a==='expjson'){
+    const v=S.convs.find(x=>x.id===id);
+    if(v){
+      const u=URL.createObjectURL(new Blob([JSON.stringify(v, null, 2)],{type:'application/json'}));
+      const l=document.createElement('a');
+      l.href=u;
+      l.download=(v.title||'conversation').replace(/[^a-z0-9_-]/gi,'_')+'.json';
+      l.click();
+      URL.revokeObjectURL(u);
+      toast('Exported JSON');
+    }
+  }
   else if(a==='exp'){const v=S.convs.find(x=>x.id===id),u=URL.createObjectURL(new Blob([v.msgs.map(m=>`**${m.role}**\n\n${m.text}`).join('\n\n---\n\n')],{type:'text/markdown'})),l=document.createElement('a');l.href=u;l.download=v.title+'.md';l.click();URL.revokeObjectURL(u)}
   else if(a==='del'){const v=S.convs.find(x=>x.id===id);if(await dialog({title:t('delTitle'),body:`"${esc(v.title)}" ${t('delConfirm')}`,ok:t('del'),danger:1})){S.convs=S.convs.filter(x=>x.id!==id);if(S.cur===id)S.cur=null;save();shell()}}
   else if(a==='editmsg'){
