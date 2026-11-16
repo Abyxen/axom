@@ -1,6 +1,7 @@
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
+const { spawn } = require('node:child_process');
 
 process.on('uncaughtException', (err) => {
   console.error('[SERVER] Uncaught exception:', err);
@@ -306,7 +307,98 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  if (req.method === 'POST' && pathname === '/api/free-apis/snippet') {
+    // --- API: Safe Code Execution Sandbox (Python & Node.js) ---
+  if (req.method === 'POST' && pathname === '/api/execute_code') {
+    let bodyText = '';
+    req.on('data', chunk => { bodyText += chunk; });
+    req.on('end', async () => {
+      try {
+        const body = JSON.parse(bodyText || '{}');
+        const language = (body.language || '').toLowerCase().trim();
+        const codeText = body.code || '';
+        const timeoutMs = Math.min(Math.max(Number(body.timeout_ms) || 5000, 1000), 15000);
+
+        if (!codeText.trim()) {
+          return sendJson(res, 400, { ok: false, error: 'Empty code string provided' });
+        }
+
+        const t0 = Date.now();
+        let cmd = '';
+        let args = [];
+        const sandboxDir = path.join(__dirname, 'workspace');
+        if (!fs.existsSync(sandboxDir)) fs.mkdirSync(sandboxDir, { recursive: true });
+
+        const ext = (language === 'python' || language === 'py') ? 'py' : 'js';
+        const tempFile = path.join(sandboxDir, `_exec_${Date.now()}_${Math.random().toString(36).slice(2, 6)}.${ext}`);
+        fs.writeFileSync(tempFile, codeText, 'utf8');
+
+        if (language === 'python' || language === 'py') {
+          cmd = 'python';
+          args = [tempFile];
+        } else if (language === 'javascript' || language === 'js' || language === 'node') {
+          cmd = 'node';
+          args = [tempFile];
+        } else {
+          try { fs.unlinkSync(tempFile); } catch (e) {}
+          return sendJson(res, 400, { ok: false, error: `Language "${language}" not supported. Allowed: python, javascript` });
+        }
+
+        let stdout = '';
+        let stderr = '';
+        let killed = false;
+
+        const child = spawn(cmd, args, {
+          cwd: sandboxDir,
+          windowsHide: true,
+          env: { ...process.env, PYTHONIOENCODING: 'utf-8' }
+        });
+
+        const timer = setTimeout(() => {
+          killed = true;
+          try { child.kill('SIGKILL'); } catch (e) {}
+        }, timeoutMs);
+
+        child.stdout.on('data', (d) => {
+          if (stdout.length < 20000) stdout += d.toString();
+        });
+
+        child.stderr.on('data', (d) => {
+          if (stderr.length < 20000) stderr += d.toString();
+        });
+
+        child.on('close', (exitCode) => {
+          clearTimeout(timer);
+          try { if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile); } catch (e) {}
+          const duration_ms = Date.now() - t0;
+          return sendJson(res, 200, {
+            ok: exitCode === 0 && !killed,
+            success: exitCode === 0 && !killed,
+            stdout: stdout.trim(),
+            stderr: stderr.trim(),
+            exitCode,
+            timedOut: killed,
+            duration_ms
+          });
+        });
+
+        child.on('error', (err) => {
+          clearTimeout(timer);
+          try { if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile); } catch (e) {}
+          return sendJson(res, 500, {
+            ok: false,
+            success: false,
+            error: err.message,
+            duration_ms: Date.now() - t0
+          });
+        });
+      } catch (e) {
+        return sendJson(res, 500, { ok: false, error: e.message });
+      }
+    });
+    return;
+  }
+
+if (req.method === 'POST' && pathname === '/api/free-apis/snippet') {
     let bodyText = '';
     req.on('data', chunk => { bodyText += chunk; });
     req.on('end', () => {

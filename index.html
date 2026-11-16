@@ -127,6 +127,7 @@ mark{background:rgba(59,130,246,.25);color:var(--tx);border-radius:2px;padding:0
 .msg.in{animation:rise .35s var(--ease)}
 .msg.user{display:flex;flex-direction:column;align-items:flex-end}
 .msg.user .who{display:none}
+.msg.user:hover .acts{opacity:1 !important}
 .msg.user .bd{background:#27272a;border:1px solid #3f3f46;border-radius:14px;border-bottom-right-radius:4px;font-size:14px;line-height:1.55;padding:10px 16px;white-space:pre-wrap;color:#f4f4f5;max-width:82%;box-shadow:0 2px 8px rgba(0,0,0,.15);letter-spacing:-.01em}
 .msg:not(.user) .who{font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.6px;color:#71717a;text-transform:uppercase;margin-bottom:10px}
 .msg:not(.user) .bd{padding:0;font-size:14.5px;line-height:1.7;color:#e4e4e7;overflow-wrap:anywhere}
@@ -456,6 +457,170 @@ details.think .think-body {
 .cb header .btn-preview{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;background:rgba(255,81,47,.12);border:1px solid rgba(255,81,47,.35);border-radius:5px;font:500 11px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif;color:var(--ac);transition:all .15s ease;cursor:pointer;margin-right:4px}
 .cb header .btn-preview:hover{background:var(--ac);color:#ffffff;border-color:var(--ac);box-shadow:0 2px 8px rgba(255,81,47,.35)}
 .cb header .btn-preview svg{width:12px;height:12px}
+
+
+/* code block run button & sandbox terminal */
+.cb header .btn-run-code {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  background: rgba(34,197,94,.12);
+  border: 1px solid rgba(34,197,94,.35);
+  border-radius: 5px;
+  font: 500 11px 'JetBrains Mono', monospace;
+  color: #4ade80;
+  transition: all .15s ease;
+  cursor: pointer;
+}
+.cb header .btn-run-code:hover {
+  background: #22c55e;
+  color: #000000;
+  box-shadow: 0 2px 8px rgba(34,197,94,.35);
+}
+.cb header .btn-run-code svg { width: 11px; height: 11px; }
+
+.cb-exec-terminal {
+  border-top: 1px solid #27272a;
+  background: #0d0e15;
+  font-family: 'JetBrains Mono', Consolas, monospace;
+  font-size: 11.5px;
+  padding: 0;
+  animation: rise .2s ease;
+}
+.cb-term-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 12px;
+  background: #141620;
+  border-bottom: 1px solid #1e2130;
+  color: #94a3b8;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+.cb-term-head .term-status.success { color: #34d399; }
+.cb-term-head .term-status.error { color: #f87171; }
+.cb-term-close {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+}
+.cb-term-close:hover { color: #e2e8f0; }
+.cb-term-body {
+  margin: 0;
+  padding: 10px 14px;
+  color: #f1f5f9;
+  line-height: 1.5;
+  max-height: 240px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* Command Palette (Ctrl+K) */
+.cmd-palette-box {
+  width: min(580px, 94vw);
+  background: var(--bg2);
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  box-shadow: 0 24px 60px rgba(0,0,0,.6);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.cmd-palette-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--bd);
+  background: var(--surf);
+}
+.cmd-palette-input-wrap svg { width: 16px; height: 16px; color: var(--tx3); flex-shrink: 0; }
+.cmd-palette-input-wrap input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 13.5px;
+  color: var(--tx);
+  font-family: Inter, sans-serif;
+}
+.cmd-palette-input-wrap kbd {
+  font: 10px 'JetBrains Mono', monospace;
+  background: var(--elev);
+  border: 1px solid var(--bd);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--tx3);
+}
+.cmd-palette-list {
+  max-height: 380px;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.cmd-palette-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  color: var(--tx2);
+  cursor: pointer;
+  transition: all .12s ease;
+}
+.cmd-palette-item:hover, .cmd-palette-item.selected {
+  background: var(--elev);
+  color: var(--tx);
+}
+.cmd-palette-item .cmd-icon {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  background: var(--surf);
+  border: 1px solid var(--bd);
+  border-radius: 6px;
+  color: var(--ac);
+  flex-shrink: 0;
+}
+.cmd-palette-item .cmd-text { flex: 1; min-width: 0; }
+.cmd-palette-item .cmd-title { font-weight: 500; color: var(--tx); display: block; }
+.cmd-palette-item .cmd-desc { font-size: 11px; color: var(--tx3); }
+.cmd-palette-item .cmd-shortcut { font: 10px 'JetBrains Mono', monospace; color: var(--tx3); }
+
+/* Response Telemetry Speed Bar */
+.msg-telemetry-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--tx3);
+  margin-top: 8px;
+  padding: 2px 0;
+}
+.msg-telemetry-bar .t-pill {
+  background: var(--surf);
+  border: 1px solid var(--bd);
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: var(--tx2);
+}
+.msg-telemetry-bar .t-pill.fast {
+  color: #34d399;
+  border-color: rgba(52,211,153,.3);
+  background: rgba(52,211,153,.08);
+}
 
 /* header browser button */
 .header-btn{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border:1px solid var(--bd);background:var(--surf);border-radius:6px;color:var(--tx2);font:500 11px 'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.06em;transition:all .18s var(--ease);cursor:pointer}
@@ -2785,11 +2950,19 @@ function drawRagMsgs(){
     const citationsHtml = renderCitationsBarHTML(m.citations);
     const loadingHtml = isLive && !m.text ? `<div class="compute-loading"><svg class="spin-circle" viewBox="0 0 24 24" width="15" height="15"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.5" stroke-opacity="0.25" fill="none"/><path d="M12 3a9 9 0 0 1 9 9" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg><span>Searching knowledge vault...</span></div>` : '';
 
-    const autoRouteRender = m.autoRoute ? `<div class="auto-route-badge"><span class="route-bolt">⚡</span><span class="route-title">Auto-routed: <strong>${esc(m.autoRoute.selectedModelName)}</strong></span><span class="route-sep">·</span><span class="route-desc">${esc(m.autoRoute.reason)}</span></div>` : '';
+    
+  const failoverRender = m.failoverNotice ? `<div class="auto-route-badge amber" style="background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.3);color:#fbbf24"><span class="route-bolt">⚡</span><span class="route-title">Failover: <strong>${esc(m.failoverNotice.to)}</strong></span><span class="route-sep">·</span><span class="route-desc">${esc(m.failoverNotice.reason)}</span></div>` : '';
+
+  const words = (m.text||'').split(/\s+/).filter(Boolean).length;
+  const approxToks = Math.round(words * 1.33);
+  const sec = (m.durationMs || 1000) / 1000;
+  const tps = Math.max(1, Math.round(approxToks / Math.max(sec, 0.1)));
+  const telemetryBar = (!isLive && m.text) ? `<div class="msg-telemetry-bar"><span class="t-pill fast">⚡ ${tps} tok/s</span><span class="t-pill">${sec.toFixed(1)}s</span><span class="t-pill">${esc(m.modelUsed || (m.autoRoute?.selectedModelName) || S.model || 'axom:1.1')}</span></div>` : '';
+const autoRouteRender = m.autoRoute ? `<div class="auto-route-badge"><span class="route-bolt">⚡</span><span class="route-title">Auto-routed: <strong>${esc(m.autoRoute.selectedModelName)}</strong></span><span class="route-sep">·</span><span class="route-desc">${esc(m.autoRoute.reason)}</span></div>` : '';
 
     return `<div class="rag-msg assistant" data-i="${i}">
       <div class="rag-msg-author">${t('axom')} · GROUNDED</div>
-      ${autoRouteRender}
+      ${autoRouteRender}${failoverRender}
       ${citationsHtml ? `<div class="rag-citations-bar">${citationsHtml}</div>` : ''}
       ${loadingHtml}
       <div class="rag-msg-content">${md(m.text)}</div>
@@ -3137,7 +3310,7 @@ function msgHTML(m,i,last){
   const loadingIndicator = isComputing ? `<div class="compute-loading"><svg class="spin-circle" viewBox="0 0 24 24" width="15" height="15"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.5" stroke-opacity="0.25" fill="none"/><path d="M12 3a9 9 0 0 1 9 9" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg><span>${t('thinking')}...</span></div>` : '';
 
   const autoRouteRender = m.autoRoute ? `<div class="auto-route-badge"><span class="route-bolt">⚡</span><span class="route-title">Auto-routed: <strong>${esc(m.autoRoute.selectedModelName)}</strong></span><span class="route-sep">·</span><span class="route-desc">${esc(m.autoRoute.reason)}</span></div>` : '';
-  return`<div class="msg${cls}" data-i="${i}"><div class="who">${t('axom')}</div>${autoRouteRender}${thinkRender}${toolsRender}${loadingIndicator}<div class="bd">${md(m.text)}</div>
+  return`<div class="msg${cls}" data-i="${i}"><div class="who">${t('axom')}</div>${autoRouteRender}${thinkRender}${toolsRender}${loadingIndicator}<div class="bd">${md(m.text)}</div>${telemetryBar}
   ${m.err?`<div class="err" role="alert"><span>${esc(m.err)}</span><button class="btn" data-act="retry">${t('retry')}</button></div>`:''}
   ${run&&last?'':`<div class="acts"><button class="ib" data-act="copymsg" aria-label="${t('copy')}" title="${t('copy')}">${ic('copy')}</button>${last?`<button class="ib" data-act="retry" aria-label="${t('regenerate')}" title="${t('regenerate')}">${ic('redo')}</button>`:''}<button class="ib ${m.fb==='up'?'on':''}" data-act="fb" data-v="up" aria-label="${t('goodResp')}">${ic('up2')}</button><button class="ib ${m.fb==='dn'?'on':''}" data-act="fb" data-v="dn" aria-label="${t('badResp')}">${ic('dn')}</button></div>`}</div>`;
 }
@@ -3399,6 +3572,7 @@ async function generate(c){
   const m = { role:'assistant', text:'', think:'', thinkMs:0, tools:[] };
   c.msgs.push(m);
   const controller = new AbortController();
+    const sendStartTime = Date.now();
   activeRuns.set(c.id, { controller, msg: m });
   const t0 = Date.now();
 
@@ -3597,6 +3771,132 @@ function dialog({title,body='',ok=t('ok'),cancel=t('cancel'),danger,input}){retu
   o.addEventListener('click',e=>{if(e.target===o)done(0);const r=e.target.closest('[data-r]');if(r)done(+r.dataset.r)});
   o.addEventListener('keydown',e=>{if(e.key==='Escape')done(0);if(e.key==='Enter'&&inp)done(1)})})}
 function closeDrawer(){$('#side')?.classList.remove('open')}
+
+
+/* ---- Command Palette (Ctrl+K) ---- */
+function openCommandPalette() {
+  $('#cmdPalette')?.remove();
+  const o = document.createElement('div');
+  o.className = 'ov cmd-palette-ov';
+  o.id = 'cmdPalette';
+
+  const commands = [
+    { id: 'auto', title: 'Switch Model: Auto (Best Model)', desc: 'Smart router choosing between local RTX 5060, OpenRouter & Google Gemini', icon: 'zap', action: () => { S.model = 'auto'; save(); updateHeaderModel(); toast('Model set to Auto Router'); } },
+    { id: 'axom', title: 'Switch Model: Axom v1.1 (RTX 5060)', desc: '100% private and offline inference on NVIDIA GeForce RTX 5060', icon: 'cpu', action: () => { S.model = 'axom:1.1'; save(); updateHeaderModel(); toast('Model set to Axom v1.1 (Local)'); } },
+    { id: 'freehub', title: 'Open Free AI Providers Hub (14 APIs)', desc: 'Browse and test free models from Gemini, Groq, Kilo, OpenRouter, Cohere, etc.', icon: 'globe', action: () => openFreeHubModal() },
+    { id: 'rag', title: 'Toggle RAG Studio & Document Vault', desc: 'Switch between conversational mode and semantic document retrieval', icon: 'book', action: () => toggleRagMode() },
+    { id: 'think', title: 'Toggle Chain-of-Thought / Reasoning', desc: 'Show or hide deep step-by-step thinking traces in responses', icon: 'brain', action: () => { S.showThinking = !S.showThinking; save(); toast('Thinking traces ' + (S.showThinking ? 'enabled' : 'hidden')); } },
+    { id: 'newchat', title: 'New Conversation Session', desc: 'Start a fresh isolated session history', icon: 'plus', shortcut: 'Ctrl+Shift+O', action: () => newSession() },
+    { id: 'exportmd', title: 'Export Conversation to Markdown', desc: 'Download complete chat transcript as formatted .md file', icon: 'download', action: () => exportChatMarkdown() },
+    { id: 'exportjson', title: 'Export Conversation to JSON', desc: 'Export full session payload with thinking and tool traces', icon: 'file', action: () => exportChatJson() },
+    { id: 'theme', title: 'Toggle Appearance Theme', desc: 'Switch between dark and light high-contrast themes', icon: 'sun', action: () => { S.theme = S.theme === 'light' ? 'dark' : 'light'; applyTheme(); save(); } },
+    { id: 'settings', title: 'Open Settings', desc: 'Configure free API keys, quotas, sampling hyperparameters and UI', icon: 'gear', shortcut: 'Ctrl+,', action: () => settings('appearance') }
+  ];
+
+  let query = '';
+  let selectedIdx = 0;
+
+  function renderList() {
+    const q = query.toLowerCase().trim();
+    const filtered = commands.filter(c => !q || c.title.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q));
+    if (selectedIdx >= filtered.length) selectedIdx = Math.max(0, filtered.length - 1);
+
+    const listHtml = filtered.map((c, i) => `
+      <div class="cmd-palette-item ${i === selectedIdx ? 'selected' : ''}" data-cmd-id="${c.id}">
+        <div class="cmd-icon">${ic(c.icon || 'code')}</div>
+        <div class="cmd-text">
+          <span class="cmd-title">${esc(c.title)}</span>
+          <span class="cmd-desc">${esc(c.desc)}</span>
+        </div>
+        ${c.shortcut ? `<span class="cmd-shortcut">${c.shortcut}</span>` : ''}
+      </div>
+    `).join('');
+
+    $('#cmdList', o).innerHTML = listHtml || '<div style="padding:24px;text-align:center;color:var(--tx3);font-size:12px">No matching commands found.</div>';
+  }
+
+  o.innerHTML = `<div class="modal cmd-palette-box">
+    <div class="cmd-palette-input-wrap">
+      ${ic('search')}
+      <input type="text" id="cmdInput" placeholder="Type a command or search... (e.g. model, free, export, rag, theme)" autocomplete="off" autofocus>
+      <kbd>ESC</kbd>
+    </div>
+    <div class="cmd-palette-list" id="cmdList"></div>
+  </div>`;
+
+  document.body.appendChild(o);
+  renderList();
+
+  const inputEl = $('#cmdInput', o);
+  inputEl.focus();
+
+  inputEl.oninput = () => {
+    query = inputEl.value;
+    selectedIdx = 0;
+    renderList();
+  };
+
+  inputEl.onkeydown = (e) => {
+    const q = query.toLowerCase().trim();
+    const filtered = commands.filter(c => !q || c.title.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q));
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      selectedIdx = (selectedIdx + 1) % (filtered.length || 1);
+      renderList();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      selectedIdx = (selectedIdx - 1 + filtered.length) % (filtered.length || 1);
+      renderList();
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (filtered[selectedIdx]) {
+        o.remove();
+        filtered[selectedIdx].action();
+      }
+    } else if (e.key === 'Escape') {
+      o.remove();
+    }
+  };
+
+  o.onclick = (e) => {
+    if (e.target === o) return o.remove();
+    const item = e.target.closest('[data-cmd-id]');
+    if (item) {
+      const c = commands.find(x => x.id === item.dataset.cmdId);
+      if (c) {
+        o.remove();
+        c.action();
+      }
+    }
+  };
+}
+
+function exportChatMarkdown() {
+  const session = S.sessions.find(s => s.id === S.cur);
+  if (!session || !session.msgs.length) return toast('No messages in active conversation to export.');
+  let md = '# AXOM Conversation Export\n\nSession ID: ' + session.id + '\nDate: ' + new Date().toISOString() + '\n\n---\n\n';
+  for (const m of session.msgs) {
+    const who = m.role === 'user' ? 'User' : 'AXOM';
+    md += '### ' + who + ':\n\n' + (m.text || '') + '\n\n';
+  }
+  const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'axom_session_' + session.id + '.md';
+  a.click();
+  toast('Exported session to Markdown');
+}
+
+function exportChatJson() {
+  const session = S.sessions.find(s => s.id === S.cur);
+  if (!session) return toast('No active session to export.');
+  const blob = new Blob([JSON.stringify(session, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'axom_session_' + session.id + '.json';
+  a.click();
+  toast('Exported session to JSON');
+}
 
 /* ---- settings ---- */
 let activeProviders=[];

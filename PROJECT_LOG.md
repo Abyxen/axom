@@ -1110,6 +1110,31 @@
 - **Why It Was Done:**
   - The user requested: *"well i wanted my app to have aall the features of free llm api like where i could connect to all the providers see how much i used manages and all and also copy the ui design and build my axom onto it yk manke my folders optimmized and also make website very mininal like not that much texts and all only the important info is written"*
 
+
+---
+
+### 44. Cascading Failover Gateway, Code Execution Sandbox, Interactive Artifacts & Command Palette
+- **Date:** 2026-11-16
+- **What Was Done:**
+  - **Unbreakable Multi-Tier Cascading Failover Gateway**:
+    - Added resilient cascading failover logic (`getFailoverCandidates`) in [`ai_providers.js`](file:///c:/Users/abira/Documents/axom/ai_providers.js).
+    - If a cloud provider returns HTTP 429 (Rate Limit Exceeded), HTTP 500/503 (Server Overload), or times out, AXOM automatically cascades through alternative configured providers (Groq, Gemini, OpenRouter), then zero-key gateways (Kilo Code anonymous pool, LLM7, OVHcloud), and finally local RTX 5060 hardware.
+    - Emits SSE `failover_notice` events to the client displaying transparent failover banners.
+  - **Local Safe Code Execution Sandbox (`/api/execute_code`)**:
+    - Added [`POST /api/execute_code`](file:///c:/Users/abira/Documents/axom/server.js#L324-L400) executing Python 3.15 and Node.js code in an isolated subprocess with a 5000ms timeout, capturing stdout, stderr, and execution duration.
+    - Added interactive **"Run Code"** button on Python & JS code blocks in [`index.html`](file:///c:/Users/abira/Documents/axom/index.html) that executes code and displays real-time terminal output cards directly below the code block.
+  - **Interactive Live Artifact Previews**:
+    - Added **"Preview Artifact"** buttons on HTML, SVG, and XML code blocks in [`index.html`](file:///c:/Users/abira/Documents/axom/index.html), rendering interactive live widgets inside an isolated sandboxed iframe.
+  - **Developer Command Palette (`Ctrl+K`)**:
+    - Added an Antigravity-style Command Palette modal accessible via `Ctrl+K` / `Cmd+K` with fuzzy search, model switching, RAG toggle, theme toggle, thinking toggle, and transcript exporting.
+  - **Response Speed Telemetry & Message Branching**:
+    - Integrated real-time tokens-per-second inference speed meters (`⚡ 118 tok/s · 0.3s · Groq LPU`) on all assistant completions.
+    - Added 1-click **"Edit Message"** button on previous user turns to allow editing prompts and forking conversations.
+- **How It Was Implemented:**
+  - Files modified: [`ai_providers.js`](file:///c:/Users/abira/Documents/axom/ai_providers.js), [`server.js`](file:///c:/Users/abira/Documents/axom/server.js), [`index.html`](file:///c:/Users/abira/Documents/axom/index.html).
+- **Why It Was Done:**
+  - The user set an autonomous 7-hour improvement goal: *"now go and search for the best way to make my ai better and work till i say stop i will be gone for atleast 7 hours work for those 7 hours and let me know what you did make my ai better ui better everything better as much as you can this is a goal set it as a goal"*
+
 ## 🔮 Active & Upcoming Work
 
 ### 43. QLoRA Fine-Tuning Execution (`axom:1.2`)

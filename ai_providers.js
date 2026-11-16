@@ -741,6 +741,61 @@ function isCloudModel(modelId) {
   return modelId.includes('/') && !modelId.startsWith('axom:');
 }
 
+
+/**
+ * Resolves a resilient cascading failover chain for free tiers
+ */
+function getFailoverCandidates(failedModelId) {
+  const candidates = [];
+  const resolved = resolveProvider(failedModelId);
+  const failedProvId = resolved?.providerId;
+  const cfg = loadStoredConfig();
+
+  // 1. Configured cloud providers with active keys (Groq -> Gemini -> OpenRouter -> Cohere -> Aion -> NVIDIA)
+  const priorityOrder = ['groq', 'gemini', 'openrouter', 'cohere', 'aion', 'nvidia', 'zai', 'siliconflow'];
+  for (const pId of priorityOrder) {
+    if (pId === failedProvId) continue;
+    const key = getEffectiveKey(pId);
+    if (key && PROVIDER_METADATA[pId]?.models?.length) {
+      const topModel = PROVIDER_METADATA[pId].models[0];
+      candidates.push({
+        providerId: pId,
+        modelId: topModel.id,
+        name: PROVIDER_METADATA[pId].name,
+        type: 'configured_cloud'
+      });
+    }
+  }
+
+  // 2. Guaranteed keyless permanent free gateways
+  if (failedProvId !== 'kilo') {
+    candidates.push({
+      providerId: 'kilo',
+      modelId: 'kilo/nvidia/nemotron-3.5-lightning:free',
+      name: 'Kilo Code (Keyless)',
+      type: 'keyless'
+    });
+  }
+  if (failedProvId !== 'llm7') {
+    candidates.push({
+      providerId: 'llm7',
+      modelId: 'llm7/gpt-oss:20b',
+      name: 'LLM7.io (Keyless)',
+      type: 'keyless'
+    });
+  }
+  if (failedProvId !== 'ovhcloud') {
+    candidates.push({
+      providerId: 'ovhcloud',
+      modelId: 'ovhcloud/Meta-Llama-3.1-70B-Instruct',
+      name: 'OVHcloud AI (Keyless EU)',
+      type: 'keyless'
+    });
+  }
+
+  return candidates;
+}
+
 function resolveProvider(modelId) {
   if (!modelId || typeof modelId !== 'string') return null;
   const parts = modelId.split('/');
@@ -805,7 +860,7 @@ async function testProviderConnection(providerId, apiKey, customBaseUrl = '', cu
 /**
  * Universal OpenAI-compatible streaming chat completion for cloud distributors
  */
-async function streamProviderChat({ model, modelId, messages, temperature, max_tokens, params = {}, res, signal, isBasic = false, onChunk, onThink, onFinish }) {
+async function streamProviderChat({ model, modelId, messages, temperature, max_tokens, params = {}, res, signal, isBasic = false, onChunk, onThink, onFinish, enableFailover = true, attempt = 0, candidates = null }) {
   const chosenModel = model || modelId;
   const resolved = resolveProvider(chosenModel);
   if (!resolved) {
@@ -880,6 +935,32 @@ async function streamProviderChat({ model, modelId, messages, temperature, max_t
     });
   } catch (fetchErr) {
     const errMsg = fetchErr.name === 'AbortError' ? 'Generation stopped.' : `Network error connecting to ${meta.name}: ${fetchErr.message}`;
+    if (fetchErr.name !== 'AbortError' && enableFailover) {
+      if (!candidates) candidates = getFailoverCandidates(chosenModel);
+      if (attempt < candidates.length) {
+        const next = candidates[attempt];
+        console.warn(`[AI_FAILOVER] ${meta.name} failed: ${errMsg}. Auto-cascading to ${next.name} (${next.modelId})...`);
+        if (res && typeof res.write === 'function' && !res.writableEnded) {
+          res.write(`data: ${JSON.stringify({ type: 'failover_notice', from: meta.name, to: next.name, toModel: next.modelId, reason: errMsg })}\n\n`);
+        }
+        return await streamProviderChat({
+          model: next.modelId,
+          messages,
+          temperature,
+          max_tokens,
+          params,
+          res,
+          signal,
+          isBasic,
+          onChunk,
+          onThink,
+          onFinish,
+          enableFailover: true,
+          attempt: attempt + 1,
+          candidates
+        });
+      }
+    }
     if (res && typeof res.write === 'function') {
       res.write(`data: ${JSON.stringify({ type: 'error', message: errMsg })}\n\n`);
       return res.end();
@@ -895,6 +976,33 @@ async function streamProviderChat({ model, modelId, messages, temperature, max_t
       msg = parsed.error?.message || parsed.message || errText;
     } catch (e) {}
     const fullErrMsg = `${meta.name} error (${response.status}): ${msg}`;
+    // If rate limit (429), quota exceeded, or service overloaded (500, 502, 503, 504), cascade automatically!
+    if (enableFailover && (response.status === 429 || response.status >= 500)) {
+      if (!candidates) candidates = getFailoverCandidates(chosenModel);
+      if (attempt < candidates.length) {
+        const next = candidates[attempt];
+        console.warn(`[AI_FAILOVER] ${meta.name} returned HTTP ${response.status}. Auto-cascading to ${next.name} (${next.modelId})...`);
+        if (res && typeof res.write === 'function' && !res.writableEnded) {
+          res.write(`data: ${JSON.stringify({ type: 'failover_notice', from: meta.name, to: next.name, toModel: next.modelId, reason: `HTTP ${response.status}: ${msg.slice(0, 80)}` })}\n\n`);
+        }
+        return await streamProviderChat({
+          model: next.modelId,
+          messages,
+          temperature,
+          max_tokens,
+          params,
+          res,
+          signal,
+          isBasic,
+          onChunk,
+          onThink,
+          onFinish,
+          enableFailover: true,
+          attempt: attempt + 1,
+          candidates
+        });
+      }
+    }
     if (res && typeof res.write === 'function') {
       res.write(`data: ${JSON.stringify({ type: 'error', message: fullErrMsg })}\n\n`);
       return res.end();
@@ -1007,6 +1115,7 @@ module.exports = {
   selectBestModelForTask,
   isCloudModel,
   resolveProvider,
+  getFailoverCandidates,
   testProviderConnection,
   streamProviderChat,
   isBasicPrompt
