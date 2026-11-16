@@ -3344,16 +3344,12 @@ function dialog({title,body='',ok=t('ok'),cancel=t('cancel'),danger,input}){retu
 function closeDrawer(){$('#side')?.classList.remove('open')}
 
 /* ---- settings ---- */
-let activeMemories=[], trainingMetrics=null, activeProviders=[];
+let activeProviders=[];
 
 async function fetchSettingsData(){
   try{
-    const [mRes, tRes, pRes] = await Promise.all([
-      fetch('/api/memories').then(r=>r.ok?r.json():[]),
-      fetch('/api/training/metrics').then(r=>r.ok?r.json():null),
-      fetch('/api/providers').then(r=>r.ok?r.json():{providers:[]})
-    ]);
-    activeMemories=mRes; trainingMetrics=tRes; activeProviders=pRes?.providers || [];
+    const pRes = await fetch('/api/providers').then(r=>r.ok?r.json():{providers:[]});
+    activeProviders = pRes?.providers || [];
   }catch(e){}
 }
 
@@ -3507,73 +3503,20 @@ async function openModelPicker(){
   }
 }
 
-async function settings(tab='account'){
+async function settings(tab='appearance'){
   await fetchSettingsData();
   $('.set-ov')?.remove();const o=document.createElement('div');o.className='ov set-ov';
-  const tabKeys=['account','brain','appearance','generation','providers','training','about'];
+  const tabKeys=['appearance','generation','providers'];
   const tabLabels={
-    account: t('tabAccount'),
-    brain: t('tabBrain'),
     appearance: t('tabAppearance'),
     generation: t('tabGeneration'),
-    providers: t('tabProviders'),
-    training: t('tabTraining'),
-    about: t('tabAbout')
+    providers: t('tabProviders')
   };
-  const tabs=tabKeys.map(k=>`<button class="${k===tab?'on':''}" data-tab="${k}">${tabLabels[k]}</button>`).join('');
+  const activeTab = tabKeys.includes(tab) ? tab : 'appearance';
+  const tabs=tabKeys.map(k=>`<button class="${k===activeTab?'on':''}" data-tab="${k}">${tabLabels[k]}</button>`).join('');
   const modelOptions = renderModelOptions(S.model);
 
   const pane={
-   account:`<div class="set">
-     <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
-       <div class="avatar" style="width:42px;height:42px;font-size:20px">A</div>
-       <div>
-         <strong style="font-size:14px;color:var(--tx)">Abiral</strong>
-         <small style="color:var(--acid);font-family:'JetBrains Mono',monospace;display:block">${t('founderRole')}</small>
-       </div>
-     </div>
-     <div style="padding:10px 12px;background:var(--surf);border:1px solid var(--bd);font-size:12px;color:var(--tx2);line-height:1.6">
-       <strong>${t('roleLabel')}:</strong> ${t('accountRole')}<br>
-       <strong>${t('envLabel')}:</strong> ${t('accountEnv')}<br>
-       <strong>${t('engineLabel')}:</strong> ${t('accountEngine')}
-     </div>
-   </div>`,
-   brain:`<div class="set">
-     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-       <div>
-         <strong style="color:var(--tx);font-size:13px">${t('brainTitle')}</strong>
-         <small style="color:var(--acid);font-family:'JetBrains Mono',monospace;display:block">${t('brainBadge')}</small>
-       </div>
-       <button id="btn-review-memory" class="btn pri" style="padding:5px 9px;font-size:9px">${t('btnReview')}</button>
-     </div>
-     <div style="max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:6px">
-       ${activeMemories && activeMemories.length ? activeMemories.map(m => `
-         <div style="background:var(--surf);border:1px solid var(--bd);padding:8px 10px;font-size:11px">
-           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
-             <span style="font-family:'JetBrains Mono',monospace;color:var(--ac);font-weight:600">${esc(m.key || 'fact')}</span>
-             <span style="font-size:9px;color:var(--tx3);background:var(--elev);padding:1px 5px">${esc(m.category || 'general')}</span>
-           </div>
-           <div style="color:var(--tx);line-height:1.4">${esc(m.value || m.text)}</div>
-         </div>
-       `).join('') : `<div style="color:var(--tx3);font-size:11px">${t('noMemories')}</div>`}
-     </div>
-     <div style="margin-top:14px;padding:12px;background:var(--surf);border:1px solid var(--bd);border-radius:6px">
-       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-         <div>
-           <strong style="color:var(--tx);font-size:12.5px;display:flex;align-items:center;gap:6px">
-             <span style="color:#ff512f">🧠</span> ${t('obsidianTitle')}
-           </strong>
-           <small style="color:var(--tx3);font-family:'JetBrains Mono',monospace;font-size:10px">${t('obsidianVaultPath')}</small>
-         </div>
-         <span style="font-size:9px;font-family:'JetBrains Mono',monospace;background:rgba(69,212,131,.15);color:#45D483;padding:2px 6px;border-radius:3px;font-weight:600">CONNECTED</span>
-       </div>
-       <p style="margin:0 0 10px;font-size:11px;color:var(--tx2);line-height:1.5">${t('obsidianDesc')}</p>
-       <div style="display:flex;gap:8px">
-         <button id="btn-open-obsidian" class="btn" style="flex:1;padding:6px 10px;font-size:10px;font-weight:600">${t('btnOpenObsidian')}</button>
-         <button id="btn-sync-obsidian" class="btn pri" style="flex:1;padding:6px 10px;font-size:10px;font-weight:600">${t('btnSyncObsidian')}</button>
-       </div>
-     </div>
-   </div>`,
    appearance:`<div class="set"><label for="th">${t('themeLabel')}<small>${t('themeSub')}</small></label><div class="ctl"><select id="th"><option value="dark">${t('themeDark')}</option><option value="light">${t('themeLight')}</option><option value="system">${t('themeSystem')}</option></select></div></div><div class="set"><label><span>${t('enterSendsLabel')}<small>${t('enterSendsSub')}</small></span><input type="checkbox" id="ent" ${S.enterSends?'checked':''}></label></div>`,
    generation:`<div class="set"><label for="m-sel">${t('modelLabel')}<small>${t('modelSub')}</small></label><div class="ctl"><select id="modelSelect" style="font-family:'JetBrains Mono',monospace">${modelOptions}</select></div></div>` +
      `<div class="set"><label><span>${t('showThinkingLabel')}<small>${t('showThinkingSub')}</small></span><input type="checkbox" id="showThinking" ${S.showThinking?'checked':''}></label></div>` +
@@ -3633,24 +3576,8 @@ async function settings(tab='account'){
        <span style="font-size:11px;color:var(--tx3);font-family:'JetBrains Mono',monospace">${t('keysStoredLocally')}</span>
        <button id="btn-save-providers" class="btn pri" style="padding:7px 16px;font-size:11px;font-weight:600">${t('saveProviders')}</button>
      </div>
-   </div>`,
-   training:`<div class="set">
-     <label>${t('trainingDash')}<small>${t('trainingSub')}</small></label>
-     ${trainingMetrics?`
-       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
-         <div style="background:var(--surf);border:1px solid var(--bd);padding:10px"><strong>${t('stepLabel')}:</strong> ${trainingMetrics.step} / ${trainingMetrics.max_steps}</div>
-         <div style="background:var(--surf);border:1px solid var(--bd);padding:10px"><strong>${t('lossLabel')}:</strong> ${trainingMetrics.loss || '0.7069'}</div>
-         <div style="background:var(--surf);border:1px solid var(--bd);padding:10px"><strong>${t('speedLabel')}:</strong> ${trainingMetrics.speed || '~28.5s/step'}</div>
-         <div style="background:var(--surf);border:1px solid var(--bd);padding:10px"><strong>${t('checkpointsLabel')}:</strong> ${trainingMetrics.checkpoints?.join(', ') || 'checkpoint-250'}</div>
-       </div>
-       <div style="margin-top:10px;padding:8px;background:var(--input);border:1px solid var(--bd);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--acid)">
-         Model: axomv1 4B · Fine-Tuned QLoRA · Saved to Drive & Ollama
-       </div>
-     `:`<div style="color:var(--tx3);font-size:11px;margin-top:8px">${t('metricsUpdating')}</div>`}
-   </div>`,
-   about:`<div class="set" style="line-height:1.7;font-size:13px">
-     ${t('aboutText')}
-   </div>`}[tab];
+   </div>`
+  }[activeTab] || '';
   o.innerHTML=`<div class="modal" role="dialog" aria-modal="true" aria-label="${t('settingsTitle')}"><div class="mh">${t('settingsTitle')}<button class="ib" data-close aria-label="Close">${ic('x')}</button></div><div class="mb"><nav class="tabs">${tabs}</nav><div class="pane">${pane}</div></div></div>`;
   document.body.appendChild(o);const th=$('#th',o);if(th)th.value=S.theme;
 
@@ -3658,40 +3585,6 @@ async function settings(tab='account'){
     const target=e.target;
     if(target===o||target.closest('[data-close]'))return o.remove();
     if(target.dataset.tab)settings(target.dataset.tab);
-    if(target.id==='btn-review-memory'){
-      target.disabled=true;target.textContent=t('btnReviewing');
-      try{
-        await fetch('/api/sessions/review',{
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({session_id:S.cur||'default_session'})
-        });
-        await fetchSettingsData();
-        settings('brain');
-      }catch(err){
-        target.disabled=false;target.textContent=t('btnReviewFailed');
-      }
-    }
-    if(target.id==='btn-sync-obsidian'){
-      target.disabled=true;target.textContent=t('btnSyncingObsidian');
-      try{
-        await fetch('/api/obsidian/sync',{method:'POST'});
-        target.textContent=t('btnSyncedObsidian');
-        setTimeout(()=>{target.disabled=false;target.textContent=t('btnSyncObsidian')},1800);
-        toast(t('btnSyncedObsidian'));
-      }catch(err){
-        target.disabled=false;target.textContent=t('btnSyncObsidian');
-      }
-    }
-    if(target.id==='btn-open-obsidian'){
-      try{
-        const r = await fetch('/api/obsidian/open',{method:'POST'});
-        const d = await r.json();
-        toast(t('btnOpenObsidian') + ' (' + (d.vault || 'Axom_Brain') + ')');
-      }catch(err){
-        window.open('obsidian://open?path=' + encodeURIComponent('C:\\Users\\abira\\Documents\\Axom_Brain'), '_blank');
-      }
-    }
     if(target.id==='btn-save-providers'){
       target.disabled=true;target.textContent=t('saving');
       const keysPayload={};
@@ -3961,7 +3854,7 @@ document.addEventListener('click',async e=>{
   else if(a==='attach')$('#file').click();
   else if(a==='voice')toggleVoice();
   else if(a==='rmfile'){atts.splice(+b.dataset.i,1);drawAtts();updSend()}
-  else if(a==='settings')settings();
+  else if(a==='settings')settings(b.dataset?.tab || 'appearance');
   else if(a==='openmodelsettings')settings('providers');
   else if(a==='menu'){e.stopPropagation();const v=S.convs.find(x=>x.id===id);popover(b,`<button data-act="rename" data-id="${id}">${t('rename')}</button><button data-act="pinc" data-id="${id}">${v.pinned?t('unpin'):t('pin')}</button><button data-act="exp" data-id="${id}">${t('exportMd')}</button><div class="sep"></div><button style="color:var(--err)" data-act="del" data-id="${id}">${t('del')}</button>`)}
   else if(a==='rename'){const v=S.convs.find(x=>x.id===id),rName=await dialog({title:t('renameTitle'),input:v.title,ok:t('rename')});if(rName?.trim()){v.title=rName.trim();save();shell()}}

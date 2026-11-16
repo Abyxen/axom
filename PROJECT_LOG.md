@@ -946,9 +946,26 @@
 
 ---
 
+### 39. Settings Cleanup: Removal of Account, Brain, Training, and About Tabs (2026-11-16)
+- **What Was Done:**
+  - **Streamlined Settings Modal**:
+    - Completely removed the `Account`, `Brain`, `Training`, and `About` tabs and pane contents from the Settings modal.
+    - Simplified the settings navigation to focus strictly on essential controls:
+      1. `Appearance`: UI Theme selection (Dark / Light / System) and Enter Sends toggle.
+      2. `Generation`: Model selector, Thinking process toggle, Temperature, Top-K, Max Tokens, Seed, and Stop sequences.
+      3. `AI Providers`: Cloud API keys management and connection testing (Groq, OpenRouter, Google Gemini, Cerebras, DeepSeek, Custom proxy).
+    - Default settings view updated from `account` to `appearance`.
+    - Optimized `fetchSettingsData()` to load only active provider keys on modal open, eliminating redundant fetches for raw memories and training checkpoints.
+- **How It Was Implemented:**
+  - Files modified: [`index.html`](file:///c:/Users/abira/Documents/axom/index.html).
+- **Why It Was Done:**
+  - The user requested: *"remove about ,training,brain and account"*
+
+---
+
 ## 🔮 Active & Upcoming Work
 
-### 39. QLoRA Fine-Tuning Execution (`axom:1.2`)
+### 40. QLoRA Fine-Tuning Execution (`axom:1.2`)
 - **Goal:** Run the fine-tuning pipeline (`train/train_unsloth_lora.py`) using the generated 500,490-word synthetic training dataset.
 - **Deliverable:** Quantized GGUF weights for Ollama.
 
