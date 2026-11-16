@@ -3977,7 +3977,10 @@ async function openMemoryViewer() {
       </div>
       <div style="padding:12px 18px;border-top:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;background:var(--surf)">
         <span style="font-size:10.5px;color:var(--tx3);font-family:'JetBrains Mono',monospace">Auto-extracted by Living Brain Reviewer</span>
-        <button class="btn" data-act="syncobsidianfrommem" style="font-size:11px;padding:5px 12px">${ic('refresh')} Sync to Obsidian</button>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button class="btn pri" data-act="addmemfact" style="font-size:11px;padding:5px 12px">${ic('plus')} Add Fact</button>
+          <button class="btn" data-act="syncobsidianfrommem" style="font-size:11px;padding:5px 12px">${ic('refresh')} Sync to Obsidian</button>
+        </div>
       </div>
     </div>`;
   }
@@ -4005,6 +4008,29 @@ async function openMemoryViewer() {
         } catch(err) {
           toast('Failed to delete fact');
         }
+      }
+    }
+
+    if (e.target.closest('[data-act="addmemfact"]')) {
+      const key = await dialog({ title: 'New Memory Fact Key', body: 'Enter unique identifier (e.g. favorite_ide, timezone, target_platform):', input: '' });
+      if (!key || !key.trim()) return;
+      const cleanKey = key.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_');
+      const val = await dialog({ title: `Value for "${cleanKey}"`, body: 'Enter fact value or preference description:', input: '' });
+      if (!val || !val.trim()) return;
+      try {
+        await fetch('/api/memory/actions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ actions: [{ type: 'upsert', key: cleanKey, value: val.trim(), category: 'user_preference' }] })
+        });
+        const refRes = await fetch('/api/memory/profile');
+        const refData = await refRes.json();
+        profileData = refData.profile || [];
+        renderModal();
+        toast(`Added memory fact "${cleanKey}"`);
+        fetch('/api/obsidian/sync', { method: 'POST' }).catch(()=>{});
+      } catch(err) {
+        toast('Failed to add memory fact');
       }
     }
 

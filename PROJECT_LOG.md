@@ -1295,6 +1295,25 @@
 - **Why It Was Done:**
   - Scheduled autonomous maintenance check (iteration 8) giving power-users full inspectability over long-term neural memory facts without violating the minimalist Settings modal constraint.
 
+---
+
+### 52. Bidirectional Memory Editing Flow & Maintenance Check (Iteration 9)
+- **Date:** 2026-11-16
+- **What Was Done:**
+  - **Manual Memory Fact Creation Flow ([index.html](file:///c:/Users/abira/Documents/axom/index.html))**:
+    - Added an interactive **"Add Fact"** button to the Living Brain Memory Profile inspector modal.
+    - Prompts the user for a sanitized key identifier (e.g. `primary_ide`, `timezone`, `target_architecture`) and structured description.
+    - Invokes `POST /api/memory/actions` with `upsert` semantics, immediately mutating the SQLite active memory core, re-rendering the modal, and synchronizing with the Obsidian knowledge vault (`Axom_Brain`).
+  - **Living Brain Verification**:
+    - Executed `test_suite.ps1`: 100% PASS across all 7 steps (health, active profile, preference injection, transcript persistence, SQLite mutation, cross-session recall).
+  - **Daemon Health**:
+    - Ollama daemon (`task-6447`): 7.0 hours continuous uptime on local RTX 5060 GPU (`127.0.0.1:11434`).
+    - AXOM Server (`task-7865`): Active and healthy on port 8000.
+- **How It Was Implemented:**
+  - Files modified: [`index.html`](file:///c:/Users/abira/Documents/axom/index.html), [`PROJECT_LOG.md`](file:///c:/Users/abira/Documents/axom/PROJECT_LOG.md).
+- **Why It Was Done:**
+  - Scheduled autonomous maintenance check (iteration 9) completing full bidirectional CRUD capabilities (view, add, delete, sync) for living memory facts.
+
 ## 🔮 Active & Upcoming Work
 
 ### 43. QLoRA Fine-Tuning Execution (`axom:1.2`)
