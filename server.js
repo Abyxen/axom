@@ -24,6 +24,7 @@ const axomSkills = require('./axom_skills');
 const subagents = require('./subagents');
 const localTools = require('./local_tools');
 const freeApisService = require('./free_apis_service');
+const { harness, getHarnessStatus, SEAMS } = require('./harness');
 
 const PORT = 8000;
 const HOST = '127.0.0.1';
@@ -517,6 +518,29 @@ if (req.method === 'POST' && pathname === '/api/free-apis/snippet') {
       }
     });
     return;
+  }
+
+  // --- API: DeepSeek Harness Microkernel Architecture Telemetry & Seams ---
+  if (req.method === 'GET' && pathname === '/api/harness/status') {
+    return sendJson(res, 200, getHarnessStatus());
+  }
+
+  if (req.method === 'GET' && pathname === '/api/harness/plugins') {
+    return sendJson(res, 200, {
+      plugins: harness.inspect().plugins
+    });
+  }
+
+  if (req.method === 'GET' && pathname === '/api/harness/seams') {
+    return sendJson(res, 200, {
+      seams: Object.entries(SEAMS).map(([k, s]) => ({
+        key: k,
+        serviceName: s.serviceName,
+        description: s.description,
+        requiredMethods: s.requiredMethods,
+        isProvided: harness.has(s.serviceName)
+      }))
+    });
   }
 
   // --- API: Installed Engineering & Local AI Skills Hub ---
@@ -1291,16 +1315,13 @@ CRITICAL OPERATIONAL PRINCIPLES:
           while (turn < MAX_AGENT_TURNS) {
             turn++;
 
-            const availableTools = [];
-            if (researchModeEnabled) {
-              availableTools.push(...researchSkills.ACADEMIC_TOOLS);
-            }
-            if (webSearchEnabled) {
-              availableTools.push(...browser.BROWSING_TOOLS);
-            }
-            availableTools.push(...mcpClient.MCP_TOOLS);
-            availableTools.push(...axomSkills.SKILL_TOOLS);
-            availableTools.push(...localTools.LOCAL_SYSTEM_TOOLS);
+            const harnessConsumer = harness.get('consumer_tools');
+            const availableTools = harnessConsumer.getAvailableTools({
+              webSearchEnabled,
+              researchModeEnabled,
+              mcpEnabled: true,
+              skillsEnabled: true
+            });
 
             const turnPayload = {
               model: effectiveModel,
@@ -1390,17 +1411,7 @@ CRITICAL OPERATIONAL PRINCIPLES:
 
                 let toolResult;
                 try {
-                  if (['create_folder', 'write_file', 'read_file'].includes(toolName)) {
-                    toolResult = await localTools.executeLocalTool(toolName, toolArgs);
-                  } else if (mcpClient.isMcpTool(toolName)) {
-                    toolResult = await mcpClient.executeTool(toolName, toolArgs);
-                  } else if (toolName === 'consult_skill') {
-                    toolResult = axomSkills.executeSkillConsultation(toolArgs.skill_name);
-                  } else if (['academic_search', 'generate_bibtex', 'build_literature_matrix', 'evaluate_research_gap', 'create_design_brief', 'conduct_paper_review'].includes(toolName)) {
-                    toolResult = await researchSkills.executeResearchTool(toolName, toolArgs, process.cwd());
-                  } else {
-                    toolResult = await browser.executeTool(toolName, toolArgs);
-                  }
+                  toolResult = await harnessConsumer.executeTool(toolName, toolArgs);
                 } catch (err) {
                   toolResult = { error: err.message };
                 }

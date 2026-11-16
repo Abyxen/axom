@@ -1431,6 +1431,52 @@
 - **Why It Was Done:**
   - Solves model hallucinating about tool capabilities, creates requested desktop calculator, displays live real-time agentic actions under the thinking icon, and eliminates raw thinking leaks.
 
+## 58. DeepSeek Harness (DSH) Microkernel Architecture & Capability Seams Integration
+- **Date**: 2026-11-16
+- **What Was Done:**
+  - **DeepSeek Harness (`dsh`) Microkernel (`harness/kernel.js`):**
+    - Built Cordis-inspired Agent Microkernel pattern: `Agent = Model + Harness`.
+    - Features spatiotemporal composability ("Everything is a plugin"), reversible disposers, scoped contexts (`ctx.extend()`), and lifecycle event bus (`ctx.on()`, `ctx.emit()`).
+  - **Three-Role Capability Seams (`harness/seams.js`):**
+    - Formalized the 3-role pattern:
+      1. *Service Definition* (Interface invariants).
+      2. *Service Provider* (Concrete implementations).
+      3. *Consumer* (Model-facing tool calling schemas and execution routing).
+    - Declared and validated 6 foundational capability seams:
+      * `MODEL`: Neural LLM inference & cascading failover gateway (`chat`, `stream`).
+      * `MEMORY`: Living Brain SQLite profile & Obsidian vault synchronization (`getProfile`, `getVaultKnowledge`, `saveMessage`).
+      * `FILESYSTEM`: Desktop & local workspace file management (`createFolder`, `writeFile`, `readFile`).
+      * `SANDBOX`: Subprocess code execution with watchdog timer (`runCode`).
+      * `BROWSER`: Live web navigation, search & scraping (`searchWeb`, `browseUrl`).
+      * `SUBAGENTS`: Specialized persona task delegation (`getSubagents`, `invoke`).
+  - **Modular Service Provider Plugins (`harness/plugins/`):**
+    - Created `dsh-provider-filesystem`: Desktop and workspace filesystem operations with Desktop alias resolution.
+    - Created `dsh-provider-sandbox`: Subprocess code execution sandbox for Python and Node.js with watchdog termination.
+    - Created `dsh-provider-memory`: Dual-state memory bridge for SQLite persistent facts and Obsidian knowledge vault.
+    - Created `dsh-provider-browser`: Web navigation, Google search extraction, and live DOM content proxy.
+    - Created `dsh-provider-subagents`: Specialized subagent personas orchestration.
+    - Created `dsh-provider-model`: Local GPU neural inference (Ollama) with resilient multi-tier cascading cloud failover.
+  - **Consumer Layer (`harness/plugins/consumer_tools.js`):**
+    - Dynamic OpenAI/Ollama tool definition aggregator across all active capability seams.
+    - Unified tool dispatcher routing model calls to corresponding provider services.
+  - **Microkernel Bootstrapper (`harness/index.js`):**
+    - Singleton root harness context with all 7 plugins mounted and verified.
+    - System inspection helper `getHarnessStatus()` providing active seams and plugin metadata.
+  - **Server Endpoints & Agent Loop Migration (`server.js`):**
+    - Added `GET /api/harness/status`, `GET /api/harness/plugins`, and `GET /api/harness/seams`.
+    - Refactored agentic turn loop to query available tools and dispatch executions through `harness.get('consumer_tools')`.
+  - **Frontend Harness Inspector Modal (`index.html`):**
+    - Added Command Palette (`Ctrl+K`) action: "DeepSeek Harness: Microkernel & Seams Inspector".
+    - Interactive modal rendering validated capability seams and mounted plugins with zero decorative emojis.
+  - **Verification:**
+    - Full test suite (`test_suite.ps1`) executed and passed (100% success).
+    - Isolated harness bootstrap and endpoint tests passed (`scratch/test_dsh_endpoints.js`).
+    - Multi-turn autonomous tool execution verified end-to-end.
+- **How It Was Implemented:**
+  - Files created/modified: [`harness/kernel.js`](file:///c:/Users/abira/Documents/axom/harness/kernel.js), [`harness/seams.js`](file:///c:/Users/abira/Documents/axom/harness/seams.js), [`harness/plugins/provider_fs.js`](file:///c:/Users/abira/Documents/axom/harness/plugins/provider_fs.js), [`harness/plugins/provider_sandbox.js`](file:///c:/Users/abira/Documents/axom/harness/plugins/provider_sandbox.js), [`harness/plugins/provider_memory.js`](file:///c:/Users/abira/Documents/axom/harness/plugins/provider_memory.js), [`harness/plugins/provider_browser.js`](file:///c:/Users/abira/Documents/axom/harness/plugins/provider_browser.js), [`harness/plugins/provider_subagents.js`](file:///c:/Users/abira/Documents/axom/harness/plugins/provider_subagents.js), [`harness/plugins/provider_model.js`](file:///c:/Users/abira/Documents/axom/harness/plugins/provider_model.js), [`harness/plugins/consumer_tools.js`](file:///c:/Users/abira/Documents/axom/harness/plugins/consumer_tools.js), [`harness/index.js`](file:///c:/Users/abira/Documents/axom/harness/index.js), [`server.js`](file:///c:/Users/abira/Documents/axom/server.js), [`index.html`](file:///c:/Users/abira/Documents/axom/index.html), [`PROJECT_LOG.md`](file:///c:/Users/abira/Documents/axom/PROJECT_LOG.md).
+- **Why It Was Done:**
+  - Satisfies user requirement to architect AXOM on top of the DeepSeek Harness (`dsh`) / Cordis microkernel pattern (`Agent = Model + Harness`), replacing monolithic server tool branching with modular, composable, reversible capability seams.
+
 ## 🔮 Active & Upcoming Work
 
 ### 43. QLoRA Fine-Tuning Execution (`axom:1.2`)

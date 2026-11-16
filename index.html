@@ -4193,6 +4193,122 @@ async function openMemoryViewer() {
   };
 }
 
+/* ---- DeepSeek Harness Microkernel & Seams Inspector ---- */
+async function openHarnessModal() {
+  $('#harnessModal')?.remove();
+  const o = document.createElement('div');
+  o.className = 'ov harness-ov';
+  o.id = 'harnessModal';
+
+  let statusData = null;
+  try {
+    const res = await fetch('/api/harness/status');
+    statusData = await res.json();
+  } catch(e) {
+    statusData = null;
+  }
+
+  function renderModal() {
+    if (!statusData) {
+      o.innerHTML = `<div class="modal" role="dialog" style="width:min(580px,94vw);padding:24px;text-align:center">
+        <div style="font-weight:600;font-size:14px;margin-bottom:8px">DeepSeek Harness Unreachable</div>
+        <div style="font-size:12px;color:var(--tx3);margin-bottom:16px">Could not retrieve microkernel telemetry from server.</div>
+        <button class="btn" data-close>Close</button>
+      </div>`;
+      return;
+    }
+
+    const seams = statusData.seams || [];
+    const plugins = statusData.plugins || [];
+
+    o.innerHTML = `<div class="modal" role="dialog" aria-modal="true" aria-label="DeepSeek Harness Architecture" style="width:min(720px,95vw);max-height:88vh;display:flex;flex-direction:column">
+      <div class="mh" style="display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span>${ic('cpu')}</span>
+          <span style="font-weight:600;font-size:14px">DeepSeek Harness Microkernel</span>
+          <span class="prov-pill acid" style="font-size:9px">ONLINE · CORDIS CORE</span>
+        </div>
+        <button class="ib" data-close aria-label="Close">${ic('x')}</button>
+      </div>
+
+      <div style="padding:10px 18px 8px;font-size:11.5px;color:var(--tx3);border-bottom:1px solid var(--bd);background:var(--surf);display:flex;justify-content:space-between;align-items:center">
+        <span>Three-Role Capability Seams: <em>Definition</em> · <em>Provider</em> · <em>Consumer</em></span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--acid)">v${esc(statusData.version || '1.2.0')} · ${statusData.servicesCount || 7} Services Active</span>
+      </div>
+
+      <div class="mb" style="flex:1;overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:14px">
+        <!-- Capability Seams Grid -->
+        <div>
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--tx2);margin-bottom:8px;display:flex;align-items:center;gap:6px">
+            <span>Capability Seams</span>
+            <span class="prov-pill dim" style="font-size:8.5px">${seams.length} SEAMS VALIDATED</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:8px">
+            ${seams.map(s => `
+              <div class="prov-card" style="padding:10px 12px;margin-bottom:0">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <strong style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--tx)">${esc(s.key)}</strong>
+                    <span style="font-size:10px;color:var(--tx3)">(${esc(s.serviceName)})</span>
+                  </div>
+                  <span class="prov-pill ${s.isProvided ? 'acid' : 'dim'}" style="font-size:8px">${s.isProvided ? 'PROVIDED' : 'UNBOUND'}</span>
+                </div>
+                <div style="font-size:11.5px;color:var(--tx2);margin-bottom:6px;line-height:1.35">${esc(s.description)}</div>
+                <div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--tx3);background:rgba(0,0,0,0.2);padding:3px 6px;border-radius:4px;border:1px solid var(--bd)">
+                  Contract: ${s.requiredMethods.map(m => esc(m) + '()').join(', ')}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- Mounted Modular Plugins -->
+        <div>
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--tx2);margin-bottom:8px;display:flex;align-items:center;gap:6px">
+            <span>Mounted Plugins</span>
+            <span class="prov-pill dim" style="font-size:8.5px">${plugins.length} ACTIVE MODULES</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            ${plugins.map(p => `
+              <div class="prov-card" style="padding:8px 12px;margin-bottom:0;display:flex;align-items:center;justify-content:space-between">
+                <div>
+                  <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+                    <strong style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--tx)">${esc(p.name)}</strong>
+                    <span class="prov-pill dim" style="font-size:8px">v${esc(p.version)}</span>
+                    <span class="prov-pill" style="font-size:8px;background:var(--elev);color:var(--tx2)">${esc(p.category)}</span>
+                  </div>
+                  <div style="font-size:11px;color:var(--tx3)">${esc(p.description)}</div>
+                </div>
+                <span class="prov-pill acid" style="font-size:8px">MOUNTED</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:10px 18px;border-top:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;background:var(--surf)">
+        <span style="font-size:10.5px;color:var(--tx3);font-family:'JetBrains Mono',monospace">Agent = Model + Harness (Microkernel Architecture)</span>
+        <button class="btn" data-close style="font-size:11px;padding:5px 14px">Close</button>
+      </div>
+    </div>`;
+  }
+
+  renderModal();
+  document.body.appendChild(o);
+
+  o.onclick = e => {
+    if (e.target === o || e.target.closest('[data-close]')) o.remove();
+  };
+
+  const onKey = e => {
+    if (e.key === 'Escape') {
+      o.remove();
+      window.removeEventListener('keydown', onKey);
+    }
+  };
+  window.addEventListener('keydown', onKey);
+}
+
 /* ---- Command Palette (Ctrl+K) ---- */
 function openCommandPalette() {
   $('#cmdPalette')?.remove();
@@ -4201,6 +4317,7 @@ function openCommandPalette() {
   o.id = 'cmdPalette';
 
   const commands = [
+    { id: 'harness', title: 'DeepSeek Harness: Microkernel & Seams Inspector', desc: 'Inspect Cordis-inspired capability seams, active service providers & mounted plugins', icon: 'cpu', action: () => openHarnessModal() },
     { id: 'auto', title: 'Switch Model: Auto (Best Model)', desc: 'Smart router choosing between local RTX 5060, OpenRouter & Google Gemini', icon: 'zap', action: () => { S.model = 'auto'; save(); updateHeaderModel(); toast('Model set to Auto Router'); } },
     { id: 'axom', title: 'Switch Model: Axom v1.1 (RTX 5060)', desc: '100% private and offline inference on NVIDIA GeForce RTX 5060', icon: 'cpu', action: () => { S.model = 'axom:1.1'; save(); updateHeaderModel(); toast('Model set to Axom v1.1 (Local)'); } },
     { id: 'freehub', title: 'Open Free AI Providers Hub (14 APIs)', desc: 'Browse and test free models from Gemini, Groq, Kilo, OpenRouter, Cohere, etc.', icon: 'globe', action: () => openFreeHubModal() },
