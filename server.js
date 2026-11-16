@@ -18,6 +18,7 @@ const researchSkills = require('./research_skills');
 const mcpClient = require('./mcp_client');
 const ragService = require('./rag_service');
 const aiProviders = require('./ai_providers');
+const axomSkills = require('./axom_skills');
 
 const PORT = 8000;
 const HOST = '127.0.0.1';
@@ -319,6 +320,21 @@ const server = http.createServer(async (req, res) => {
       }
     });
     return;
+  }
+
+  // --- API: Installed Engineering & Local AI Skills Hub ---
+  if (req.method === 'GET' && pathname === '/api/skills') {
+    const catalog = axomSkills.getSkillsCatalog();
+    return sendJson(res, 200, {
+      total_skills: catalog.length,
+      skills: catalog,
+      sources: [
+        'amd/skills',
+        'EliasOulkadi/shokunin',
+        'wshobson/agents',
+        'sickn33/agentic-awesome-skills'
+      ]
+    });
   }
 
   // --- API: AI Research Skills Catalog (WenyuChiou/ai-research-skills) ---
@@ -999,6 +1015,7 @@ CRITICAL OPERATIONAL PRINCIPLES:
               availableTools.push(...browser.BROWSING_TOOLS);
             }
             availableTools.push(...mcpClient.MCP_TOOLS);
+            availableTools.push(...axomSkills.SKILL_TOOLS);
 
             const turnPayload = {
               model: effectiveModel,
@@ -1089,6 +1106,8 @@ CRITICAL OPERATIONAL PRINCIPLES:
                 try {
                   if (mcpClient.isMcpTool(toolName)) {
                     toolResult = await mcpClient.executeTool(toolName, toolArgs);
+                  } else if (toolName === 'consult_skill') {
+                    toolResult = axomSkills.executeSkillConsultation(toolArgs.skill_name);
                   } else if (['academic_search', 'generate_bibtex', 'build_literature_matrix', 'evaluate_research_gap', 'create_design_brief', 'conduct_paper_review'].includes(toolName)) {
                     toolResult = await researchSkills.executeResearchTool(toolName, toolArgs, process.cwd());
                   } else {
