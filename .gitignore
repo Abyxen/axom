@@ -1,3 +1,7 @@
+# ==========================================
+# AXOM + DeepSeek Harness Unified .gitignore
+# ==========================================
+
 # GGUF Model weights
 *.gguf
 models/
@@ -22,13 +26,41 @@ scratch/
 .paper/
 .coord/
 
-# Node dependencies and logs
+# DeepSeek Harness sessions, storages and artifacts
+.storages/
+.sessions/
+examples/*/.sessions/
+.artifacts/
+.dsh-build/
+.dsh-report/
+.ui-review/
+.playwright-mcp/
+.orig
+.worktrees/
+worktrees/
+.agents/worktrees/
+.typert-*/
+native/system/test/bin/
+
+# Node dependencies and build artifacts
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log
+.pnpm-store/
+.cache/
 *.log
 logs/
+lib/
+*.tsbuildinfo
+coverage/
+.coverage-times.json
+dist-exe/
+/dist/
+apps/web/dist/
+apps/cli/docs/
+apps/desktop/.desktop-build/
 
 # Python caches and virtual environments
 __pycache__/
@@ -39,12 +71,32 @@ __pycache__/
 .venv/
 venv/
 env/
+python/sdk-runtime/src/deepseek_harness_runtime/runtime/
+python/**/__pycache__/
+python/**/.pytest_cache/
+packages/**/__pycache__/
 
-# Editor and IDE metadata
+# Editor, IDE and local environment configs
+.env
+apps/desktop/.env.windows
+apps/desktop/.env.macos
+apps/desktop/*.p12
 .vscode/
 .idea/
 *.sublime-project
 *.sublime-workspace
+CLAUDE.local.md
+.claude/commands/
+.claude/launch.json
+.claude/settings.json
+mise.toml
+.doc-typecheck-*/
+.node-next-types-*/
+.oxlint-contract-*/
+.oxlintrc.contract-*.json
+oxlint-contract-*.ts
+.humanize/
+tmp/
 
 # Temporary files and OS clutter
 *.tmp
@@ -56,3 +108,6 @@ ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN/
 .DS_Store
+
+# Generated company-signed CUA release record
+/packages/experimental/cua-macos/cua-helper.json

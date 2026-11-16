@@ -1,217 +1,84 @@
-# ⚡ AXOM — Personal Local AI Assistant
+# DeepSeek Harness + AXOM
 
-**AXOM** is your completely local, private, instruction-tuned AI assistant tailored for coding, learning, brainstorming, and daily computer workflows. It runs 100% offline on your Windows 11 PC without any external API fees, telemetry, or cloud dependency.
+English | [中文](README.zh.md)
 
----
+**DeepSeek Harness (`dsh`)** is an open-source agent harness developed by [DeepSeek AI](https://deepseek.com), rebuilt with **AXOM Independent Intelligence** — an autonomous neural workspace with Living Brain SQLite & Obsidian persistence, local NVIDIA RTX 5060 GPU acceleration, and multi-tier cascading cloud failover.
 
-## 🖥️ System & Hardware Architecture
-
-- **Operating System:** Windows 11 Home / Pro
-- **Hardware Profile:** HP OMEN Gaming Laptop
-- **GPU Acceleration:** NVIDIA GeForce RTX 5060 Laptop GPU (8 GB VRAM, Blackwell Architecture)
-- **CUDA Acceleration:** CUDA 12.0 / 13.4 with 100% GPU layer offload (~70+ tokens/second)
-- **System Memory:** 32 GB RAM
-- **Local Model Engine:** [Ollama](https://ollama.com/) (Version 0.40.4)
-- **Local Application Server:** Node.js (v26+ zero-dependency lightweight HTTP server)
-- **Frontend:** AXOM Custom Dark/Light Web Interface with responsive layout and conversation history
+It is built on an **everything-is-a-plugin** architecture and powered by [Cordis](https://github.com/cordiverse/cordis), whose design is described in [_A Programming Paradigm for Spatiotemporal Composability_](https://arxiv.org/abs/2608.25512).
 
 ---
 
-## 🧠 Selected Model Details
+## Architecture: Agent = Model + Harness
 
-| Attribute | Specification |
-|---|---|
-| **Primary Model Alias** | `axomv1.1:4b` |
-| **Foundation Base Model** | `Qwen 3.5 4B Uncensored` (Abliterated Q4_K_M) |
-| **Model Size on Disk** | 2.7 GB (Q4_K_M quantization) |
-| **VRAM Footprint** | ~3.0 GB (fits comfortably within the 8 GB RTX 5060 VRAM with 5 GB free) |
-| **Context Window** | 32,768 tokens (up to 256k supported) |
-| **Inference Speed** | ~85 – 100+ tokens/sec on RTX 5060 GPU |
-| **Strengths** | Direct uncensored reasoning, code generation, debugging, algorithms |
+DeepSeek Harness formalizes the **Three-Role Pattern**:
+1. **Service Definition (Capability Seams)**: Interface invariants and contract validation (`MODEL`, `MEMORY`, `FILESYSTEM`, `SANDBOX`, `BROWSER`, `SUBAGENTS`).
+2. **Service Providers (`dsh-provider-*`)**: Concrete implementations across local RTX 5060 Ollama, SQLite living brain memory, Obsidian markdown vault, and subprocess sandboxes.
+3. **Consumer (`dsh-consumer-tools`)**: Dynamic schema compiler and unified tool execution dispatcher.
+
+### Core Capability Seams
+
+| Seam | Interface Contract | Concrete Provider |
+|---|---|---|
+| `MODEL` | `chat()`, `stream()` | Local RTX 5060 (Ollama `axom:1.1`) + Cascading Cloud Router |
+| `MEMORY` | `getProfile()`, `getVaultKnowledge()`, `saveMessage()` | SQLite `user_profile_memory` + Obsidian `Axom_Brain` vault |
+| `FILESYSTEM` | `createFolder()`, `writeFile()`, `readFile()` | Local Desktop & Workspace Path Resolver |
+| `SANDBOX` | `runCode()` | Subprocess Execution with 6-second watchdog timer |
+| `BROWSER` | `searchWeb()`, `browseUrl()` | Google Live Search & DOM Text Extractor |
+| `SUBAGENTS` | `getSubagents()`, `invoke()` | 7 Specialized Personas (Coder, Research, Designer, Security, etc.) |
 
 ---
 
-## 🚀 How to Launch AXOM
+## Run
 
-### The Easy Way (One-Click)
-Double-click:
-```bat
-Start_AXOM.bat
+### Run DeepSeek Harness Web UI
+```sh
+pnpm dsh web
 ```
+The command starts the Web UI at `http://127.0.0.1:3080` by default.
 
-What the launcher does automatically:
-1. Detects your Node.js and Ollama installations.
-2. Starts the Ollama model engine in the background if it is not already running.
-3. Checks that your `axom-chat` model is ready.
-4. Starts the AXOM local backend server at `http://127.0.0.1:8000`.
-5. Opens your AXOM web interface in your default browser.
-6. Displays a status console and keeps services alive while you chat.
+### Run AXOM Autonomous Server
+```sh
+npm run axom:server
+```
+Starts the AXOM Living Brain backend at `http://127.0.0.1:8000` with real-time agentic tool calling and SQLite profile memory.
 
----
-
-## ⏹️ How to Stop AXOM
-
-You have two simple options:
-
-1. **From the launcher window:** Press any key in the active `Start_AXOM.bat` terminal window. It will cleanly shut down the backend.
-2. **Dedicated script:** Double-click:
-   ```bat
-   Stop_AXOM.bat
-   ```
-   This immediately terminates the AXOM backend running on port 8000.
-
-*(Note: Ollama remains available in your Windows system tray so subsequent launches start instantly. You can right-click the Ollama llama icon in your taskbar tray and click "Quit" if you wish to exit Ollama entirely).*
-
----
-
-## 🛠️ How to Start Manually (If the .bat file ever fails)
-
-If Windows prevents batch scripts from executing or you prefer manual terminal control:
-
-### Step 1: Start Ollama (Terminal 1)
+### Run Tests
 ```powershell
-ollama serve
-```
-
-### Step 2: Start AXOM Backend (Terminal 2)
-Navigate to your project folder:
-```powershell
-cd C:\Users\abira\Documents\axom
-node server.js
-```
-
-### Step 3: Open in Browser
-Open Google Chrome, Edge, or Brave and navigate to:
-```
-http://127.0.0.1:8000
+powershell -ExecutionPolicy Bypass -File test_suite.ps1
 ```
 
 ---
 
-## 🎯 Fine-Tuning AXOM with Unsloth (Coding & Chatting)
-
-You can train your own customized weights for AXOM using **Unsloth (QLoRA 4-bit)** to excel at programming and conversational reasoning.
-
-### 📊 Dataset Recipe (Balanced Dual Engine)
-1. **Coding Knowledge (~47%)**: 2,000 curated programming tasks from `sahil2801/CodeAlpaca-20k` covering Python, JavaScript, algorithms, bug fixes, and software architecture.
-2. **Conversational Reasoning (~47%)**: 2,000 multi-turn dialogues and reasoning challenges from `mlabonne/FineTome-100k`.
-3. **AXOM Identity (~6%)**: Clean grounding that AXOM is created by Abiral and runs locally on your HP OMEN laptop, without drowning out coding accuracy.
-
-### 🚀 How to Train:
-1. Open Google Colab in your browser and load:
-   `G:\My Drive\Colab Notebooks\Axom.ipynb`
-2. Ensure hardware accelerator is set to **T4 GPU** (`Runtime -> Change runtime type -> T4 GPU`).
-3. Click **Runtime -> Run all**.
-4. The notebook installs Unsloth, downloads the datasets, fine-tunes with response loss masking in ~15 minutes, evaluates test prompts, and exports GGUF (`Q4_K_M`) to `G:\My Drive\AXOM_Model\`.
-
-### 📥 How to Import Your Trained Model to Desktop:
-Once training is done, double-click:
-```bat
-Import_Trained_Model.bat
-```
-This automatically links the newly exported GGUF file from your Google Drive into your local Ollama library under `axom-chat`. The next time you run `Start_AXOM.bat`, your website will immediately use your newly trained model!
-
----
-
-## 🔄 How to Change or Add Models Later
-
-AXOM's backend dynamically queries all models installed in your local Ollama library.
-
-### 1. Download another model
-Open PowerShell and pull any model you want to try, for example:
-- `ollama pull qwen2.5-coder:7b` (Specialized in code generation)
-- `ollama pull qwen2.5:3b` (Ultra-lightweight 2GB model)
-- `ollama pull llama3.2:3b` (Meta's lightweight model)
-- `ollama pull deepseek-r1:7b` (Reasoning-focused model)
-
-### 2. Switch models in the UI
-Refresh the AXOM interface at `http://127.0.0.1:8000`. The model selector dropdown in the top header will automatically display all installed models. Simply click and choose the model you want to chat with.
-
-### 3. Customize AXOM's persona (`Modelfile`)
-To update AXOM's instructions:
-1. Edit the file `Modelfile` in this folder.
-2. Rebuild the alias by running:
-   ```powershell
-   ollama create axom-chat -f Modelfile
-   ```
-
----
-
-## 🔍 Troubleshooting & Diagnostics
-
-### 1. Backend Status Shows "Offline"
-- Run `curl http://127.0.0.1:8000/api/health` in PowerShell.
-- If it fails, start the backend with `node server.js`.
-- If the backend says `ollama: unreachable`, make sure Ollama is running (`ollama serve`).
-
-### 2. Port 8000 Conflict
-If another program is using port 8000:
-- Run `Stop_AXOM.bat` to terminate old instances.
-- Or check what is using it:
-  ```powershell
-  Get-Process -Id (Get-NetTCPConnection -LocalPort 8000).OwningProcess
-  ```
-
-### 3. GPU Acceleration Verification
-Verify that your NVIDIA RTX 5060 Laptop GPU is processing inference:
-1. Open PowerShell and run:
-   ```powershell
-   nvidia-smi
-   ```
-2. While AXOM is responding to a prompt, you will see GPU utilization increase and ~5.2 GB of VRAM allocated to Ollama.
-
----
-
-## 📁 Project File Directory
+## Repository Structure
 
 ```
-C:\Users\abira\Documents\axom\
-├── index.html         # AXOM responsive web interface & In-App Web Browser (HTML, CSS, JS)
-├── server.js          # Zero-dependency local backend, API adapter, & live browser proxy (Node.js)
-├── research_skills.js # 17 AI Research Skills engine (arXiv, CrossRef, BibTeX, 3-gate dossiers, design briefs)
-├── db.js              # Living memory database (SQLite dual-state store)
-├── memory_reviewer.js # Autonomous background LLM session reviewer & insight extractor
-├── obsidian_vault.js  # Obsidian Second Brain bi-directional vault sync engine
-├── browser_service.js # Agentic multi-turn web search, page scraping, & browser automation
-├── Modelfile          # Ollama model definition & persona for axom:1.1
-├── PROJECT_LOG.md     # Master architectural & engineering log (What, How, Why)
-├── Start_AXOM.bat     # One-click Windows startup script
-├── Stop_AXOM.bat      # Clean shutdown script
-├── test_suite.ps1     # Automated verification test suite
-└── README.md          # Documentation & user guide
+├── apps/               # Web, CLI, and Desktop applications
+│   ├── cli/            # dsh CLI executable
+│   ├── desktop/        # Electron desktop client
+│   └── web/            # Browser frontend
+├── packages/           # Monorepo modular capability packages
+│   ├── core/           # Agent loop, session, tools, system-prompt
+│   ├── llm/            # LLM streaming adapters & provider interfaces
+│   ├── fs/             # Filesystem seams and guard rails
+│   ├── browser-use/    # Web navigation and DOM automation
+│   ├── sandbox/        # Subprocess and container execution
+│   ├── subagent/       # Multi-agent persona orchestration
+│   ├── skill/          # Skill system and prompt injections
+│   ├── mcp/            # Model Context Protocol client
+│   └── storage/        # Persistence and session storage
+├── harness/            # Cordis microkernel integration & capability seams
+│   ├── kernel.js       # Cordis HarnessContext microkernel core
+│   ├── seams.js        # 3-Role Capability Seams specification
+│   ├── plugins/        # Modular service providers & consumer tools
+│   └── index.js        # Harness bootstrapper & telemetry
+├── skills/             # 76 indexed engineering craftsmanship skills
+├── server.js           # AXOM backend server wired into DeepSeek Harness
+├── index.html          # Dark glassmorphic interface with Harness Inspector
+└── test_suite.ps1      # End-to-end verification test suite
 ```
 
 ---
 
-## 🔬 AI Research Skills (WenyuChiou Architecture)
+## License
 
-AXOM embeds native, zero-dependency implementations of the **17 AI Research Skills** across 4 domain families:
-1. **Research Workspace**:
-   - `research-hub`: Scholarly search across arXiv & CrossRef with reading depth tracking (`not-read`, `abstract-only`, `selected-sections`, `full-text`).
-   - `literature-triage-matrix`: High-density 9-column comparative matrix contrasting methods, datasets, claims, findings, and limitations.
-   - `gap-to-topic`: 3-Gate candidate topic evaluator (Is gap open? Is it a contribution? Is it feasible?) generating `.research/topic_dossier.md` and `.gaps.yml`.
-   - `research-design-helper`: 5 Socratic segments (Research Question, Expected Mechanism, Identifiability, Empirical Validation, Risk Register) generating `.research/design_brief.md`.
-   - `research-context-compressor`: Context compression into `.research/project_manifest.yml`, `experiment_matrix.yml`, and `data_dictionary.yml`.
-   - `paper-memory-builder`: Structured claim-evidence maps (`.paper/claims.yml`) and figure registries (`.paper/figures.yml`).
-   - `zotero-library-curator`: Duplicate DOI detection, orphan paper auditing, and tag hygiene reports.
-   - `research-workflow-orchestrator`: Resumable 8-stage human-in-the-loop lifecycle controller.
-2. **Academic Writing**:
-   - `academic-writing-skills`: Lifecycle-aware extended outlining, section drafting, claim-evidence alignment, and release candidate checks.
-   - `paper-review`: Scientific critique auditing equation provenance, baseline fairness, statistical rigor, and rebuttal preparation.
-3. **Zotero Operations**:
-   - `zotero-skills`: Bibliographic CRUD, `@authorYear` citation keys, and BibTeX export.
-4. **AI Delegation**:
-   - `codex-delegate` & `antigravity-delegate`: Structured task briefs and verification contracts.
-
----
-
-## 🧠 Obsidian Second Brain Integration
-
-AXOM connects directly to an Obsidian Knowledge Graph vault located at:
-```
-C:\Users\abira\Documents\Axom_Brain\
-```
-
-- **Bi-Directional Recall**: Any Markdown note you drop into `Knowledge/` or `Projects/` in Obsidian is continuously indexed and injected into AXOM's LLM prompt context.
-- **Autonomous Archival**: Conversations, user preferences, hardware specs, and reviewed memories are automatically organized into inter-linked `.md` files with wikilinks (`[[...]]`) and tags.
-- **One-Click Launch**: Open your brain graph directly in Obsidian from AXOM's Settings modal or via `obsidian://open?vault=Axom_Brain`.
+[MIT](LICENSE)
