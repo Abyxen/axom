@@ -2489,10 +2489,12 @@ function md(src){
     if(i%2){
       const nl=p.indexOf('\n'),lang=(nl<0?p:p.slice(0,nl)).trim(),code=nl<0?'':p.slice(nl+1);
       const isHtml = ['html','htm'].includes(lang.toLowerCase()) || /<!DOCTYPE html|<html[\s>]/i.test(code);
+      const isRunnable = /^(python|py|javascript|js|node)$/i.test(lang);
+      const runBtn = isRunnable ? `<button class="btn-run-code" data-act="runcode" data-lang="${esc(lang)}" title="Run snippet locally in sandbox">${ic('zap')} <span>Run</span></button>` : '';
       const previewBtn = isHtml ? `<button class="btn-preview" data-act="openpreview" title="${t('previewInBrowser')}">${ic('globe')} <span>${t('previewBtn')}</span></button>` : '';
       const saveBtn = `<button class="btn-copy" data-act="saveworkspace" title="${t('saveToWorkspace')}">${ic('save')} <span>${t('saveBtn')}</span></button>`;
       const dlBtn = `<button class="btn-copy" data-act="downloadcode" title="${t('downloadFile')}">${ic('download')} <span>${t('downloadBtn')}</span></button>`;
-      h.push(`<div class="cb"><header><span class="cb-tag">${ic('code')} ${esc(lang||'text')}</span><div class="cb-actions">${previewBtn}${saveBtn}${dlBtn}<button class="btn-copy" data-act="copycode">${ic('copy')} <span>${t('copy')}</span></button></div></header><pre><code>${esc(code.replace(/\n$/,''))}</code></pre></div>`);
+      h.push(`<div class="cb"><header><span class="cb-tag">${ic('code')} ${esc(lang||'text')}</span><div class="cb-actions">${runBtn}${previewBtn}${saveBtn}${dlBtn}<button class="btn-copy" data-act="copycode">${ic('copy')} <span>${t('copy')}</span></button></div></header><pre><code>${esc(code.replace(/\n$/,''))}</code></pre></div>`);
       return;
     }
     const lines = p.split('\n');
@@ -5181,6 +5183,47 @@ document.addEventListener('click',async e=>{
     e.preventDefault();
     const url = b.dataset.url || b.getAttribute('href');
     if(url) InsideBrowser.open(url);
+  }
+  else if(a==='runcode'){
+    const cb = b.closest('.cb');
+    if(!cb) return;
+    const code = $('pre code', cb)?.textContent || '';
+    const lang = (b.dataset.lang || 'python').toLowerCase();
+    let term = $('.cb-exec-terminal', cb);
+    if(!term){
+      term = document.createElement('div');
+      term.className = 'cb-exec-terminal';
+      cb.appendChild(term);
+    }
+    term.innerHTML = `<div class="cb-term-head">
+      <span class="cb-term-title" style="color:#60a5fa">${ic('zap')} Running ${esc(lang)}...</span>
+    </div>
+    <div class="cb-term-body" style="padding:10px 14px;color:var(--tx3);font-size:11px">Executing in local sandbox...</div>`;
+    b.disabled = true;
+    const t0 = Date.now();
+    try {
+      const res = await fetch('/api/execute_code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ language: lang, code, timeout_ms: 6000 })
+      });
+      const data = await res.json();
+      const dur = Date.now() - t0;
+      const statusColor = data.exitCode === 0 ? '#4ade80' : '#f87171';
+      const outText = (data.stdout || '') + (data.stderr ? ('\n' + data.stderr) : '') || '(Process completed with no console output)';
+      term.innerHTML = `<div class="cb-term-head">
+        <span class="cb-term-title" style="color:${statusColor}">${ic('zap')} Exit ${data.exitCode ?? 0} · ${dur}ms</span>
+        <button class="ib" data-act="closeterm" style="width:20px;height:20px;color:var(--tx3)">${ic('x')}</button>
+      </div>
+      <div class="cb-term-body" style="padding:10px 14px;color:#f4f4f5;max-height:220px;overflow-y:auto;white-space:pre-wrap">${esc(outText)}</div>`;
+    } catch(err) {
+      term.innerHTML = `<div class="cb-term-body" style="padding:10px 14px;color:#f87171;font-size:11px">Execution failed: ${esc(err.message)}</div>`;
+    } finally {
+      b.disabled = false;
+    }
+  }
+  else if(a==='closeterm'){
+    b.closest('.cb-exec-terminal')?.remove();
   }
   else if(a==='openpreview'){
     const cb = b.closest('.cb');
