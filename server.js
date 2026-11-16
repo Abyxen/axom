@@ -21,6 +21,7 @@ const ragService = require('./rag_service');
 const aiProviders = require('./ai_providers');
 const { isBasicPrompt } = aiProviders;
 const axomSkills = require('./axom_skills');
+const subagents = require('./subagents');
 const freeApisService = require('./free_apis_service');
 
 const PORT = 8000;
@@ -518,6 +519,46 @@ if (req.method === 'POST' && pathname === '/api/free-apis/snippet') {
   }
 
   // --- API: Installed Engineering & Local AI Skills Hub ---
+  // --- API: Subagents Catalog (Antigravity & Agentic Swarm) ---
+  if (req.method === 'GET' && pathname === '/api/subagents') {
+    return sendJson(res, 200, {
+      ok: true,
+      total_subagents: subagents.SUBAGENTS.length,
+      subagents: subagents.getSubagents()
+    });
+  }
+
+  // --- API: Invoke Subagent Task ---
+  if (req.method === 'POST' && pathname === '/api/subagents/invoke') {
+    let bodyText = '';
+    req.on('data', chunk => { bodyText += chunk; });
+    req.on('end', async () => {
+      try {
+        const body = JSON.parse(bodyText || '{}');
+        const subagentId = body.subagent_id || 'coder';
+        const taskPrompt = body.task || '';
+        const context = body.context || '';
+        const model = body.model || 'axom:1.1';
+
+        if (!taskPrompt.trim()) {
+          return sendJson(res, 400, { ok: false, error: 'Empty task prompt provided' });
+        }
+
+        const result = await subagents.invokeSubagent({
+          subagentId,
+          taskPrompt,
+          context,
+          model
+        });
+
+        return sendJson(res, 200, result);
+      } catch (err) {
+        return sendJson(res, 500, { ok: false, error: err.message });
+      }
+    });
+    return;
+  }
+
   if (req.method === 'GET' && pathname === '/api/skills') {
     const catalog = axomSkills.getSkillsCatalog();
     return sendJson(res, 200, {
@@ -1049,6 +1090,16 @@ button:hover{background:#3f3f46}
           db.logChatMessage(sessionId, 'user', lastUserMsg.content);
         }
 
+        // SUBAGENT PERSONA INJECTION
+        const reqSubagentId = body.subagent || (params && params.subagent);
+        let subagentDirective = '';
+        if (reqSubagentId) {
+          const matchedSubagent = subagents.getSubagent(reqSubagentId);
+          if (matchedSubagent) {
+            subagentDirective = `\n\n# ACTIVE SUBAGENT PERSONA: ${matchedSubagent.name} (${matchedSubagent.role})\n${matchedSubagent.systemPrompt}\nFocus all analysis, reasoning, and code exclusively through this specialized persona.\n`;
+          }
+        }
+
         // COMPONENT B: SESSION DATA INJECTION & AGENTIC DIRECTIVE
         // Query user_profile_memory and Obsidian Vault for active knowledge
         const profileContext = db.formatProfileContext();
@@ -1119,7 +1170,7 @@ CRITICAL OPERATIONAL PRINCIPLES:
           ? '\n\n# DIRECT CASUAL MANDATE: The user prompt is a casual greeting or brief chit-chat. Answer directly, warmly, and concisely in 1 sentence. NEVER output internal thinking blocks, essays, calculation steps, or web lookups.'
           : '';
 
-        const fullDirective = `${temporalDirective}${webDirective}${researchDirective}${casualDirective}`;
+        const fullDirective = `${temporalDirective}${webDirective}${researchDirective}${casualDirective}${subagentDirective}`;
 
         const formattedMessages = [];
         let systemInjected = false;
