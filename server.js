@@ -22,6 +22,7 @@ const aiProviders = require('./ai_providers');
 const { isBasicPrompt } = aiProviders;
 const axomSkills = require('./axom_skills');
 const subagents = require('./subagents');
+const localTools = require('./local_tools');
 const freeApisService = require('./free_apis_service');
 
 const PORT = 8000;
@@ -1299,6 +1300,7 @@ CRITICAL OPERATIONAL PRINCIPLES:
             }
             availableTools.push(...mcpClient.MCP_TOOLS);
             availableTools.push(...axomSkills.SKILL_TOOLS);
+            availableTools.push(...localTools.LOCAL_SYSTEM_TOOLS);
 
             const turnPayload = {
               model: effectiveModel,
@@ -1382,12 +1384,15 @@ CRITICAL OPERATIONAL PRINCIPLES:
                 const callId = call.id || `tool_${Date.now()}`;
 
                 if (isStream) {
+                  res.write(`data: ${JSON.stringify({ type: 'status', message: `Executing ${toolName}...` })}\n\n`);
                   res.write(`data: ${JSON.stringify({ type: 'tool_start', id: callId, name: toolName, args: toolArgs })}\n\n`);
                 }
 
                 let toolResult;
                 try {
-                  if (mcpClient.isMcpTool(toolName)) {
+                  if (['create_folder', 'write_file', 'read_file'].includes(toolName)) {
+                    toolResult = await localTools.executeLocalTool(toolName, toolArgs);
+                  } else if (mcpClient.isMcpTool(toolName)) {
                     toolResult = await mcpClient.executeTool(toolName, toolArgs);
                   } else if (toolName === 'consult_skill') {
                     toolResult = axomSkills.executeSkillConsultation(toolArgs.skill_name);

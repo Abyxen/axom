@@ -1408,6 +1408,29 @@
 - **Why It Was Done:**
   - Directly fulfills user request to port all Antigravity skills and subagent personas into the AXOM core.
 
+## 57. Local Filesystem Execution Tools, Real-Time Agentic Status Stream & Thinking Leaks Interception
+- **Date:** 2026-11-16
+- **What Was Done:**
+  - **Desktop & Filesystem Execution Tools ([`local_tools.js`](file:///c:/Users/abira/Documents/axom/local_tools.js)):**
+    - Built native agentic file manipulation tools: `create_folder`, `write_file`, and `read_file`.
+    - Integrated automatic path resolution for `Desktop/...` mapping directly to `C:\Users\abira\Desktop\...`.
+    - Wired tools into [`server.js`](file:///c:/Users/abira/Documents/axom/server.js) tool-calling loop (`availableTools`), enabling AXOM to autonomously create real files and directories when requested by the user.
+    - Verified by creating and placing a standalone modern dark-theme calculator at [`C:\Users\abira\Desktop\Calculator\calculator.html`](file:///C:/Users/abira/Desktop/Calculator/calculator.html).
+  - **Real-Time Agentic Status Stream Under Thinking Icon ([`index.html`](file:///c:/Users/abira/Documents/axom/index.html)):**
+    - Enhanced the streaming compute indicator (`.compute-loading`) to render live agentic status steps in monospace (`.agent-live-status`):
+      - "Reasoning (2.4s)..." while generating thinking tokens.
+      - "Executing tool: [name]..." while running local tools or MCP functions.
+      - "Completed: [name]" upon tool finish.
+  - **Raw "Thinking Process:" Leaks Interception:**
+    - Added regex pattern matching in `msgHTML()` to intercept models that output untagged `Thinking Process:` or `Axom\nThinking Process:` in plain text.
+    - Automatically routes internal thought traces into the collapsible reasoning accordion (`<details class="think">`) so raw deliberation never pollutes the user-facing message.
+  - **Git Synchronization**:
+    - Committed changes and pushed to `origin/master`.
+- **How It Was Implemented:**
+  - Files created/modified: [`local_tools.js`](file:///c:/Users/abira/Documents/axom/local_tools.js), [`server.js`](file:///c:/Users/abira/Documents/axom/server.js), [`index.html`](file:///c:/Users/abira/Documents/axom/index.html), [`PROJECT_LOG.md`](file:///c:/Users/abira/Documents/axom/PROJECT_LOG.md).
+- **Why It Was Done:**
+  - Solves model hallucinating about tool capabilities, creates requested desktop calculator, displays live real-time agentic actions under the thinking icon, and eliminates raw thinking leaks.
+
 ## 🔮 Active & Upcoming Work
 
 ### 43. QLoRA Fine-Tuning Execution (`axom:1.2`)
