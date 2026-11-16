@@ -853,9 +853,46 @@
 
 ---
 
+### 36. Free Cloud AI Providers & Multi-Model Inference Hub (2026-11-16)
+- **What Was Done:**
+  - **Free Cloud AI Distributor Catalog & Engine**:
+    - Built [`ai_providers.js`](file:///c:/Users/abira/Documents/axom/ai_providers.js) to manage, persist, test, and stream completions from top free-tier AI cloud providers:
+      - **Groq Cloud (LPU)**: Ultra-fast LPUs (~300 tok/s), generous free tier (14,400 req/day) supporting `Llama 3.3 70B`, `Llama 3.1 8B`, `Mixtral 8x7B`, `Gemma 2 9B`.
+      - **OpenRouter (Free Tier Hub)**: Rotating free models (`:free` suffix) with zero cost ($0.00), including `DeepSeek R1 Free`, `Llama 3.3 70B Free`, `Qwen 2.5 Coder 32B Free`, `Gemma 2 9B Free`.
+      - **Google Gemini (AI Studio)**: Generous 1,500 req/day free tier with 1,000,000+ token context window supporting `Gemini 2.5 Flash`, `Gemini 2.5 Pro`, `Gemini 2.0 Flash`.
+      - **Cerebras Cloud**: World-record 2,000+ tok/s wafer-scale inference with 1,000,000 free tokens/day supporting `Llama 3.3 70B` and `Llama 3.1 8B`.
+      - **DeepSeek Cloud**: Direct DeepSeek API connecting to `DeepSeek-Chat (V3)` and `DeepSeek-Reasoner (R1)`.
+      - **Custom OpenAI-Compatible Proxy**: Universal endpoint adapter for self-hosted LLMs (LM Studio, vLLM, LocalAI) or reverse proxies.
+  - **Secure Local Key Management**:
+    - Keys are stored locally in `data/ai_keys.json` with secure masking (`maskApiKey`).
+    - Added `data/ai_keys.json` to `.gitignore` so personal API keys are never committed to version control.
+  - **Universal Streaming & CoT Extraction**:
+    - Built OpenAI-compatible Server-Sent Events (SSE) streaming engine.
+    - Extracted chain-of-thought reasoning tokens (`delta.reasoning_content`) to match AXOM's native `<details class="think">` expandable accordion.
+    - Zero-emoji sanitization enforced on all cloud outputs.
+    - Automatic Google web search pre-grounding for cloud models when web intelligence is enabled.
+  - **Backend API Routes (`server.js`)**:
+    - `GET /api/models`: dynamically aggregates the local model (`axom:1.1`) and all configured/available cloud models.
+    - `GET /api/providers`: returns provider metadata, badges, free-tier quotas, and connection status.
+    - `POST /api/providers/save`: saves API keys and custom proxy configurations.
+    - `POST /api/providers/test`: tests live connection and measures real-time latency in milliseconds.
+    - `POST /api/chat` & `POST /api/rag/chat`: transparently routes inference requests to either local Ollama or the selected cloud distributor.
+  - **Settings UI & Active Model Indicator (`index.html`)**:
+    - Added a dedicated "AI Providers" tab in the Settings modal with dark-carbon cards, model chips, direct "Get Free Key ↗" portal links, API key password inputs, real-time "Test" buttons, and latency status output.
+    - Grouped model selector in the Generation tab into `<optgroup>` categories (e.g. `AXOM Local Engine`, `Groq Cloud`, `OpenRouter Free Tier`, `Google Gemini`).
+    - Added an interactive active model button in the application header (`.hdr-model-btn`) displaying the currently active neural model with a live status dot, allowing users to switch models or configure providers with one click.
+    - Bilingual English / Portuguese (EN/PT) localization for all strings.
+- **How It Was Implemented:**
+  - Files created: [`ai_providers.js`](file:///c:/Users/abira/Documents/axom/ai_providers.js).
+  - Files modified: [`server.js`](file:///c:/Users/abira/Documents/axom/server.js), [`index.html`](file:///c:/Users/abira/Documents/axom/index.html), [`.gitignore`](file:///c:/Users/abira/Documents/axom/.gitignore).
+- **Why It Was Done:**
+  - The user requested: *"can you add in settings so i can add api key of various free ai distributor and use it in here search for best and all"*
+
+---
+
 ## 🔮 Active & Upcoming Work
 
-### 36. QLoRA Fine-Tuning Execution (`axom:1.2`)
+### 37. QLoRA Fine-Tuning Execution (`axom:1.2`)
 - **Goal:** Run the fine-tuning pipeline (`train/train_unsloth_lora.py`) using the generated 500,490-word synthetic training dataset.
 - **Deliverable:** Quantized GGUF weights for Ollama.
 

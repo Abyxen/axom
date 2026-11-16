@@ -585,6 +585,67 @@ details.think .think-body {
   height: 13px;
 }
 
+/* Active AI Engine Header Pill */
+.hdr-model-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 11px;
+  background: var(--surf);
+  border: 1px solid var(--bd);
+  border-radius: 6px;
+  color: var(--tx);
+  font: 500 11px 'JetBrains Mono', monospace;
+  cursor: pointer;
+  transition: all .15s ease;
+  white-space: nowrap;
+}
+.hdr-model-btn:hover {
+  background: var(--elev);
+  border-color: var(--tx3);
+}
+.hdr-model-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #45D483;
+  box-shadow: 0 0 6px rgba(69,212,131,.6);
+  flex-shrink: 0;
+}
+.hdr-model-name {
+  max-width: 170px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* AI Providers & Cloud Hub Cards */
+.prov-header { margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--bd); }
+.prov-title { font-size: 13px; font-weight: 600; color: var(--tx); display: flex; align-items: center; justify-content: space-between; }
+.prov-sub { font-size: 11px; color: var(--tx2); margin-top: 4px; line-height: 1.45; }
+.prov-list { display: flex; flex-direction: column; gap: 10px; max-height: 52vh; overflow-y: auto; padding-right: 4px; }
+.prov-card { background: var(--surf); border: 1px solid var(--bd); padding: 12px 14px; transition: border-color .15s ease; }
+.prov-card:hover { border-color: var(--tx3); }
+.prov-card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.prov-card-name { font-size: 12.5px; font-weight: 600; color: var(--tx); display: flex; align-items: center; gap: 6px; }
+.prov-pill { font-size: 9px; font-family: 'JetBrains Mono', monospace; padding: 2px 6px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.prov-pill.green { background: rgba(69,212,131,.12); color: #45D483; border: 1px solid rgba(69,212,131,.25); }
+.prov-pill.yellow { background: rgba(245,166,35,.12); color: #F5A623; border: 1px solid rgba(245,166,35,.25); }
+.prov-pill.acid { background: rgba(223,255,0,.1); color: var(--acid); border: 1px solid rgba(223,255,0,.25); }
+.prov-pill.dim { background: var(--elev); color: var(--tx3); }
+.prov-desc { font-size: 11px; color: var(--tx2); margin-bottom: 8px; line-height: 1.4; }
+.prov-models-row { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
+.prov-model-tag { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; background: var(--input); color: var(--tx2); padding: 2px 6px; border: 1px solid var(--bd); }
+.prov-input-row { display: flex; gap: 8px; align-items: center; }
+.prov-input { flex: 1; font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 7px 10px; background: var(--input); border: 1px solid var(--bd); color: var(--tx); }
+.prov-input:focus { border-color: var(--ac); outline: none; }
+.prov-link { font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--ac); text-decoration: none; display: inline-flex; align-items: center; gap: 3px; }
+.prov-link:hover { text-decoration: underline; }
+.prov-btn-test { padding: 6px 10px; font-size: 10px; font-weight: 600; font-family: 'JetBrains Mono', monospace; background: var(--elev); border: 1px solid var(--bd); color: var(--tx); cursor: pointer; white-space: nowrap; }
+.prov-btn-test:hover { background: var(--bd); }
+.prov-btn-test:disabled { opacity: .4; cursor: default; }
+.prov-save-bar { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--bd); display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+
 /* RAG Studio Main Layout */
 .rag-studio {
   display: flex;
@@ -1064,7 +1125,7 @@ const Axom={
       if(!r.ok)throw 0;
       Axom.connected=true;
       const data=await r.json();
-      const list = Array.isArray(data) ? data : (data.models || []);
+      const list = Array.isArray(data) ? data : (data.data || data.models || []);
       return list.map(m=>typeof m === 'string' ? { id: m, name: (m==='axom:1.1'||m==='axom:latest') ? 'Axom v1.1' : m } : m);
     }catch(e){
       Axom.connected=false;
@@ -1196,6 +1257,17 @@ const activeRuns=new Map();
 let models=[],query='',atts=[],run=null,pop=null,fresh=-1;
 const cur=()=>S.convs.find(c=>c.id===S.cur);
 
+function getCurrentModelName(){
+  const found = models.find(m => m.id === S.model);
+  if(found) return found.name || found.id;
+  if(S.model === 'axom:1.1') return 'Axom v1.1';
+  return S.model || 'Axom v1.1';
+}
+function updateHeaderModel(){
+  const el = document.querySelector('.hdr-model-name');
+  if(el) el.textContent = getCurrentModelName();
+}
+
 /* ---- i18n dictionary ---- */
 const I18N = {
   en: {
@@ -1305,8 +1377,22 @@ const I18N = {
     tabBrain: "Brain",
     tabAppearance: "Appearance",
     tabGeneration: "Generation",
+    tabProviders: "AI Providers",
     tabTraining: "Training",
     tabAbout: "About",
+    provTitle: "Cloud AI Distributors & Free APIs",
+    provSub: "Connect free API keys from top AI cloud providers (Groq, OpenRouter, Google Gemini, Cerebras, DeepSeek) to chat with state-of-the-art models with zero GPU load.",
+    statusConnected: "Connected",
+    statusNotConfigured: "Not Set",
+    getKey: "Get Free Key",
+    enterApiKey: "Paste API Key here...",
+    testConnection: "Test",
+    testing: "Testing...",
+    saveProviders: "Save Provider Keys",
+    saving: "Saving...",
+    saved: "Keys Saved & Models Updated",
+    keysStoredLocally: "Keys are stored locally in data/ai_keys.json and never committed.",
+    currentModelBadge: "Active AI Engine - Click to switch",
     founderRole: "FOUNDER & CREATOR",
     roleLabel: "Role",
     accountRole: "Model Creator & System Architect",
@@ -1489,8 +1575,22 @@ const I18N = {
     tabBrain: "Cérebro",
     tabAppearance: "Aparência",
     tabGeneration: "Geração",
+    tabProviders: "Provedores de IA",
     tabTraining: "Treino",
     tabAbout: "Sobre",
+    provTitle: "Distribuidores de IA na Nuvem & APIs Gratuitas",
+    provSub: "Ligue chaves de API gratuitas dos principais provedores (Groq, OpenRouter, Google Gemini, Cerebras, DeepSeek) para conversar com modelos de ponta sem sobrecarga de GPU.",
+    statusConnected: "Ligado",
+    statusNotConfigured: "Não Definido",
+    getKey: "Obter Chave Grátis",
+    enterApiKey: "Cole a Chave de API aqui...",
+    testConnection: "Testar",
+    testing: "A testar...",
+    saveProviders: "Salvar Chaves de Provedor",
+    saving: "A salvar...",
+    saved: "Chaves Salvas & Modelos Atualizados",
+    keysStoredLocally: "Chaves guardadas localmente em data/ai_keys.json e nunca partilhadas.",
+    currentModelBadge: "Motor de IA Ativo - Clique para alternar",
     founderRole: "FUNDADOR & CRIADOR",
     roleLabel: "Cargo",
     accountRole: "Criador do Modelo & Arquiteto de Sistemas",
@@ -1873,6 +1973,10 @@ function shell(){
       <button class="ib" data-act="drawer" aria-label="${t('toggleSidebar')}" title="${t('toggleSidebar')}">${ic('panel')}</button>
       <div class="ttl">${headerTitle}</div>
       <span class="sp"></span>
+      <button class="hdr-model-btn" data-act="openmodelsettings" title="${t('currentModelBadge')}">
+        <span class="hdr-model-dot"></span>
+        <span class="hdr-model-name">${esc(getCurrentModelName())}</span>
+      </button>
       <div class="hdr-view-switch" role="tablist">
         <button class="hdr-view-btn ${!isRag?'on':''}" data-act="setview" data-v="chat">${ic('chat')}<span>${t('modeChat')}</span></button>
         <button class="hdr-view-btn ${isRag?'on':''}" data-act="setview" data-v="rag">${ic('book')}<span>${t('modeRag')}</span><span class="rag-pill">VAULT</span></button>
@@ -2860,32 +2964,51 @@ function dialog({title,body='',ok=t('ok'),cancel=t('cancel'),danger,input}){retu
 function closeDrawer(){$('#side')?.classList.remove('open')}
 
 /* ---- settings ---- */
-let activeMemories=[], trainingMetrics=null;
+let activeMemories=[], trainingMetrics=null, activeProviders=[];
 
 async function fetchSettingsData(){
   try{
-    const [mRes, tRes] = await Promise.all([
+    const [mRes, tRes, pRes] = await Promise.all([
       fetch('/api/memories').then(r=>r.ok?r.json():[]),
-      fetch('/api/training/metrics').then(r=>r.ok?r.json():null)
+      fetch('/api/training/metrics').then(r=>r.ok?r.json():null),
+      fetch('/api/providers').then(r=>r.ok?r.json():{providers:[]})
     ]);
-    activeMemories=mRes; trainingMetrics=tRes;
+    activeMemories=mRes; trainingMetrics=tRes; activeProviders=pRes?.providers || [];
   }catch(e){}
+}
+
+function renderModelOptions(selectedModel) {
+  const list = models.length ? models : [{ id: 'axom:1.1', name: 'Axom v1.1', provider: 'local', providerName: 'AXOM Local Engine' }];
+  const groups = {};
+  for (const m of list) {
+    const pName = m.providerName || (m.provider === 'local' ? 'AXOM Local Engine' : 'Cloud AI Models');
+    if (!groups[pName]) groups[pName] = [];
+    groups[pName].push(m);
+  }
+  return Object.entries(groups).map(([groupName, groupModels]) => {
+    const opts = groupModels.map(m => {
+      const freeTag = m.free_tier_note ? ` [${m.free_tier_note}]` : '';
+      return `<option value="${esc(m.id)}" ${m.id === selectedModel ? 'selected' : ''}>${esc(m.name || m.id)}${esc(freeTag)}</option>`;
+    }).join('');
+    return `<optgroup label="${esc(groupName)}">${opts}</optgroup>`;
+  }).join('');
 }
 
 async function settings(tab='account'){
   await fetchSettingsData();
   $('.set-ov')?.remove();const o=document.createElement('div');o.className='ov set-ov';
-  const tabKeys=['account','brain','appearance','generation','training','about'];
+  const tabKeys=['account','brain','appearance','generation','providers','training','about'];
   const tabLabels={
     account: t('tabAccount'),
     brain: t('tabBrain'),
     appearance: t('tabAppearance'),
     generation: t('tabGeneration'),
+    providers: t('tabProviders'),
     training: t('tabTraining'),
     about: t('tabAbout')
   };
   const tabs=tabKeys.map(k=>`<button class="${k===tab?'on':''}" data-tab="${k}">${tabLabels[k]}</button>`).join('');
-  const modelOptions = (models.length ? models : [{id:'axom:1.1',name:'Axom v1.1'}]).map(m=>`<option value="${esc(m.id)}" ${m.id===S.model?'selected':''}>${esc(m.name||m.id)}</option>`).join('');
+  const modelOptions = renderModelOptions(S.model);
 
   const pane={
    account:`<div class="set">
@@ -2945,6 +3068,59 @@ async function settings(tab='account'){
      `<div class="set"><label for="r-top_k">${t('topKLabel')}</label><div class="ctl"><input type="range" id="r-top_k" data-g="top_k" min="0" max="100" step="1" value="${S.gen.top_k}"><input type="number" data-g="top_k" min="0" max="100" step="1" value="${S.gen.top_k}"></div></div>` +
      `<div class="set"><label for="r-max_tokens">${t('maxTokensLabel')}</label><div class="ctl"><input type="range" id="r-max_tokens" data-g="max_tokens" min="64" max="1024" step="64" value="${S.gen.max_tokens}"><input type="number" data-g="max_tokens" min="64" max="1024" step="64" value="${S.gen.max_tokens}"></div></div>` +
      `<div class="set"><label for="seed">${t('seedLabel')}<small>${t('seedSub')}</small></label><div class="ctl"><input type="number" data-g="seed" id="seed" value="${S.gen.seed}"></div></div><div class="set"><label for="stp">${t('stopSeqLabel')}</label><div class="ctl"><input type="text" id="stp" data-g="stop" value="${esc(S.gen.stop)}" placeholder="${t('stopSeqPlaceholder')}"></div></div>`,
+   providers: `<div class="set" style="padding:0">
+     <div class="prov-header">
+       <div class="prov-title">
+         <span>${t('provTitle')}</span>
+         <span class="prov-pill acid">FREE TIERS</span>
+       </div>
+       <p class="prov-sub">${t('provSub')}</p>
+     </div>
+     <div class="prov-list">
+       ${(activeProviders.length ? activeProviders : [
+         { id: 'groq', name: 'Groq Cloud', free_tier: '14,400 req/day · 300+ tok/s', key_url: 'https://console.groq.com/keys', key_prefix: 'gsk_', has_key: false, models: ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'mixtral-8x7b-32768'] },
+         { id: 'openrouter', name: 'OpenRouter (Free Hub)', free_tier: 'Free Models: DeepSeek R1, Llama 3.3', key_url: 'https://openrouter.ai/keys', key_prefix: 'sk-or-v1-', has_key: false, models: ['deepseek/deepseek-r1:free', 'meta-llama/llama-3.3-70b-instruct:free', 'qwen/qwen-2.5-coder-32b-instruct:free'] },
+         { id: 'gemini', name: 'Google Gemini (AI Studio)', free_tier: '1,500 req/day · 1M Context', key_url: 'https://aistudio.google.com/app/apikey', key_prefix: 'AIzaSy', has_key: false, models: ['gemini-2.5-flash', 'gemini-2.5-pro'] },
+         { id: 'cerebras', name: 'Cerebras Cloud', free_tier: '1M tokens/day · 2,000+ tok/s', key_url: 'https://cloud.cerebras.ai/', key_prefix: 'csk-', has_key: false, models: ['llama-3.3-70b', 'llama3.1-8b'] },
+         { id: 'deepseek', name: 'DeepSeek Cloud', free_tier: 'Direct DeepSeek API (V3/R1)', key_url: 'https://platform.deepseek.com/api_keys', key_prefix: 'sk-', has_key: false, models: ['deepseek-chat', 'deepseek-reasoner'] },
+         { id: 'custom', name: 'Custom OpenAI-Compatible Proxy', free_tier: 'Self-Hosted / Proxy', key_url: '', key_prefix: '', has_key: false, models: [] }
+       ]).map(p => {
+         const isConfigured = p.has_key;
+         const statusBadge = isConfigured 
+           ? `<span class="prov-pill green">${t('statusConnected')}</span>` 
+           : `<span class="prov-pill dim">${t('statusNotConfigured')}</span>`;
+         const modelTags = (p.models || []).map(m => `<span class="prov-model-tag">${esc(m)}</span>`).join('');
+         return `
+           <div class="prov-card" data-provider="${esc(p.id)}">
+             <div class="prov-card-top">
+               <div class="prov-card-name">
+                 <span>${esc(p.name)}</span>
+                 ${statusBadge}
+               </div>
+               ${p.key_url ? `<a href="${esc(p.key_url)}" target="_blank" rel="noopener" class="prov-link">${t('getKey')} &nearr;</a>` : ''}
+             </div>
+             <div class="prov-desc">${esc(p.free_tier || '')}</div>
+             ${modelTags ? `<div class="prov-models-row">${modelTags}</div>` : ''}
+             ${p.id === 'custom' ? `
+               <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+                 <input type="text" class="prov-input" data-custom-url placeholder="Endpoint (e.g. http://localhost:11434/v1)" value="${esc(p.base_url || '')}">
+                 <input type="text" class="prov-input" data-custom-model placeholder="Model ID (e.g. llama3)" value="${esc(p.custom_model || '')}">
+               </div>
+             ` : ''}
+             <div class="prov-input-row">
+               <input type="password" class="prov-input" data-key-input="${esc(p.id)}" placeholder="${isConfigured ? esc(p.masked_key || '••••••••') : (p.key_prefix ? p.key_prefix + '...' : t('enterApiKey'))}" value="${isConfigured ? esc(p.masked_key || '') : ''}">
+               <button type="button" class="prov-btn-test" data-act-test="${esc(p.id)}" ${!isConfigured ? 'disabled' : ''}>${t('testConnection')}</button>
+             </div>
+             <div class="prov-test-status" data-test-status="${esc(p.id)}" style="font-size:10px;font-family:'JetBrains Mono',monospace;margin-top:5px;display:none"></div>
+           </div>
+         `;
+       }).join('')}
+     </div>
+     <div class="prov-save-bar">
+       <span style="font-size:11px;color:var(--tx3);font-family:'JetBrains Mono',monospace">${t('keysStoredLocally')}</span>
+       <button id="btn-save-providers" class="btn pri" style="padding:7px 16px;font-size:11px;font-weight:600">${t('saveProviders')}</button>
+     </div>
+   </div>`,
    training:`<div class="set">
      <label>${t('trainingDash')}<small>${t('trainingSub')}</small></label>
      ${trainingMetrics?`
@@ -3003,8 +3179,90 @@ async function settings(tab='account'){
         window.open('obsidian://open?path=' + encodeURIComponent('C:\\Users\\abira\\Documents\\Axom_Brain'), '_blank');
       }
     }
+    if(target.id==='btn-save-providers'){
+      target.disabled=true;target.textContent=t('saving');
+      const keysPayload={};
+      $$('.prov-card', o).forEach(card=>{
+        const provId=card.dataset.provider;
+        const keyInput=card.querySelector(`[data-key-input="${provId}"]`);
+        const customUrlInput=card.querySelector('[data-custom-url]');
+        const customModelInput=card.querySelector('[data-custom-model]');
+        const val=keyInput?.value?.trim()||'';
+        if(val && !val.includes('••••')){
+          keysPayload[provId]=val;
+        }else if(!val){
+          keysPayload[provId]='';
+        }
+        if(customUrlInput)keysPayload.custom_url=customUrlInput.value.trim();
+        if(customModelInput)keysPayload.custom_model=customModelInput.value.trim();
+      });
+      try{
+        const r=await fetch('/api/providers/save',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify(keysPayload)
+        });
+        const d=await r.json();
+        target.textContent=t('saved');
+        toast(t('saved'));
+        const m=await Axom.models();
+        if(Array.isArray(m)&&m.length)models=m;
+        updateHeaderModel();
+        await fetchSettingsData();
+        setTimeout(()=>{settings('providers')},400);
+      }catch(err){
+        target.disabled=false;target.textContent=t('saveProviders');
+        toast('Save error: '+err.message);
+      }
+    }
+    const testBtn=target.closest('[data-act-test]');
+    if(testBtn){
+      const provId=testBtn.dataset.actTest;
+      const card=testBtn.closest('.prov-card');
+      const statusEl=card?.querySelector(`[data-test-status="${provId}"]`);
+      testBtn.disabled=true;
+      testBtn.textContent=t('testing');
+      if(statusEl){
+        statusEl.style.display='block';
+        statusEl.style.color='var(--tx3)';
+        statusEl.textContent='Testing '+provId+' connection...';
+      }
+      try{
+        const r=await fetch('/api/providers/test',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({provider_id:provId})
+        });
+        const data=await r.json();
+        testBtn.disabled=false;
+        testBtn.textContent=t('testConnection');
+        if(statusEl){
+          if(data.ok){
+            statusEl.style.color='#45D483';
+            statusEl.textContent=`OK (${data.latency_ms}ms) - Model: ${data.model||'ready'}`;
+          }else{
+            statusEl.style.color='var(--err)';
+            statusEl.textContent=`Failed: ${data.error||'Error'}`;
+          }
+        }
+      }catch(err){
+        testBtn.disabled=false;
+        testBtn.textContent=t('testConnection');
+        if(statusEl){
+          statusEl.style.color='var(--err)';
+          statusEl.textContent='Network error: '+err.message;
+        }
+      }
+    }
   };
   o.oninput=e=>{const target=e.target,g=target.dataset.g;
+    if(target.matches('[data-key-input]')){
+      const provId=target.dataset.keyInput;
+      const testBtn=o.querySelector(`[data-act-test="${provId}"]`);
+      if(testBtn&&target.value.trim()){
+        testBtn.disabled=false;
+      }
+    }
     if(g){const v=target.type==='number'||target.type==='range'?+target.value:target.value;S.gen[g]=v;$$(`[data-g="${g}"]`,o).forEach(x=>{if(x!==target)x.value=v})}
     if(target.id==='th'){S.theme=target.value;applyTheme()}if(target.id==='api')S.api=target.value.trim().replace(/\/$/,'');if(target.id==='ent')S.enterSends=target.checked;save();
     fetch('/api/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({theme:S.theme,gen:S.gen,effort:S.effort})});
@@ -3017,6 +3275,7 @@ document.addEventListener('change',e=>{
   if(e.target.id==='modelSelect'){
     S.model=e.target.value;
     save();
+    updateHeaderModel();
     toast(e.target.options[e.target.selectedIndex].text);
   }
   if(e.target.id==='showThinking'){
@@ -3153,6 +3412,7 @@ document.addEventListener('click',async e=>{
   else if(a==='voice')toggleVoice();
   else if(a==='rmfile'){atts.splice(+b.dataset.i,1);drawAtts();updSend()}
   else if(a==='settings')settings();
+  else if(a==='openmodelsettings')settings('providers');
   else if(a==='menu'){e.stopPropagation();const v=S.convs.find(x=>x.id===id);popover(b,`<button data-act="rename" data-id="${id}">${t('rename')}</button><button data-act="pinc" data-id="${id}">${v.pinned?t('unpin'):t('pin')}</button><button data-act="exp" data-id="${id}">${t('exportMd')}</button><div class="sep"></div><button style="color:var(--err)" data-act="del" data-id="${id}">${t('del')}</button>`)}
   else if(a==='rename'){const v=S.convs.find(x=>x.id===id),rName=await dialog({title:t('renameTitle'),input:v.title,ok:t('rename')});if(rName?.trim()){v.title=rName.trim();save();shell()}}
   else if(a==='pinc'){const v=S.convs.find(x=>x.id===id);v.pinned=!v.pinned;save();$('#list').innerHTML=sideHTML()}
@@ -3307,6 +3567,7 @@ applyTheme();shell();InsideBrowser.init();loadRagDocs();focusInput();
 Axom.models().then(m=>{
   models=m;
   if(m.length&&!m.some(x=>x.id===S.model))S.model=m[0].id;
+  updateHeaderModel();
   save();
   updSend();
 });

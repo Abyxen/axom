@@ -17,6 +17,7 @@ const fileService = require('./file_service');
 const researchSkills = require('./research_skills');
 const mcpClient = require('./mcp_client');
 const ragService = require('./rag_service');
+const aiProviders = require('./ai_providers');
 
 const PORT = 8000;
 const HOST = '127.0.0.1';
@@ -210,12 +211,54 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
-  // --- API: Model Listing ---
+  // --- API: Model Listing (Local + Cloud AI Providers) ---
   if (req.method === 'GET' && pathname === '/api/models') {
+    const list = aiProviders.getCombinedModelList();
     return sendJson(res, 200, {
-      models: ['axom:1.1'],
-      data: [{ id: 'axom:1.1', name: 'Axom v1.1' }]
+      models: list.map(m => m.id),
+      data: list
     });
+  }
+
+  // --- API: AI Providers Listing & Status ---
+  if (req.method === 'GET' && pathname === '/api/providers') {
+    return sendJson(res, 200, aiProviders.getProviderStatusList());
+  }
+
+  // --- API: Save AI Provider Keys & Configuration ---
+  if (req.method === 'POST' && pathname === '/api/providers/save') {
+    let bodyText = '';
+    req.on('data', chunk => { bodyText += chunk; });
+    req.on('end', () => {
+      try {
+        const body = JSON.parse(bodyText || '{}');
+        const result = aiProviders.saveProvidersConfig(body);
+        return sendJson(res, 200, { success: true, ...result });
+      } catch (e) {
+        return sendJson(res, 400, { error: e.message });
+      }
+    });
+    return;
+  }
+
+  // --- API: Test AI Provider Connection & Latency ---
+  if (req.method === 'POST' && pathname === '/api/providers/test') {
+    let bodyText = '';
+    req.on('data', chunk => { bodyText += chunk; });
+    req.on('end', async () => {
+      try {
+        const body = JSON.parse(bodyText || '{}');
+        const providerId = body.provider_id || body.providerId;
+        const apiKey = body.api_key || body.apiKey || '';
+        const customBaseUrl = body.custom_url || body.baseUrl || '';
+        const customModel = body.custom_model || body.customModel || '';
+        const testRes = await aiProviders.testProviderConnection(providerId, apiKey, customBaseUrl, customModel);
+        return sendJson(res, 200, testRes);
+      } catch (e) {
+        return sendJson(res, 500, { ok: false, error: e.message });
+      }
+    });
+    return;
   }
 
   // --- API: Memories & Permanent Profile State ---
@@ -606,7 +649,7 @@ button:hover{background:#3f3f46}
     req.on('end', async () => {
       try {
         const body = JSON.parse(bodyText || '{}');
-        const requestedModel = 'axom:1.1';
+        const requestedModel = (body.model && body.model.trim()) || 'axom:1.1';
         const messages = Array.isArray(body.messages) ? body.messages : [];
         const isStream = body.stream !== false;
         const topK = typeof body.top_k === 'number' ? body.top_k : 4;
@@ -629,6 +672,26 @@ button:hover{background:#3f3f46}
         for (const msg of messages) {
           if (msg.role !== 'system') {
             formattedMessages.push({ role: msg.role, content: msg.content });
+          }
+        }
+
+        // Direct Cloud Provider Streaming for RAG
+        if (aiProviders.isCloudModel(requestedModel)) {
+          if (isStream) {
+            setCors(res);
+            res.writeHead(200, {
+              'Content-Type': 'text/event-stream; charset=utf-8',
+              'Cache-Control': 'no-cache, no-transform',
+              'Connection': 'keep-alive'
+            });
+            res.write(`data: ${JSON.stringify({ type: 'citations', citations: chunks })}\n\n`);
+            return await aiProviders.streamProviderChat({
+              model: requestedModel,
+              messages: formattedMessages,
+              temperature: 0.2,
+              max_tokens: 2048,
+              res
+            });
           }
         }
 
@@ -720,7 +783,7 @@ button:hover{background:#3f3f46}
     req.on('end', async () => {
       try {
         const body = JSON.parse(bodyText);
-        const requestedModel = 'axom:1.1';
+        const requestedModel = (body.model && body.model.trim()) || 'axom:1.1';
         const sessionId = body.session_id || 'default_session';
         const messages = Array.isArray(body.messages) ? body.messages : [];
         const params = body.params || {};
@@ -810,6 +873,81 @@ CRITICAL OPERATIONAL PRINCIPLES:
         res.on('close', () => {
           if (!res.writableEnded) controller.abort();
         });
+
+        // --- DIRECT CLOUD AI DISTRIBUTOR ROUTING (Groq, OpenRouter, Gemini, Cerebras, DeepSeek) ---
+        if (aiProviders.isCloudModel(requestedModel)) {
+          // If web search is needed or toggled, pre-ground with Google search results
+          if ((webSearchEnabled || autoSearchNeeded) && lastUserPrompt) {
+            try {
+              const query = browser.extractSearchQuery(lastUserPrompt) || lastUserPrompt;
+              const searchRes = await browser.searchWeb(query);
+              if (searchRes && searchRes.results && searchRes.results.length) {
+                const searchBlock = `\n\n# REAL-TIME GOOGLE WEB SEARCH RESULTS FOR "${query}":\n` +
+                  searchRes.results.slice(0, 5).map((r, i) => `[${i + 1}] ${r.title}\nURL: ${r.link}\n${r.snippet}`).join('\n\n');
+                if (formattedMessages[0]?.role === 'system') {
+                  formattedMessages[0].content += searchBlock;
+                } else {
+                  formattedMessages.unshift({ role: 'system', content: searchBlock });
+                }
+              }
+            } catch (sErr) {
+              console.warn('[SERVER] Cloud web search grounding notice:', sErr.message);
+            }
+          }
+
+          if (isStream) {
+            setCors(res);
+            res.writeHead(200, {
+              'Content-Type': 'text/event-stream; charset=utf-8',
+              'Cache-Control': 'no-cache, no-transform',
+              'Connection': 'keep-alive'
+            });
+
+            return await aiProviders.streamProviderChat({
+              model: requestedModel,
+              messages: formattedMessages,
+              temperature: typeof params.temperature === 'number' ? params.temperature : 0.4,
+              max_tokens: Math.max(typeof params.max_tokens === 'number' ? params.max_tokens : 2048, 2048),
+              res,
+              onFinish: (fullReply) => {
+                if (fullReply) {
+                  db.logChatMessage(sessionId, 'assistant', fullReply);
+                  reviewer.scheduleSessionReview(sessionId, 15000, 'axom:1.1', OLLAMA_BASE);
+                }
+              }
+            });
+          } else {
+            let gatheredText = '';
+            const mockRes = {
+              write: (chunk) => {
+                const match = chunk.match(/^data: (.*)\n\n$/);
+                if (match) {
+                  try {
+                    const parsed = JSON.parse(match[1]);
+                    if (parsed.text) gatheredText += parsed.text;
+                  } catch (e) {}
+                }
+              },
+              end: () => {}
+            };
+            await aiProviders.streamProviderChat({
+              model: requestedModel,
+              messages: formattedMessages,
+              temperature: typeof params.temperature === 'number' ? params.temperature : 0.4,
+              max_tokens: Math.max(typeof params.max_tokens === 'number' ? params.max_tokens : 2048, 2048),
+              res: mockRes,
+              onFinish: (fullReply) => {
+                if (fullReply) {
+                  db.logChatMessage(sessionId, 'assistant', fullReply);
+                  reviewer.scheduleSessionReview(sessionId, 15000, 'axom:1.1', OLLAMA_BASE);
+                }
+              }
+            });
+            return sendJson(res, 200, {
+              message: { role: 'assistant', content: gatheredText }
+            });
+          }
+        }
 
         // --- AGENTIC WORKFLOW: Autonomous Multi-Turn Web Search, MCP & Tools ---
         if (agentModeEnabled) {
