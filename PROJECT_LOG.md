@@ -1156,6 +1156,33 @@
 - **Why It Was Done:**
   - Autonomous maintenance loop iteration 2: verifying and optimizing document grounding, vector indexing, and zero-hallucination compliance.
 
+---
+
+### 46. Smart Chat Sticky Scroll, Web Speech TTS Engine, Prompt Editing & 1-Click Colab QLoRA Pipeline
+- **Date:** 2026-11-16
+- **What Was Done:**
+  - **Intelligent Sticky Scroll & Floating Pill (`↓ Scroll to bottom`)**:
+    - Resolved the streaming scroll-fight issue where users reading earlier passages had their viewport forcibly snapped to the bottom on every arriving token.
+    - Added smart scroll detection in [`index.html`](file:///c:/Users/abira/Documents/axom/index.html): when the user scrolls up (>75px from bottom), auto-scroll pauses cleanly and a floating pill button (`↓ Scroll to bottom`) appears.
+    - Clicking the button smoothly scrolls to the bottom and re-engages sticky auto-scrolling. New user prompts and fresh sessions automatically reset scroll tracking.
+  - **1-Click Message Editing & Forking**:
+    - Added an interactive Edit button (`✎`) on previous user turns in [`index.html`](file:///c:/Users/abira/Documents/axom/index.html).
+    - Clicking loads the prior turn text directly into the expanding prompt composer, focuses the cursor, and calculates the appropriate line height for immediate revision.
+  - **Web Speech Audio TTS Engine**:
+    - Added a Read Aloud (`🔊`) button on all assistant messages.
+    - Implemented `speakText(text, btn)` utilizing the browser's native `window.speechSynthesis` API with automatic Markdown tag stripping, code block omission, rate optimization (1.05x), and active audio pulse animations.
+  - **1-Click Google Colab QLoRA Fine-Tuning Notebook ([train/axom_v1_2_colab_finetune.ipynb](file:///c:/Users/abira/Documents/axom/train/axom_v1_2_colab_finetune.ipynb))**:
+    - Created an official Jupyter Notebook designed for free Google Colab T4 GPUs to fine-tune `axom:1.2` using Unsloth 2x acceleration.
+    - Pre-configured to load `unsloth/Qwen2.5-3B-Instruct` in 4-bit, inject 16-rank LoRA adapters, train on `axom_alpaca.json`, and export quantized `q4_k_m` GGUF binaries directly for Ollama (`ollama create axom:1.2 -f Modelfile`).
+  - **Obsidian Second Brain Synchronization**:
+    - Executed [`obsidian_vault.js`](file:///c:/Users/abira/Documents/axom/obsidian_vault.js) memory sync, updating all 109 notes across `Profile/`, `Memories/`, `Knowledge/`, and `Conversations/` in `C:\Users\abira\Documents\Axom_Brain`.
+  - **Full Living Brain Verification**:
+    - Executed `test_suite.ps1` with 100% PASS across all 7 verification steps (SQLite, Profile memory, cross-session recall).
+- **How It Was Implemented:**
+  - Files modified: [`index.html`](file:///c:/Users/abira/Documents/axom/index.html), [`train/axom_v1_2_colab_finetune.ipynb`](file:///c:/Users/abira/Documents/axom/train/axom_v1_2_colab_finetune.ipynb), [`PROJECT_LOG.md`](file:///c:/Users/abira/Documents/axom/PROJECT_LOG.md).
+- **Why It Was Done:**
+  - Continuous autonomous improvement during user absence, optimizing chat ergonomics, accessibility, model training pipelines, and personal knowledge graphs.
+
 ## 🔮 Active & Upcoming Work
 
 ### 43. QLoRA Fine-Tuning Execution (`axom:1.2`)
