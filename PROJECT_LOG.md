@@ -1358,6 +1358,26 @@
 - **Why It Was Done:**
   - Scheduled autonomous maintenance check (iteration 11) adding header command navigation, terminal clipboard ergonomics, and expanding training data.
 
+## 55. ArrowUp Prompt Recall, Command Palette Hint Discovery & Maintenance Check (Iteration 12)
+- **Date:** 2026-11-16
+- **What Was Done:**
+  - **Terminal-Style Prompt Recall (`ArrowUp` in Empty Composer):**
+    - Added keyboard event handling in `bindInput()`: when the message input (`#inp`) is completely empty and the user presses `ArrowUp`, AXOM automatically loads their previous prompt into the composer, auto-resizes the textarea height, sets the caret to the end of the text, and triggers live token count estimation.
+  - **Command Palette Hint Discovery:**
+    - Updated `hintKeys` localization strings in both English and Portuguese to highlight `<kbd>Ctrl+K</kbd> commands` alongside Enter and Shift+Enter.
+  - **Synthetic Training Dataset Expansion (`axom:1.2`):**
+    - Added 2 new alignment pairs to [`train/export_dataset.js`](file:///c:/Users/abira/Documents/axom/train/export_dataset.js) detailing prompt editing workflows and zero-downtime failover mechanisms.
+    - Re-exported **224 Alpaca instruction pairs** ([`train/axom_alpaca.json`](file:///c:/Users/abira/Documents/axom/train/axom_alpaca.json)) and **111 multi-turn conversations** ([`train/axom_sharegpt.jsonl`](file:///c:/Users/abira/Documents/axom/train/axom_sharegpt.jsonl)).
+  - **Living Brain Verification**:
+    - Executed `test_suite.ps1`: 100% PASS across all 7 steps (health, active profile, preference injection, transcript persistence, SQLite mutation, cross-session recall).
+  - **Daemon Health**:
+    - Ollama daemon (`task-6447`): 8.5 hours continuous uptime on local RTX 5060 GPU (`127.0.0.1:11434`).
+    - AXOM Server (`task-7865`): 3.5 hours continuous uptime on port 8000.
+- **How It Was Implemented:**
+  - Files modified: [`index.html`](file:///c:/Users/abira/Documents/axom/index.html), [`train/export_dataset.js`](file:///c:/Users/abira/Documents/axom/train/export_dataset.js), [`train/axom_alpaca.json`](file:///c:/Users/abira/Documents/axom/train/axom_alpaca.json), [`train/axom_sharegpt.jsonl`](file:///c:/Users/abira/Documents/axom/train/axom_sharegpt.jsonl), [`PROJECT_LOG.md`](file:///c:/Users/abira/Documents/axom/PROJECT_LOG.md).
+- **Why It Was Done:**
+  - Scheduled autonomous maintenance check (iteration 12) adding shell-like prompt recall, Command Palette hint surfacing, and expanding alignment data.
+
 ## 🔮 Active & Upcoming Work
 
 ### 43. QLoRA Fine-Tuning Execution (`axom:1.2`)

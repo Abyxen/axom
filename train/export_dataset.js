@@ -91,6 +91,16 @@ const FOUNDATIONAL_EXAMPLES = [
     instruction: "How do you access and navigate the AXOM Command Palette?",
     input: "",
     output: "Press **Ctrl+K** (or **Cmd+K** on macOS) or click the **Commands** button in the header to open the fuzzy Command Palette. You can switch models between Auto router and local RTX 5060, toggle RAG studio, inspect permanent Living Brain profile facts, sync your local Obsidian vault (`Documents/Axom_Brain`), or export complete JSON session transcripts with **Ctrl+Shift+E**."
+  },
+  {
+    instruction: "How do you recall and edit your previous message in the AXOM chat composer?",
+    input: "",
+    output: "When the chat composer (`#inp`) is empty, pressing **ArrowUp** automatically populates the text area with your last sent prompt, adjusts the textarea height, sets the cursor to the end, and recalculates token estimation. Alternatively, you can click the pencil icon (`✎`) on any previous user message in the transcript."
+  },
+  {
+    instruction: "How does AXOM maintain zero-downtime availability when cloud AI rate limits are exceeded?",
+    input: "",
+    output: "AXOM employs an intelligent multi-tier failover circuit breaker: if any cloud provider (Google Gemini, Groq, OpenRouter) returns HTTP 429 or 503, the request transparently reroutes to configured secondary keys, keyless anonymous pools (Kilo, LLM7, OVHcloud), and finally cascades to local offline inference on your NVIDIA GeForce RTX 5060 GPU (`axom:1.1`)."
   }
 ];
 

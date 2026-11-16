@@ -2194,7 +2194,7 @@ const I18N = {
     send: "Send",
     stop: "Stop generating",
     disclaimer: "AI can make mistakes. Check critical outputs.",
-    hintKeys: "<kbd>Enter</kbd> to send &nbsp; <kbd>Shift + Enter</kbd> new line",
+    hintKeys: "<kbd>Enter</kbd> to send &nbsp; <kbd>Shift+Enter</kbd> new line &nbsp; <kbd>Ctrl+K</kbd> commands",
     heroGreeting: "How can I help you today?",
     heroSub: "Autonomous intelligence, local neural reasoning, and research workflows.",
     rename: "Rename",
@@ -2389,7 +2389,7 @@ const I18N = {
     send: "Enviar",
     stop: "Parar geração",
     disclaimer: "A IA pode cometer erros. Verifique informações críticas.",
-    hintKeys: "<kbd>Enter</kbd> para enviar &nbsp; <kbd>Shift + Enter</kbd> nova linha",
+    hintKeys: "<kbd>Enter</kbd> para enviar &nbsp; <kbd>Shift+Enter</kbd> nova linha &nbsp; <kbd>Ctrl+K</kbd> comandos",
     heroGreeting: "Como posso ajudar hoje?",
     heroSub: "Inteligência autónoma, raciocínio neural local e fluxos de pesquisa.",
     rename: "Renomear",
@@ -3638,7 +3638,26 @@ function drawAtts(){
 function bindInput(){
   const i=$('#inp'),box=$('#cbox'),fi=$('#file');
   i.addEventListener('input',()=>{i.style.height='auto';i.style.height=Math.min(i.scrollHeight,200)+'px';updSend()});
-  i.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing&&(S.enterSends?!e.shiftKey:e.ctrlKey)){e.preventDefault();if(!run)send()}});
+  i.addEventListener('keydown',e=>{
+    if(e.key==='Enter'&&!e.isComposing&&(S.enterSends?!e.shiftKey:e.ctrlKey)){
+      e.preventDefault();
+      if(!run)send();
+    }
+    else if(e.key==='ArrowUp' && !i.value.trim()){
+      const c = cur();
+      if(c && c.msgs.length){
+        const lastUser = [...c.msgs].reverse().find(m => m.role === 'user');
+        if(lastUser && lastUser.text){
+          e.preventDefault();
+          i.value = lastUser.text;
+          i.style.height = 'auto';
+          i.style.height = Math.min(i.scrollHeight, 200) + 'px';
+          i.setSelectionRange(i.value.length, i.value.length);
+          updSend();
+        }
+      }
+    }
+  });
   i.addEventListener('paste',e=>{if(e.clipboardData.files.length){e.preventDefault();addFiles(e.clipboardData.files)}});
   fi.addEventListener('change',()=>{addFiles(fi.files);fi.value=''});
   box.addEventListener('dragover',e=>{e.preventDefault();box.classList.add('drag')});
